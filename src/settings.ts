@@ -2,10 +2,12 @@ import {App, ButtonComponent, PluginSettingTab, Setting} from "obsidian";
 import MyPlugin from "./main";
 import RssReaderPlugin from "./main";
 import {SettingsModal} from "./SettingsModal";
+import {RssFeedContent} from "./rssParser";
 
 export interface RssFeed {
     name: string;
     url: string;
+    folder: string;
 }
 
 export interface RssReaderSettings {
@@ -36,7 +38,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             .setDesc("Add a new Feed.")
             .addButton((button: ButtonComponent): ButtonComponent => {
                 return button
-                    .setTooltip("Add Additional")
+                    .setTooltip("add new Feed")
                     .setButtonText("+")
                     .onClick(async () => {
                         let modal = new SettingsModal(this.plugin);
@@ -44,7 +46,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                         modal.onClose = async () => {
                             if (modal.saved) {
                                 await this.plugin.writeSettings(() => ({
-                                    feeds: this.plugin.settings.feeds.concat({name: modal.name, url: modal.url})
+                                    feeds: this.plugin.settings.feeds.concat({name: modal.name, url: modal.url, folder: modal.folder})
                                 }));
                                 this.display();
                             }
@@ -55,17 +57,17 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         const additionalContainer = containerEl.createDiv(
-            "admonition-setting-additional-container"
+            "feed-container"
         );
 
-        const additional = additionalContainer.createDiv("additional");
+        const additional = additionalContainer.createDiv("feed");
         for (let a in this.plugin.settings.feeds) {
             const feed = this.plugin.settings.feeds[a];
 
             let setting = new Setting(additional);
 
-
-            setting.infoEl.setText(feed.name);
+            setting.setName(feed.folder + " - " + feed.name);
+            setting.setDesc(feed.url);
 
             setting
                 .addExtraButton((b) => {
@@ -79,7 +81,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                                 if (modal.saved) {
                                     let feeds = this.plugin.settings.feeds;
                                     feeds.remove(oldFeed);
-                                    feeds.concat({name: modal.name, url: modal.url});
+                                    feeds.push({name: modal.name, url: modal.url, folder: modal.folder});
                                     await this.plugin.writeSettings(() => ({
                                         feeds: feeds
                                     }));
@@ -93,10 +95,10 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 .addExtraButton((b) => {
                     b.setIcon("trash")
                         .setTooltip("Delete")
-                        .onClick(() => {
+                        .onClick(async() => {
                             let feeds = this.plugin.settings.feeds;
                             feeds.remove(feed);
-                            this.plugin.writeSettings(() => ({
+                            await this.plugin.writeSettings(() => ({
                                 feeds: feeds,
                             }));
                             this.display();

@@ -1,7 +1,7 @@
 {
 	"id": "rss-reader",
 	"name": "RSS Reader",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"minAppVersion": "0.9.12",
 	"description": "",
 	"author": "Johannes Theiner",

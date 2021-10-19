@@ -1,11 +1,11 @@
 import {addIcon, Plugin, WorkspaceLeaf} from 'obsidian';
 import {RssReaderSettings, RSSReaderSettingsTab} from "./settings";
-import ListSingleFeedView from "./ListSingleFeedView";
+import ListFeedsViewLoader from "./ListFeedsViewLoader";
 import {settingsWrit} from "./stores";
 
 export default class RssReaderPlugin extends Plugin {
 	settings: RssReaderSettings;
-	private view: ListSingleFeedView;
+	private view: ListFeedsViewLoader;
 
 	async onload() {
 		console.log('loading plugin rss reader');
@@ -39,7 +39,7 @@ export default class RssReaderPlugin extends Plugin {
 			}
 			});
 
-		this.registerView("RSS_FEED", (leaf: WorkspaceLeaf) => (this.view = new ListSingleFeedView(leaf, this)));
+		this.registerView("RSS_FEED", (leaf: WorkspaceLeaf) => (this.view = new ListFeedsViewLoader(leaf, this)));
 
 		this.addSettingTab(new RSSReaderSettingsTab(this.app, this));
 

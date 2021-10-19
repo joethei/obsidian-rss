@@ -1,10 +1,10 @@
 <script lang="ts">
-    import {FeedItem} from "feedme";
     import {FeedItemModal} from "./FeedItemModal";
     import {App} from "obsidian";
+    import {RssFeedItem} from "./rssParser";
 
     export let app: App;
-    export let item: FeedItem;
+    export let item: RssFeedItem;
 
 </script>
 

@@ -5,6 +5,7 @@ import {RssFeed} from "./settings";
 export class SettingsModal extends Modal {
     name: string;
     url: string;
+    folder: string;
 
     saved: boolean = false;
 
@@ -14,6 +15,7 @@ export class SettingsModal extends Modal {
         if(feed) {
             this.name = feed.name;
             this.url = feed.url;
+            this.folder = feed.folder;
         }
     }
 
@@ -47,6 +49,19 @@ export class SettingsModal extends Modal {
                         }
                         this.url = value;
 
+                    });
+            });
+
+        const folder = new Setting(contentEl)
+            .setName("Folder")
+            .setDesc("Folder")
+            .addText((text) => {
+                text.setValue(this.folder)
+                    .onChange((value) => {
+                        if(!value.length) {
+                            //todo: validate
+                        }
+                        this.folder = value;
                     });
             });
 

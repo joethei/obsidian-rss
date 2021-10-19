@@ -4,7 +4,7 @@ import RssReaderPlugin from "./main";
 import {RssReaderSettings} from "./settings";
 import {settingsWrit} from "./stores";
 
-export default class ListSingleFeedView extends ItemView {
+export default class ListFeedsViewLoader extends ItemView {
     private feed: ListFeedsView;
     private plugin: RssReaderPlugin;
     private settings: RssReaderSettings;
