@@ -1,7 +1,10 @@
 import {addIcon, Plugin, WorkspaceLeaf} from 'obsidian';
 import {RssReaderSettings, RSSReaderSettingsTab} from "./settings";
 import ListFeedsViewLoader from "./ListFeedsViewLoader";
-import {settingsWrit} from "./stores";
+import {settingsWritable} from "./stores";
+import {ImportModal} from "./importModal";
+
+const VIEW_ID = "RSS_FEED";
 
 export default class RssReaderPlugin extends Plugin {
 	settings: RssReaderSettings;
@@ -21,7 +24,7 @@ export default class RssReaderPlugin extends Plugin {
 			'       id="path53" /></g>');
 
 		this.register(
-			settingsWrit.subscribe((value) => {
+			settingsWritable.subscribe((value) => {
 				console.log("updated settings");
 				this.settings = value;
 			})
@@ -33,43 +36,51 @@ export default class RssReaderPlugin extends Plugin {
 			name: "Open Feed",
 			checkCallback: (checking: boolean) => {
 				if(checking) {
-					return (this.app.workspace.getLeavesOfType("RSS_FEED").length === 0);
+					return (this.app.workspace.getLeavesOfType(VIEW_ID).length === 0);
 				}
 				this.initLeaf();
 			}
-			});
+		});
 
-		this.registerView("RSS_FEED", (leaf: WorkspaceLeaf) => (this.view = new ListFeedsViewLoader(leaf, this)));
+		this.addCommand({
+			id: "rss-import",
+			name: "Import OPML",
+			callback: () => {
+				new ImportModal(this.app, this).open();
+			}
+		});
+
+		this.registerView(VIEW_ID, (leaf: WorkspaceLeaf) => (this.view = new ListFeedsViewLoader(leaf, this)));
 
 		this.addSettingTab(new RSSReaderSettingsTab(this.app, this));
 
-		/*if(this.app.workspace.layoutReady) {
-			this.initLeaf();
+		if(this.app.workspace.layoutReady) {
+			await this.initLeaf();
 		} else {
 			this.registerEvent(this.app.workspace.on("layout-change", this.initLeaf.bind(this)));
-		}*/
+		}
 
 	}
 
 	onunload() {
 		console.log('unloading plugin rss reader');
 		this.app.workspace
-			.getLeavesOfType("RSS_FEED")
+			.getLeavesOfType(VIEW_ID)
 			.forEach((leaf) => leaf.detach());
 	}
 
-	initLeaf(): void {
-		if (this.app.workspace.getLeavesOfType("RSS_FEED").length) {
+	async initLeaf(): Promise<void> {
+		if (this.app.workspace.getLeavesOfType(VIEW_ID).length) {
 			return;
 		}
-		this.app.workspace.getRightLeaf(false).setViewState({
-			type: "RSS_FEED",
+		await this.app.workspace.getRightLeaf(false).setViewState({
+			type: VIEW_ID,
 		});
 	}
 
 	async loadSettings(): Promise<void> {
 		const options = await this.loadData();
-		settingsWrit.update((old) => {
+		settingsWritable.update((old) => {
 			return {
 				...old,
 				...(options || {}),
@@ -82,7 +93,7 @@ export default class RssReaderPlugin extends Plugin {
 	async writeSettings(
 		changeOpts: (settings: RssReaderSettings) => Partial<RssReaderSettings>
 	): Promise<void> {
-		settingsWrit.update((old) => ({ ...old, ...changeOpts(old) }));
+		settingsWritable.update((old) => ({ ...old, ...changeOpts(old) }));
 		await this.saveData(this.settings);
 	}
 }

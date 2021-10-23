@@ -2,14 +2,19 @@
     import {getFeedItems} from "./rssParser";
     import FeedItemView from "./FeedItemView.svelte";
     import {RssFeed} from "./settings";
-    import {App} from "obsidian";
-
-    //@ts-ignore
-    import {CollapsibleCard} from 'svelte-collapsible';
+    import CollapseIndicator from "./CollapseIndicator.svelte";
+    import RssReaderPlugin from "./main";
 
 
     export let feed: RssFeed = null;
-    export let app: App;
+    export let plugin: RssReaderPlugin;
+
+    let foldedState: Map<string, boolean> = new Map();
+
+    function toggleFold(feed: string) {
+        foldedState.set(feed, !foldedState.get(feed));
+        foldedState = foldedState;
+    }
 
     $: content = getFeedItems(feed);
 
@@ -18,26 +23,29 @@
 {#await content}
     <p>...loading</p>
 {:then content}
-    <CollapsibleCard>
-        <div slot="header">
-            <h2>
-                {#if (content.image)}
-                    <img src={content.image} alt={content.title} style="width: 5%"/>
-                {/if}
-                { content.title }
-            </h2>
-            {#if content.subtitle}
-                <p>{ content.subtitle }</p>
+
+    <div class="rss-feed" style="margin-left: 20px">
+        <div class="{foldedState.get(feed.name) ? 'is-collapsed' : ''}" on:click={() => toggleFold(feed.name)} >
+            <div class="rss-feed-title" style="overflow: hidden">
+                <CollapseIndicator/>
+                <div style="float: left">
+                    {content.title}
+                    {#if (content.image)}
+                        <img src={content.image} alt={content.title} style="width: 3%"/>
+                    {/if}
+                </div>
+            </div>
+        </div>
+
+        <div class="rss-feed-items">
+            {#if !foldedState.get(feed.name)}
+                {#each content.items as item}
+                    <FeedItemView item={item} plugin={plugin}/>
+                {/each}
             {/if}
         </div>
 
-        <div slot="body">
-            <ul>
-                {#each content.items as item}
-                    <FeedItemView item={item} app={app}/>
-                {/each}
-            </ul>
-        </div>
-    </CollapsibleCard>
+    </div>
+
 {/await}
 

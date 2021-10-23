@@ -1,9 +1,9 @@
 {
 	"id": "rss-reader",
 	"name": "RSS Reader",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"minAppVersion": "0.9.12",
-	"description": "",
+	"description": "Read RSS Feeds from within obsidian",
 	"author": "Johannes Theiner",
 	"authorUrl": "https://github.com/joethei",
 	"isDesktopOnly": false

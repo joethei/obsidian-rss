@@ -1,0 +1,26 @@
+<opml version="1.1" xmlns:fd="http://www.bradsoft.com/feeddemon/xmlns/1.0/">
+    <head>
+        <title>Nachrichten aus der Politik</title>
+    </head>
+    <body>
+        <outline text="Stern.de  - Politik" title="Stern.de  - Politik" type="rss" version="RSS"
+                 xmlUrl="http://www.stern.de/standard/rss.php?channel=politik" htmlUrl="http://www.stern.de"/>
+        <outline text="FOCUS Online - Politik-News" title="FOCUS Online - Politik-News" type="rss" version="RSS"
+                 xmlUrl="http://focus.msn.de/fol/XML/rss_folnews_politik.xml"
+                 htmlUrl="http://www.focus.msn.de/politik"/>
+        <outline text="Politik - Financial Times Deutschland" title="Politik - Financial Times Deutschland" type="rss"
+                 version="RSS" xmlUrl="http://www.ftd.de/static/container/rss/ftd-rss-200.rdf"
+                 htmlUrl="http://www.ftd.de/"/>
+        <outline text="NETZEITUNG.DE Deutschland" title="NETZEITUNG.DE Deutschland" type="rss" version="RSS"
+                 xmlUrl="http://www.netzeitung.de/export/news/rss/deutschland.xml"
+                 htmlUrl="http://www.netzeitung.de/deutschland/"/>
+        <outline text="SPIEGEL ONLINE - Politik" title="SPIEGEL ONLINE - Politik" type="rss" version="RSS"
+                 xmlUrl="http://www.spiegel.de/schlagzeilen/rss/0,5291,20,00.xml"
+                 htmlUrl="http://www.spiegel.de/politik/0,1518,,00.html"/>
+        <outline text="tagesschau.de - Die Nachrichten der ARD" title="tagesschau.de - Die Nachrichten der ARD"
+                 type="rss" version="RSS" xmlUrl="http://www.tagesschau.de/newsticker.rdf"
+                 htmlUrl="http://www.tagesschau.de"/>
+        <outline text="ZDFheute Nachrichten" title="ZDFheute Nachrichten" type="rss" version="RSS"
+                 xmlUrl="http://www.heute.de/ZDFheute/infoservices/rss-feed" htmlUrl="http://www.heute.de"/>
+    </body>
+</opml>

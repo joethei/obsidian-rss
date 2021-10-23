@@ -1,8 +1,7 @@
-import {App, ButtonComponent, PluginSettingTab, Setting} from "obsidian";
+import {App, ButtonComponent, PluginSettingTab, Setting, TextAreaComponent} from "obsidian";
 import MyPlugin from "./main";
 import RssReaderPlugin from "./main";
 import {SettingsModal} from "./SettingsModal";
-import {RssFeedContent} from "./rssParser";
 
 export interface RssFeed {
     name: string;
@@ -12,10 +11,17 @@ export interface RssFeed {
 
 export interface RssReaderSettings {
     feeds: RssFeed[];
+    template: string;
 }
 
 export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
     feeds: [],
+    template: "---\n" +
+        "link: {{link}}\n" +
+        "author: {{author}}\n" +
+        "published: {{published}}\n" +
+        "---\n" +
+        "{{content}}",
 });
 
 export class RSSReaderSettingsTab extends PluginSettingTab {
@@ -32,6 +38,24 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
         containerEl.empty();
 
         containerEl.createEl('h2', {text: 'RSS Reader Settings'});
+
+        new Setting(containerEl)
+            .setName("New file template")
+            .setDesc('When creating a note from a rss feed item this gets processed. Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{content}}')
+            .addTextArea((textArea: TextAreaComponent): TextAreaComponent => {
+                textArea
+                    .setValue(this.plugin.settings.template)
+                    .setPlaceholder(DEFAULT_SETTINGS.template)
+                    .onChange(async (value) => {
+                        await this.plugin.writeSettings(() => ({
+                            template: value
+                        }));
+                    });
+                textArea.inputEl.setAttr("rows", 8);
+                return textArea;
+        });
+
+        containerEl.createEl("h3", {text: "Feeds"});
 
         new Setting(containerEl)
             .setName("Add New")
@@ -60,13 +84,13 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             "feed-container"
         );
 
-        const additional = additionalContainer.createDiv("feed");
+        const additional = additionalContainer.createDiv("feeds");
         for (let a in this.plugin.settings.feeds) {
             const feed = this.plugin.settings.feeds[a];
 
             let setting = new Setting(additional);
 
-            setting.setName(feed.folder + " - " + feed.name);
+            setting.setName((feed.folder ? feed.folder : "No Folder") + " - " + feed.name);
             setting.setDesc(feed.url);
 
             setting

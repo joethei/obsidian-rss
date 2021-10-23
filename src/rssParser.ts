@@ -1,5 +1,11 @@
 import {request} from "obsidian";
 import {RssFeed} from "./settings";
+import sanitizeHtml from "sanitize-html";
+
+/**
+ * parser for .rss files, build from scratch
+ * because I could not find a parser that works on mobile and is up to date.
+ */
 
 export interface RssFeedContent {
     subtitle: string;
@@ -92,14 +98,33 @@ function getContent(element: Element | Document, names: string[]): string {
 
 function buildItem(element: Element): RssFeedItem {
     return {
-        title: getContent(element, ["title"]),
-        description: getContent(element, ["description"]),
-        content: getContent(element, ["description", "content", "content:encoded"]),
-        category: getContent(element, ["category"]),
-        link: getContent(element, ["link", "link#href"]),
-        creator: getContent(element, ["creator", "dc:creator", "author", "author.name"]),
-        pubDate: getContent(element, ["pubDate", "published"])
+        title: sanitizeHtml(getContent(element, ["title"])),
+        description: sanitizeHtml(getContent(element, ["description"])),
+        content: sanitizeHtml(getContent(element, ["description", "content", "content:encoded"])),
+        category: sanitizeHtml(getContent(element, ["category"])),
+        link: sanitizeHtml(getContent(element, ["link", "link#href"])),
+        creator: sanitizeHtml(getContent(element, ["creator", "dc:creator", "author", "author.name"])),
+        pubDate: sanitizeHtml(getContent(element, ["pubDate", "published"]))
     }
+}
+
+function getAllItems(doc: Document): Element[] {
+    const items: Element[] = [];
+
+    if (doc.getElementsByTagName("item")) {
+        for (let elementsByTagNameKey in doc.getElementsByTagName("item")) {
+            const entry = doc.getElementsByTagName("item")[elementsByTagNameKey];
+            items.push(entry);
+
+        }
+    }
+    if (doc.getElementsByTagName("entry")) {
+        for (let elementsByTagNameKey in doc.getElementsByTagName("entry")) {
+            const entry = doc.getElementsByTagName("entry")[elementsByTagNameKey];
+            items.push(entry);
+        }
+    }
+    return items;
 }
 
 export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
@@ -109,24 +134,13 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
     console.log(data);
 
     const items: RssFeedItem[] = [];
+    const rawItems = getAllItems(data);
 
-    if (data.getElementsByTagName("item")) {
-        for (let elementsByTagNameKey in data.getElementsByTagName("item")) {
-            const entry = data.getElementsByTagName("item")[elementsByTagNameKey];
-            const item = buildItem(entry);
-            if (item.title !== undefined)
-                items.push(item);
-        }
-    }
-
-    if (data.getElementsByTagName("entry")) {
-        for (let elementsByTagNameKey in data.getElementsByTagName("entry")) {
-            const entry = data.getElementsByTagName("entry")[elementsByTagNameKey];
-            const item = buildItem(entry);
-            if (item.title !== undefined)
-                items.push(item);
-        }
-    }
+    rawItems.forEach((rawItem) => {
+        const item = buildItem(rawItem);
+        if (item.title !== undefined)
+            items.push(item);
+    })
 
     const image = getContent(data, ["image", "image.url", "icon"]);
 

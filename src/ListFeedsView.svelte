@@ -1,29 +1,45 @@
 <script lang="ts">
-    import {settingsWrit} from "./stores";
+    import {settingsWritable} from "./stores";
     import SingleFeedView from "./SingleFeedView.svelte";
-    import {App} from "obsidian";
     import groupBy from "lodash.groupby";
-    //@ts-ignore
-    import { CollapsibleCard } from 'svelte-collapsible';
+    import CollapseIndicator from "./CollapseIndicator.svelte";
+    import RssReaderPlugin from "./main";
 
-    export let app: App;
+    export let plugin: RssReaderPlugin;
 
-    $: sortedFeeds = groupBy($settingsWrit.feeds, 'folder');
-    $: console.log(sortedFeeds);
+    let foldedState: Map<string, boolean> = new Map();
+
+    function toggleFold(folder: string) {
+        foldedState.set(folder, !foldedState.get(folder));
+        foldedState = foldedState;
+    }
+
+    $: sortedFeeds = groupBy($settingsWritable.feeds, 'folder');
 
 </script>
 
 {#if sortedFeeds}
-    {#each Object.keys(sortedFeeds) as folder}
-        <CollapsibleCard>
-            <h1 slot="header">{(folder !== "undefined") ? folder : 'No Folder'}</h1>
-            <div slot="body">
-                {#each sortedFeeds[folder] as feed}
-                    <SingleFeedView feed={feed} app={app}/>
-                {/each}
+    <div class="rss-feeds-folders">
+        {#each Object.keys(sortedFeeds) as folder}
+
+            <div class="rss-feeds-folder">
+
+                <div class="{foldedState.get(folder) ? 'is-collapsed' : ''}" on:click={() => toggleFold(folder)}>
+                    <CollapseIndicator/>
+                    <span>{(folder !== "undefined") ? folder : 'No Folder'}</span>
+                </div>
+
+                {#if (!foldedState.get(folder))}
+                    {#each sortedFeeds[folder] as feed}
+                        <SingleFeedView feed={feed} plugin={plugin}/>
+                    {/each}
+                {/if}
+
             </div>
-        </CollapsibleCard>
-    {/each}
+
+        {/each}
+
+    </div>
 
 
 {/if}

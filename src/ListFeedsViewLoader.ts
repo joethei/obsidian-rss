@@ -2,7 +2,7 @@ import {ItemView, WorkspaceLeaf} from "obsidian";
 import ListFeedsView from "./ListFeedsView.svelte";
 import RssReaderPlugin from "./main";
 import {RssReaderSettings} from "./settings";
-import {settingsWrit} from "./stores";
+import {settingsWritable} from "./stores";
 
 export default class ListFeedsViewLoader extends ItemView {
     private feed: ListFeedsView;
@@ -14,7 +14,7 @@ export default class ListFeedsViewLoader extends ItemView {
         this.plugin = plugin;
 
         this.settings = null;
-        settingsWrit.subscribe((value) => {
+        settingsWritable.subscribe((value) => {
             this.settings = value;
 
             // Refresh if settings change
@@ -40,8 +40,7 @@ export default class ListFeedsViewLoader extends ItemView {
         this.feed = new ListFeedsView({
             target: (this as any).contentEl,
             props: {
-                feeds: this.plugin.settings.feeds,
-                app: this.plugin.app,
+                plugin: this.plugin
             },
 
         });

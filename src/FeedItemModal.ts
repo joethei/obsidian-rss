@@ -1,5 +1,4 @@
 import {
-    App,
     ButtonComponent,
     htmlToMarkdown,
     MarkdownView,
@@ -8,13 +7,16 @@ import {
     Notice,
 } from "obsidian";
 import {RssFeedItem} from "./rssParser";
+import RssReaderPlugin from "./main";
 
 export class FeedItemModal extends Modal {
 
+    private readonly plugin: RssReaderPlugin;
     private readonly item: RssFeedItem;
 
-    constructor(app: App, item: RssFeedItem) {
-        super(app);
+    constructor(plugin: RssReaderPlugin, item: RssFeedItem) {
+        super(plugin.app);
+        this.plugin = plugin;
         this.item = item;
     }
 
@@ -53,17 +55,18 @@ export class FeedItemModal extends Modal {
             const filePath = normalizePath([dir, `${title}.md`].join('/'));
             let content = htmlToMarkdown(this.item.content);
             //todo: configure header via template in settings
-            const header = "---\n" +
-                "link: " + this.item.link + "\n" +
-                "author: " + this.item.creator + "\n" +
-                "pubDate: " + this.item.pubDate + "\n" +
-                "---\n";
+            const appliedTemplate = this.plugin.settings.template
+                .replace("{{title}}", this.item.title)
+                .replace("{{link}}", this.item.link)
+                .replace("{{author}}", this.item.creator)
+                .replace("{{published}}", this.item.pubDate)
+                .replace("{{content}}", content);
 
             if (this.app.vault.getAbstractFileByPath(filePath)) {
                 new Notice("there is already a file with that name");
                 return;
             }
-            const file = await this.app.vault.create(filePath, header + content);
+            const file = await this.app.vault.create(filePath, appliedTemplate);
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (view) {
                 await view.leaf.openFile(file, {
