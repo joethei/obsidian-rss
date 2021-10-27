@@ -7,12 +7,12 @@ Plugin for [Obsidian](https://obsidian.md)
 [![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
 ---
 
-> ⚠️Rough prototype, not fully functional, dirty code
+> ⚠️Currently in beta
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/_MjJ2TM6ylU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[Demo Video](http://www.youtube.com/watch?v=_MjJ2TM6ylU)
 
-### Manually installing the plugin
-
+### Installing the plugin
+- using the build in Community plugins(once this plugin is accepted)
 - Using the [Beta Reviewers Auto-update Tester](https://github.com/TfTHacker/obsidian42-brat) plugin with the repo path: `joethei/obsidian-rss`
 - Copy over `main.js`, `styles.css`, `manifest.json` from the releases to your vault `VaultFolder/.obsidian/plugins/rss-reader/`.
 

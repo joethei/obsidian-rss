@@ -1,9 +1,8 @@
 <script lang="ts">
-    import {settingsWritable} from "./stores";
+    import {sortedFeedsStore} from "./stores";
     import SingleFeedView from "./SingleFeedView.svelte";
-    import groupBy from "lodash.groupby";
-    import CollapseIndicator from "./CollapseIndicator.svelte";
     import RssReaderPlugin from "./main";
+    import IconComponent from "./IconComponent.svelte";
 
     export let plugin: RssReaderPlugin;
 
@@ -14,24 +13,28 @@
         foldedState = foldedState;
     }
 
-    $: sortedFeeds = groupBy($settingsWritable.feeds, 'folder');
 
 </script>
 
-{#if sortedFeeds}
+{#if !$sortedFeedsStore}
+    <h1>No feeds configured</h1>
+{/if}
+
+{#if $sortedFeedsStore}
+
     <div class="rss-feeds-folders">
-        {#each Object.keys(sortedFeeds) as folder}
+        {#each Object.keys($sortedFeedsStore) as folder}
 
             <div class="rss-feeds-folder">
 
                 <div class="{foldedState.get(folder) ? 'is-collapsed' : ''}" on:click={() => toggleFold(folder)}>
-                    <CollapseIndicator/>
+                    <IconComponent iconName="right-triangle"/>
                     <span>{(folder !== "undefined") ? folder : 'No Folder'}</span>
                 </div>
 
                 {#if (!foldedState.get(folder))}
-                    {#each sortedFeeds[folder] as feed}
-                        <SingleFeedView feed={feed} plugin={plugin}/>
+                    {#each $sortedFeedsStore[folder] as feed}
+                        <SingleFeedView content={feed.content} plugin={plugin}/>
                     {/each}
                 {/if}
 

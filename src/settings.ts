@@ -2,6 +2,8 @@ import {App, ButtonComponent, PluginSettingTab, Setting, TextAreaComponent} from
 import MyPlugin from "./main";
 import RssReaderPlugin from "./main";
 import {SettingsModal} from "./SettingsModal";
+import {RssFeedItem} from "./rssParser";
+import {FeedItems} from "./stores";
 
 export interface RssFeed {
     name: string;
@@ -12,10 +14,16 @@ export interface RssFeed {
 export interface RssReaderSettings {
     feeds: RssFeed[];
     template: string;
+    updateTime: number;
+    read: FeedItems,
+    favorites: FeedItems,
 }
 
 export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
     feeds: [],
+    read: {items: []},
+    favorites: {items: []},
+    updateTime: 60,
     template: "---\n" +
         "link: {{link}}\n" +
         "author: {{author}}\n" +
@@ -69,9 +77,9 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
                         modal.onClose = async () => {
                             if (modal.saved) {
-                                await this.plugin.writeSettings(() => ({
-                                    feeds: this.plugin.settings.feeds.concat({name: modal.name, url: modal.url, folder: modal.folder})
-                                }));
+                                await this.plugin.writeFeeds(() =>
+                                    (this.plugin.settings.feeds.concat({name: modal.name, url: modal.url, folder: modal.folder}
+                                    )));
                                 this.display();
                             }
                         };
@@ -106,9 +114,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                                     let feeds = this.plugin.settings.feeds;
                                     feeds.remove(oldFeed);
                                     feeds.push({name: modal.name, url: modal.url, folder: modal.folder});
-                                    await this.plugin.writeSettings(() => ({
-                                        feeds: feeds
-                                    }));
+                                    await this.plugin.writeFeeds(() => (feeds));
                                     this.display();
                                 }
                             };
@@ -122,9 +128,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                         .onClick(async() => {
                             let feeds = this.plugin.settings.feeds;
                             feeds.remove(feed);
-                            await this.plugin.writeSettings(() => ({
-                                feeds: feeds,
-                            }));
+                            await this.plugin.writeFeeds(() => (feeds));
                             this.display();
                         });
                 });

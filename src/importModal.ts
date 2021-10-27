@@ -14,7 +14,7 @@ export class ImportModal extends Modal {
     onOpen() {
         const {contentEl} = this;
         contentEl.createEl("h1", {text: "Import OPML"});
-        new Setting(contentEl).setName("Data").setDesc("paste the content of the OPML file here:").addText((text) => {
+        new Setting(contentEl).setName("Data").setDesc("paste the content of the OPML file here").addText((text) => {
             text.onChange((value) => {
                 this.importData = value;
             })

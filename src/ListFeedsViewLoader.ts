@@ -1,27 +1,19 @@
 import {ItemView, WorkspaceLeaf} from "obsidian";
 import ListFeedsView from "./ListFeedsView.svelte";
 import RssReaderPlugin from "./main";
-import {RssReaderSettings} from "./settings";
-import {settingsWritable} from "./stores";
+import {VIEW_ID} from "./consts";
 
 export default class ListFeedsViewLoader extends ItemView {
     private feed: ListFeedsView;
-    private plugin: RssReaderPlugin;
-    private settings: RssReaderSettings;
+    private readonly plugin: RssReaderPlugin;
+
 
     constructor(leaf: WorkspaceLeaf, plugin: RssReaderPlugin) {
         super(leaf);
         this.plugin = plugin;
+        this.addAction('feather-eye', 'only show unread', () => {
 
-        this.settings = null;
-        settingsWritable.subscribe((value) => {
-            this.settings = value;
-
-            // Refresh if settings change
-            if (this.feed) {
-                console.log("settings have been updated");
-            }
-        });
+        }, 6);
     }
 
     getDisplayText(): string {
@@ -29,11 +21,11 @@ export default class ListFeedsViewLoader extends ItemView {
     }
 
     getViewType(): string {
-        return "RSS_FEED";
+        return VIEW_ID;
     }
 
     getIcon(): string {
-        return "rss-feed";
+        return "feather-rss";
     }
 
     protected async onOpen(): Promise<void> {

@@ -1,6 +1,5 @@
 import {request} from "obsidian";
 import {RssFeed} from "./settings";
-import sanitizeHtml from "sanitize-html";
 
 /**
  * parser for .rss files, build from scratch
@@ -24,6 +23,11 @@ export interface RssFeedItem {
     link: string,
     creator: string,
     pubDate: string
+}
+
+export interface RssFeedMap {
+    feed: RssFeed,
+    content: RssFeedContent
 }
 
 function getElementByName(element: Element | Document, name: string): ChildNode {
@@ -98,13 +102,13 @@ function getContent(element: Element | Document, names: string[]): string {
 
 function buildItem(element: Element): RssFeedItem {
     return {
-        title: sanitizeHtml(getContent(element, ["title"])),
-        description: sanitizeHtml(getContent(element, ["description"])),
-        content: sanitizeHtml(getContent(element, ["description", "content", "content:encoded"])),
-        category: sanitizeHtml(getContent(element, ["category"])),
-        link: sanitizeHtml(getContent(element, ["link", "link#href"])),
-        creator: sanitizeHtml(getContent(element, ["creator", "dc:creator", "author", "author.name"])),
-        pubDate: sanitizeHtml(getContent(element, ["pubDate", "published"]))
+        title: getContent(element, ["title"]),
+        description: getContent(element, ["description"]),
+        content: getContent(element, ["description", "content", "content:encoded"]),
+        category: getContent(element, ["category"]),
+        link: getContent(element, ["link", "link#href"]),
+        creator: getContent(element, ["creator", "dc:creator", "author", "author.name"]),
+        pubDate: getContent(element, ["pubDate", "published"])
     }
 }
 
@@ -130,8 +134,6 @@ function getAllItems(doc: Document): Element[] {
 export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
     const rawData = await request({url: feed.url});
     let data = new window.DOMParser().parseFromString(rawData, "text/xml");
-
-    console.log(data);
 
     const items: RssFeedItem[] = [];
     const rawItems = getAllItems(data);
