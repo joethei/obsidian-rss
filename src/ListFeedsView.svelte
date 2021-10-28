@@ -1,8 +1,9 @@
 <script lang="ts">
-    import {sortedFeedsStore} from "./stores";
+    import {favoritesStore, sortedFeedsStore} from "./stores";
     import SingleFeedView from "./SingleFeedView.svelte";
     import RssReaderPlugin from "./main";
     import IconComponent from "./IconComponent.svelte";
+    import FeedItemView from "./FeedItemView.svelte";
 
     export let plugin: RssReaderPlugin;
 
@@ -20,6 +21,21 @@
     <h1>No feeds configured</h1>
 {/if}
 
+{#if $favoritesStore}
+    <div class="rss-feeds-favorites">
+        <div class="{foldedState.get('rss-fav-items') ? 'is-collapsed' : ''}" on:click={() => toggleFold('rss-fav-items')}>
+            <IconComponent iconName="right-triangle"/>
+            <span>Favorites</span>
+        </div>
+
+        {#if (!foldedState.get('rss-fav-items'))}
+            {#each $favoritesStore.items as item}
+                <FeedItemView item={item} plugin={plugin}/>
+            {/each}
+        {/if}
+    </div>
+{/if}
+
 {#if $sortedFeedsStore}
 
     <div class="rss-feeds-folders">
@@ -34,7 +50,7 @@
 
                 {#if (!foldedState.get(folder))}
                     {#each $sortedFeedsStore[folder] as feed}
-                        <SingleFeedView content={feed.content} plugin={plugin}/>
+                        <SingleFeedView feed={feed} plugin={plugin}/>
                     {/each}
                 {/if}
 

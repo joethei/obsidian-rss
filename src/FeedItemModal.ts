@@ -25,7 +25,7 @@ export class FeedItemModal extends Modal {
         this.plugin = plugin;
         this.item = item;
         const read = get(readStore);
-        if(!read.items.some(item => item.title === this.item.title)) {
+        if(!read.items.some(item => item.link === this.item.link)) {
             read.items.push(this.item);
             this.plugin.writeRead(() => (read));
         }
@@ -53,10 +53,15 @@ export class FeedItemModal extends Modal {
             subtitle.appendText(" - " + this.item.pubDate);
         }
         const readButton = new ButtonComponent(topButtons)
-            .setIcon(this.readItems.items.some(item => item.title === this.item.title) ? 'feather-eye-off' : 'feather-eye')
-            .setTooltip(this.readItems.items.some(item => item.title === this.item.title) ? 'Mark as unread' : 'mark as read')
+            .setIcon(this.readItems.items.some(item => item.link === this.item.link) ? 'feather-eye-off' : 'feather-eye')
+            .setTooltip(this.readItems.items.some(item => item.link === this.item.link) ? 'Mark as unread' : 'mark as read')
             .onClick(async () => {
-                if (this.readItems.items.some(item => item.title === this.item.title)) {
+                if (this.readItems.items.some(item => item.link === this.item.link)) {
+                    this.readItems.items
+                        .filter((item => item.link === this.item.link))
+                        .forEach(item => {
+                            this.readItems.items.remove(item);
+                        });
                     this.readItems.items.remove(this.item);
                     readButton.setIcon('feather-eye');
                     new Notice("marked item as unread");
@@ -69,11 +74,15 @@ export class FeedItemModal extends Modal {
             });
 
         const favoriteButton = new ButtonComponent(topButtons)
-            .setIcon((this.favoriteItems.items.some(item => item.title === this.item.title)) ? 'star-glyph' : 'star')
-            .setTooltip((this.favoriteItems.items.some(item => item.title === this.item.title) ? 'remove from favorites' : 'mark as favorite'))
+            .setIcon((this.favoriteItems.items.some(item => item.link === this.item.link)) ? 'star-glyph' : 'star')
+            .setTooltip((this.favoriteItems.items.some(item => item.link === this.item.link) ? 'remove from favorites' : 'mark as favorite'))
             .onClick(async () => {
-                if (this.favoriteItems.items.some(item => item.title === this.item.title)) {
-                    this.favoriteItems.items.remove(this.item);
+                if (this.favoriteItems.items.some(item => item.link === this.item.link)) {
+                    this.favoriteItems.items.
+                        filter(item => item.link === this.item.link)
+                        .forEach(item => {
+                            this.favoriteItems.items.remove(item);
+                        });
                     favoriteButton.setIcon('star');
                     new Notice("removed item from favorites");
                 } else {

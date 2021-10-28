@@ -1,5 +1,5 @@
 import {Plugin, WorkspaceLeaf} from 'obsidian';
-import {RssFeed, RssReaderSettings, RSSReaderSettingsTab} from "./settings";
+import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings, RSSReaderSettingsTab} from "./settings";
 import ListFeedsViewLoader from "./ListFeedsViewLoader";
 import {
 	favoritesStore,
@@ -107,32 +107,34 @@ export default class RssReaderPlugin extends Plugin {
 	}
 
 	async loadSettings(): Promise<void> {
-		const settings = await this.loadData();
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		settingsStore.update((old) => {
 			return {
 				...old,
-				...(settings || {}),
+				...(this.settings || []),
 			};
 		});
 		configuredFeedsStore.update((old) => {
 			return {
 				...old,
-				...(settings.feeds || {}),
+				...(this.settings.feeds || []),
 			};
 		});
 		favoritesStore.update((old) => {
 			return {
 				...old,
-				...(settings.favorites || {}),
+				...(this.settings.favorites || []),
 			};
 		});
 		readStore.update((old) => {
 			return {
 				...old,
-				...(settings.read || {}),
+				...(this.settings.read || []),
 			};
 		});
-		console.log(this.settings);
+	}
+
+	async saveSettings() {
 		await this.saveData(this.settings);
 	}
 
@@ -141,6 +143,7 @@ export default class RssReaderPlugin extends Plugin {
 		await this.writeSettings((old) => ({
 			feeds: changeOpts(old.feeds)
 		}));
+		await this.updateFeeds();
 	}
 
 	async writeFavorites(changeOpts: (items: FeedItems) => Partial<FeedItems>) : Promise<void> {
@@ -159,7 +162,6 @@ export default class RssReaderPlugin extends Plugin {
 
 	async writeSettings(changeOpts: (settings: RssReaderSettings) => Partial<RssReaderSettings>): Promise<void> {
 		await settingsStore.update((old) => ({ ...old, ...changeOpts(old) }));
-		console.log("saving data");
-		await this.saveData(this.settings);
+		await this.saveSettings();
 	}
 }
