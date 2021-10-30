@@ -1,8 +1,8 @@
 import {Notice, Setting, TextComponent} from "obsidian";
-import RssReaderPlugin from "./main";
-import {RssFeed} from "./settings";
-import {getFeedItems} from "./rssParser";
-import {isValidHttpUrl} from "./consts";
+import RssReaderPlugin from "../main";
+import {RssFeed} from "../settings/settings";
+import {getFeedItems} from "../parser/rssParser";
+import {isValidHttpUrl} from "../consts";
 import {BaseModal} from "./BaseModal";
 
 export class SettingsModal extends BaseModal {

@@ -1,5 +1,5 @@
 import {request} from "obsidian";
-import {RssFeed} from "./settings";
+import {RssFeed} from "../settings/settings";
 
 /**
  * parser for .rss files, build from scratch
@@ -7,12 +7,12 @@ import {RssFeed} from "./settings";
  */
 
 export interface RssFeedContent {
-    subtitle: string;
-    title: string;
-    link: string;
-    image: string;
-    description: string;
-    items: RssFeedItem[];
+    subtitle: string,
+    title: string,
+    link: string,
+    image: string,
+    description: string,
+    items: RssFeedItem[]
 }
 
 export interface RssFeedItem {
@@ -22,7 +22,9 @@ export interface RssFeedItem {
     category: string,
     link: string,
     creator: string,
-    pubDate: string
+    pubDate: string,
+    folder: string,
+    feed: string
 }
 
 export interface RssFeedMap {
@@ -123,7 +125,9 @@ function buildItem(element: Element): RssFeedItem {
         category: getContent(element, ["category"]),
         link: getContent(element, ["link", "link#href"]),
         creator: getContent(element, ["creator", "dc:creator", "author", "author.name"]),
-        pubDate: getContent(element, ["pubDate", "published"])
+        pubDate: getContent(element, ["pubDate", "published"]),
+        folder: null,
+        feed: null
     }
 }
 
@@ -155,8 +159,12 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
 
     rawItems.forEach((rawItem) => {
         const item = buildItem(rawItem);
-        if (item.title !== undefined)
+        if (item.title !== undefined) {
+            item.folder = feed.folder;
+            item.feed = feed.name;
             items.push(item);
+        }
+
     })
 
     const image = getContent(data, ["image", "image.url", "icon"]);

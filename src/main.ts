@@ -1,6 +1,6 @@
 import {Plugin, WorkspaceLeaf} from 'obsidian';
-import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings, RSSReaderSettingsTab} from "./settings";
-import ViewLoader from "./ViewLoader";
+import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings, RSSReaderSettingsTab} from "./settings/settings";
+import ViewLoader from "./view/ViewLoader";
 import {
 	favoritesStore,
 	configuredFeedsStore,
@@ -11,7 +11,7 @@ import {
 	FeedItems
 } from "./stores";
 import {VIEW_ID} from "./consts";
-import {getFeedItems, RssFeedMap} from "./rssParser";
+import {getFeedItems, RssFeedMap} from "./parser/rssParser";
 import {addFeatherIcon} from "obsidian-community-lib";
 import groupBy from "lodash.groupby";
 
@@ -56,6 +56,14 @@ export default class RssReaderPlugin extends Plugin {
 				new ImportModal(this.app, this).open();
 			}
 		});*/
+
+		this.addCommand({
+			id: 'rss-refresh',
+			name: 'Refresh feeds',
+			callback: async () => {
+				await this.updateFeeds();
+			}
+		});
 
 		this.registerView(VIEW_ID, (leaf: WorkspaceLeaf) => (this.view = new ViewLoader(leaf, this)));
 

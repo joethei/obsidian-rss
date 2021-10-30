@@ -1,6 +1,6 @@
 {
   "name": "rss-reader",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Read RSS Feeds from inside obsidian",
   "main": "main.js",
   "scripts": {
@@ -9,9 +9,10 @@
     "lint": "eslint . --ext .ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Johannes Theiner",
   "license": "MIT",
   "devDependencies": {
+    "@popperjs/core": "^2.10.2",
     "@rollup/plugin-commonjs": "^18.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^11.2.1",

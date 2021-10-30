@@ -1,17 +1,18 @@
 import {
     App,
-    ButtonComponent,
+    ButtonComponent, DropdownComponent,
     Notice,
-    PluginSettingTab,
+    PluginSettingTab, SearchComponent,
     Setting,
     TextAreaComponent,
     TextComponent
 } from "obsidian";
-import MyPlugin from "./main";
-import RssReaderPlugin from "./main";
-import {SettingsModal} from "./SettingsModal";
-import {FeedItems} from "./stores";
+import MyPlugin from "../main";
+import RssReaderPlugin from "../main";
+import {SettingsModal} from "../modals/SettingsModal";
+import {FeedItems} from "../stores";
 import groupBy from "lodash.groupby";
+import {FolderSuggest} from "./FolderSuggestor";
 
 export interface RssFeed {
     name: string;
@@ -23,6 +24,8 @@ export interface RssReaderSettings {
     feeds: RssFeed[];
     template: string;
     updateTime: number;
+    saveLocation: string;
+    saveLocationFolder: string;
     read: FeedItems,
     favorites: FeedItems,
 }
@@ -32,6 +35,8 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
     read: {items: []},
     favorites: {items: []},
     updateTime: 60,
+    saveLocation: 'default',
+    saveLocationFolder: '',
     template: "---\n" +
         "link: {{link}}\n" +
         "author: {{author}}\n" +
@@ -57,7 +62,8 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName("New file template")
-            .setDesc('When creating a note from a rss feed item this gets processed. Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{content}}')
+            .setDesc('When creating a note from a rss feed item this gets processed. ' +
+                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{content}}, {{folder}}, {{feed}}')
             .addTextArea((textArea: TextAreaComponent) => {
                 textArea
                     .setValue(this.plugin.settings.template)
@@ -70,19 +76,52 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 textArea.inputEl.setAttr("rows", 8);
             });
 
+        new Setting(containerEl)
+            .setName("Default location for new notes")
+            .setDesc("")
+            .addDropdown(async (dropDown: DropdownComponent) => {
+                dropDown
+                    .addOption("default", "In the default folder for Obsidian")
+                    .addOption("custom", "In the folder specified below")
+                    .setValue(this.plugin.settings.saveLocation)
+                    .onChange(async (value: string) => {
+                        await this.plugin.writeSettings(() => (
+                            {saveLocation: value}
+                        ));
+                        this.display();
+                    });
+            });
+
+        if (this.plugin.settings.saveLocation == "custom") {
+            new Setting(containerEl)
+                .setName("Folder to create new articles in")
+                .setDesc("newly created articles will appear in this folder")
+                .addSearch(async (search: SearchComponent) => {
+                    new FolderSuggest(this.app, search.inputEl);
+                    search
+                        .setValue(this.plugin.settings.saveLocationFolder)
+                        .setPlaceholder(DEFAULT_SETTINGS.saveLocationFolder)
+                        .onChange(async (value: string) => {
+                            await this.plugin.writeSettings(() => (
+                                {saveLocationFolder: value}
+                            ));
+                        });
+                });
+        }
+
         const refresh = new Setting(containerEl)
             .setName("Refresh time")
             .setDesc("How often should the feeds be refreshed, in minutes")
-            .addText((text: TextComponent)  => {
+            .addText((text: TextComponent) => {
                 text
                     .setPlaceholder(String(DEFAULT_SETTINGS.updateTime))
                     .setValue(String(this.plugin.settings.updateTime))
-                    .onChange(async(value) => {
-                        if(value.length === 0) {
+                    .onChange(async (value) => {
+                        if (value.length === 0) {
                             new Notice("please specify a value");
                             return;
                         }
-                        if(Number(value) == 0) {
+                        if (Number(value) == 0) {
                             new Notice("please specify a bigger value");
                             return;
                         }
@@ -97,15 +136,15 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 text.inputEl.setAttr("onkeypress", "return event.charCode >= 48 && event.charCode <= 57");
             });
         refresh.addExtraButton((button) => {
-           button
-               .setIcon('reset')
-               .setTooltip('restore default')
-               .onClick(async() => {
-                   await this.plugin.writeSettings(() => ({
-                       updateTime: DEFAULT_SETTINGS.updateTime
-                   }));
-                   this.display();
-               });
+            button
+                .setIcon('reset')
+                .setTooltip('restore default')
+                .onClick(async () => {
+                    await this.plugin.writeSettings(() => ({
+                        updateTime: DEFAULT_SETTINGS.updateTime
+                    }));
+                    this.display();
+                });
         });
 
         containerEl.createEl("h3", {text: "Feeds"});

@@ -1,7 +1,7 @@
 <script lang="ts">
-    import {RssFeedMap} from "./rssParser";
+    import {RssFeedMap} from "../parser/rssParser";
     import ItemView from "./ItemView.svelte";
-    import RssReaderPlugin from "./main";
+    import RssReaderPlugin from "../main";
     import IconComponent from "./IconComponent.svelte";
 
     export let feed: RssFeedMap = null;

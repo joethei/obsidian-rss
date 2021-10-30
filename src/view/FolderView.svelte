@@ -1,6 +1,6 @@
 <script lang="ts">
-    import {favoritesStore, sortedFeedsStore} from "./stores";
-    import RssReaderPlugin from "./main";
+    import {favoritesStore, sortedFeedsStore} from "../stores";
+    import RssReaderPlugin from "../main";
     import IconComponent from "./IconComponent.svelte";
     import ItemView from "./ItemView.svelte";
     import FeedView from "./FeedView.svelte";

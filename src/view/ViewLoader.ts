@@ -1,7 +1,7 @@
 import {ItemView, WorkspaceLeaf} from "obsidian";
 import ListFeedsView from "./FolderView.svelte";
-import RssReaderPlugin from "./main";
-import {VIEW_ID} from "./consts";
+import RssReaderPlugin from "../main";
+import {VIEW_ID} from "../consts";
 
 export default class ViewLoader extends ItemView {
     private feed: ListFeedsView;

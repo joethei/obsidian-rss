@@ -1,18 +1,16 @@
 import {
     ButtonComponent,
     htmlToMarkdown,
-    MarkdownView,
     Modal,
-    normalizePath,
-    Notice, TextComponent,
+    Notice,
 } from "obsidian";
-import {RssFeedItem} from "./rssParser";
-import {favoritesStore, FeedItems, readStore} from "./stores";
-import RssReaderPlugin from "./main";
+import {RssFeedItem} from "../parser/rssParser";
+import {favoritesStore, FeedItems, readStore} from "../stores";
+import RssReaderPlugin from "../main";
 import {get} from "svelte/store";
-import {copy, isInVault} from "obsidian-community-lib";
-import {FILE_NAME_REGEX, sanitizeHTMLToDom} from "./consts";
-import {TextInputPrompt} from "./TextInputPrompt";
+import {copy} from "obsidian-community-lib";
+import {sanitizeHTMLToDom} from "../consts";
+import {createNewNote, openInBrowser, pasteToNote} from "../functions";
 
 export class ItemModal extends Modal {
 
@@ -104,66 +102,15 @@ export class ItemModal extends Modal {
             });
 
         new ButtonComponent(topButtons).setTooltip("open in browser").setIcon("open-elsewhere-glyph").onClick(() => {
-            if (typeof this.item.link === "string") {
-                window.open(this.item.link, '_blank');
-            }
+           openInBrowser(this.item);
         });
 
         new ButtonComponent(topButtons).setTooltip("Add as new note").setIcon("create-new").onClick(async () => {
-            const activeFile = this.app.workspace.getActiveFile();
-            const dir = this.app.fileManager.getNewFileParent(activeFile ? activeFile.path : "").name;
-            //make sure there are now slashes in the title.
-            const title = this.item.title.replace(/[\/\\:]/g, ' ');
-            const content = htmlToMarkdown(this.item.content);
-
-            const appliedTemplate = this.plugin.settings.template
-                .replace("{{title}}", this.item.title)
-                .replace("{{link}}", this.item.link)
-                .replace("{{author}}", this.item.creator)
-                .replace("{{published}}", this.item.pubDate)
-                .replace("{{content}}", content);
-
-            const inputPrompt = new TextInputPrompt(this.app, "Please specify a file name", "cannot contain: * \" \\ / < > : | ?", title, title);
-
-            await inputPrompt
-                .openAndGetValue(async (text: TextComponent) => {
-                    const value = text.getValue();
-                    if(value.match(FILE_NAME_REGEX)) {
-                        inputPrompt.setValidationError(text, "that filename is not valid");
-                        return;
-                    }
-                    const filePath = normalizePath([dir, `${value}.md`].join('/'));
-
-                    if (isInVault(this.app, filePath, '')) {
-                        inputPrompt.setValidationError(text, "there is already a note with that name");
-                        return;
-                    }
-
-                    this.close();
-                    inputPrompt.close();
-
-                    const file = await this.app.vault.create(filePath, appliedTemplate);
-
-                    await this.app.workspace.activeLeaf.openFile(file, {
-                        state: {mode: 'edit'},
-                    })
-                    new Notice("Created note from article");
-            });
+            await createNewNote(this.plugin, this.item);
         });
 
-        new ButtonComponent(topButtons).setTooltip("paste to current note").setIcon("paste").onClick(() => {
-            const file = this.app.workspace.getActiveFile();
-            if (file === null) {
-                new Notice("no file active");
-                return;
-            }
-
-            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-            if (view) {
-                const editor = view.editor;
-                editor.replaceRange(htmlToMarkdown(this.item.content), editor.getCursor());
-                new Notice("inserted article into note");
-            }
+        new ButtonComponent(topButtons).setTooltip("paste to current note").setIcon("paste").onClick(async() => {
+            await pasteToNote(this.plugin, this.item);
         });
 
         new ButtonComponent(topButtons).setTooltip("copy content to clipboard").setIcon("feather-clipboard").onClick(async () => {

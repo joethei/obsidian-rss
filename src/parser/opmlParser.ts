@@ -1,4 +1,4 @@
-import {RssFeed} from "./settings";
+import {RssFeed} from "../settings/settings";
 
 //not used currently, parser not fully implemented.
 export async function loadFeedsFromString(importData: string) : Promise<RssFeed[]> {

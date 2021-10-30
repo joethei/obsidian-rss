@@ -1,6 +1,6 @@
 import {writable} from "svelte/store";
-import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings} from "./settings";
-import {RssFeedItem, RssFeedMap} from "./rssParser";
+import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings} from "./settings/settings";
+import {RssFeedItem, RssFeedMap} from "./parser/rssParser";
 import Array from "obsidian";
 
 export interface FeedItems {

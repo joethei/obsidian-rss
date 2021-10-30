@@ -1,6 +1,6 @@
 import {App, Modal, Notice, Setting} from "obsidian";
-import {loadFeedsFromString} from "./opmlParser";
-import RssReaderPlugin from "./main";
+import {loadFeedsFromString} from "../parser/opmlParser";
+import RssReaderPlugin from "../main";
 
 export class ImportModal extends Modal {
     importData: string;
