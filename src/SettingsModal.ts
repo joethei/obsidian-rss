@@ -1,13 +1,16 @@
-import {Modal, Setting} from "obsidian";
+import {Notice, Setting, TextComponent} from "obsidian";
 import RssReaderPlugin from "./main";
 import {RssFeed} from "./settings";
+import {getFeedItems} from "./rssParser";
+import {isValidHttpUrl} from "./consts";
+import {BaseModal} from "./BaseModal";
 
-export class SettingsModal extends Modal {
+export class SettingsModal extends BaseModal {
     name: string;
     url: string;
     folder: string;
 
-    saved: boolean = false;
+    saved = false;
 
     constructor(plugin: RssReaderPlugin, feed?: RssFeed) {
         super(plugin.app);
@@ -19,58 +22,80 @@ export class SettingsModal extends Modal {
         }
     }
 
-    async display() {
-        let { contentEl } = this;
+    async display() : Promise<void> {
+        const { contentEl } = this;
 
         contentEl.empty();
 
+        let nameText: TextComponent;
         const name = new Setting(contentEl)
             .setName("Name")
             .setDesc("Name of feed")
             .addText((text) => {
+                nameText = text;
                 text.setValue(this.name)
                     .onChange((value) => {
-                       if(!value.length) {
-                           //todo: validate
-                       }
+                        this.removeValidationError(text);
                        this.name = value;
-
                     });
             });
+        name.controlEl.addClass("rss-setting-input");
 
+        let urlText: TextComponent;
         const url = new Setting(contentEl)
             .setName("url")
             .setDesc("url of feed")
             .addText((text) => {
+                urlText = text;
                 text.setValue(this.url)
-                    .onChange((value) => {
-                        if(!value.length) {
-                            //todo: validate
-                        }
+                    .onChange(async(value) => {
+                        this.removeValidationError(text);
                         this.url = value;
 
                     });
             });
+        url.controlEl.addClass("rss-setting-input");
 
-        const folder = new Setting(contentEl)
+        new Setting(contentEl)
             .setName("Folder")
-            .setDesc("Folder")
             .addText((text) => {
                 text.setValue(this.folder)
                     .onChange((value) => {
-                        if(!value.length) {
-                            //todo: validate
-                        }
                         this.folder = value;
                     });
             });
 
-        let footerEl = contentEl.createDiv();
-        let footerButtons = new Setting(footerEl);
+        const footerEl = contentEl.createDiv();
+        const footerButtons = new Setting(footerEl);
         footerButtons.addButton((b) => {
             b.setTooltip("Save")
                 .setIcon("checkmark")
                 .onClick(async () => {
+                    let error = false;
+                    if(!nameText.getValue().length) {
+                        this.setValidationError(nameText, "you need to specify a name");
+                        error = true;
+                    }
+
+                    if(!urlText.getValue().length) {
+                        this.setValidationError(urlText, "you need to specify a url");
+                        error = true;
+                    }
+                    if(!isValidHttpUrl(urlText.getValue())) {
+                        this.setValidationError(urlText, "This url is not valid");
+                        error = true;
+                    }else {
+                        const items = await getFeedItems({name: "test", url: urlText.getValue(), folder: ""});
+                        if(items.items.length == 0) {
+                            this.setValidationError(urlText, "this feed does not have any entries");
+                            error = true;
+                        }
+                    }
+
+                    if(error) {
+                        new Notice("please fix errors before saving.");
+                        return;
+                    }
                     this.saved = true;
                     this.close();
                 });
@@ -87,7 +112,7 @@ export class SettingsModal extends Modal {
         });
     }
 
-    onOpen() {
-        this.display();
+    async onOpen() : Promise<void> {
+        await this.display();
     }
 }

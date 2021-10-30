@@ -30,6 +30,13 @@ export interface RssFeedMap {
     content: RssFeedContent
 }
 
+/**
+ *
+ * : to get namespaced element
+ * . to get nested element
+ * @param element
+ * @param name
+ */
 function getElementByName(element: Element | Document, name: string): ChildNode {
     let value: ChildNode;
     if (typeof element.getElementsByTagName !== 'function') {
@@ -69,6 +76,11 @@ function getElementByName(element: Element | Document, name: string): ChildNode 
     return value;
 }
 
+/**
+ * # to get attribute
+ * @param element
+ * @param names possible names
+ */
 function getContent(element: Element | Document, names: string[]): string {
     let value: string;
     names.forEach((name) => {
@@ -97,6 +109,9 @@ function getContent(element: Element | Document, names: string[]): string {
         }
 
     });
+    if(value === undefined) {
+        return "";
+    }
     return value;
 }
 
@@ -116,14 +131,14 @@ function getAllItems(doc: Document): Element[] {
     const items: Element[] = [];
 
     if (doc.getElementsByTagName("item")) {
-        for (let elementsByTagNameKey in doc.getElementsByTagName("item")) {
+        for (const elementsByTagNameKey in doc.getElementsByTagName("item")) {
             const entry = doc.getElementsByTagName("item")[elementsByTagNameKey];
             items.push(entry);
 
         }
     }
     if (doc.getElementsByTagName("entry")) {
-        for (let elementsByTagNameKey in doc.getElementsByTagName("entry")) {
+        for (const elementsByTagNameKey in doc.getElementsByTagName("entry")) {
             const entry = doc.getElementsByTagName("entry")[elementsByTagNameKey];
             items.push(entry);
         }
@@ -133,7 +148,7 @@ function getAllItems(doc: Document): Element[] {
 
 export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
     const rawData = await request({url: feed.url});
-    let data = new window.DOMParser().parseFromString(rawData, "text/xml");
+    const data = new window.DOMParser().parseFromString(rawData, "text/xml");
 
     const items: RssFeedItem[] = [];
     const rawItems = getAllItems(data);

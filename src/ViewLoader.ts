@@ -1,9 +1,9 @@
 import {ItemView, WorkspaceLeaf} from "obsidian";
-import ListFeedsView from "./ListFeedsView.svelte";
+import ListFeedsView from "./FolderView.svelte";
 import RssReaderPlugin from "./main";
 import {VIEW_ID} from "./consts";
 
-export default class ListFeedsViewLoader extends ItemView {
+export default class ViewLoader extends ItemView {
     private feed: ListFeedsView;
     private readonly plugin: RssReaderPlugin;
 
@@ -11,13 +11,10 @@ export default class ListFeedsViewLoader extends ItemView {
     constructor(leaf: WorkspaceLeaf, plugin: RssReaderPlugin) {
         super(leaf);
         this.plugin = plugin;
-        this.addAction('feather-eye', 'only show unread', () => {
-
-        }, 6);
     }
 
     getDisplayText(): string {
-        return "RSS Feed";
+        return "RSS Feeds";
     }
 
     getViewType(): string {

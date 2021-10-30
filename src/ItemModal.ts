@@ -4,16 +4,17 @@ import {
     MarkdownView,
     Modal,
     normalizePath,
-    Notice,
+    Notice, TextComponent,
 } from "obsidian";
 import {RssFeedItem} from "./rssParser";
 import {favoritesStore, FeedItems, readStore} from "./stores";
 import RssReaderPlugin from "./main";
 import {get} from "svelte/store";
 import {copy, isInVault} from "obsidian-community-lib";
-import {sanitizeHTMLToDom} from "./consts";
+import {FILE_NAME_REGEX, sanitizeHTMLToDom} from "./consts";
+import {TextInputPrompt} from "./TextInputPrompt";
 
-export class FeedItemModal extends Modal {
+export class ItemModal extends Modal {
 
     private readonly plugin: RssReaderPlugin;
     private readonly item: RssFeedItem;
@@ -37,26 +38,29 @@ export class FeedItemModal extends Modal {
         });
     }
 
-    onOpen() {
-        let {contentEl} = this;
+    onOpen() : void {
+        const {contentEl} = this;
 
-        let topButtons = contentEl.createDiv('topButtons');
+        const topButtons = contentEl.createSpan('topButtons');
 
-        let title = contentEl.createEl('h1', 'title');
+        const title = contentEl.createEl('h1', 'title');
         title.setText(this.item.title);
 
-        let subtitle = contentEl.createEl("h3", "subtitle");
+        const subtitle = contentEl.createEl("h3", "subtitle");
         if (this.item.creator) {
             subtitle.appendText(this.item.creator);
         }
         if (this.item.pubDate) {
             subtitle.appendText(" - " + this.item.pubDate);
         }
+
+        let hasBeenRead = this.readItems.items.some(item => item.link === this.item.link)
+
         const readButton = new ButtonComponent(topButtons)
-            .setIcon(this.readItems.items.some(item => item.link === this.item.link) ? 'feather-eye-off' : 'feather-eye')
-            .setTooltip(this.readItems.items.some(item => item.link === this.item.link) ? 'Mark as unread' : 'mark as read')
+            .setIcon(hasBeenRead ? 'feather-eye-off' : 'feather-eye')
+            .setTooltip(hasBeenRead ? 'Mark as unread' : 'mark as read')
             .onClick(async () => {
-                if (this.readItems.items.some(item => item.link === this.item.link)) {
+                if (hasBeenRead) {
                     this.readItems.items
                         .filter((item => item.link === this.item.link))
                         .forEach(item => {
@@ -64,30 +68,36 @@ export class FeedItemModal extends Modal {
                         });
                     this.readItems.items.remove(this.item);
                     readButton.setIcon('feather-eye');
+                    hasBeenRead = false;
                     new Notice("marked item as unread");
                 } else {
                     this.readItems.items.push(this.item);
                     readButton.setIcon('feather-eye-off');
+                    hasBeenRead = true;
                     new Notice("marked item as read");
                 }
                 await this.plugin.writeRead(() => (this.readItems));
             });
 
+        let isFavorite = this.favoriteItems.items.some(item => item.link === this.item.link);
+
         const favoriteButton = new ButtonComponent(topButtons)
-            .setIcon((this.favoriteItems.items.some(item => item.link === this.item.link)) ? 'star-glyph' : 'star')
-            .setTooltip((this.favoriteItems.items.some(item => item.link === this.item.link) ? 'remove from favorites' : 'mark as favorite'))
+            .setIcon(isFavorite ? 'star-glyph' : 'star')
+            .setTooltip(isFavorite ? 'remove from favorites' : 'mark as favorite')
             .onClick(async () => {
-                if (this.favoriteItems.items.some(item => item.link === this.item.link)) {
+                if (isFavorite) {
                     this.favoriteItems.items.
                         filter(item => item.link === this.item.link)
                         .forEach(item => {
                             this.favoriteItems.items.remove(item);
                         });
                     favoriteButton.setIcon('star');
+                    isFavorite = false;
                     new Notice("removed item from favorites");
                 } else {
                     this.favoriteItems.items.push(this.item);
                     favoriteButton.setIcon('star-glyph');
+                    isFavorite = true;
                     new Notice("added item to favorites");
                 }
                 await this.plugin.writeFavorites(() => (this.favoriteItems));
@@ -102,9 +112,9 @@ export class FeedItemModal extends Modal {
         new ButtonComponent(topButtons).setTooltip("Add as new note").setIcon("create-new").onClick(async () => {
             const activeFile = this.app.workspace.getActiveFile();
             const dir = this.app.fileManager.getNewFileParent(activeFile ? activeFile.path : "").name;
-            const title = this.item.title.replace(/[\/\\\:]/g, ' ');
-            const filePath = normalizePath([dir, `${title}.md`].join('/'));
-            let content = htmlToMarkdown(this.item.content);
+            //make sure there are now slashes in the title.
+            const title = this.item.title.replace(/[\/\\:]/g, ' ');
+            const content = htmlToMarkdown(this.item.content);
 
             const appliedTemplate = this.plugin.settings.template
                 .replace("{{title}}", this.item.title)
@@ -113,21 +123,32 @@ export class FeedItemModal extends Modal {
                 .replace("{{published}}", this.item.pubDate)
                 .replace("{{content}}", content);
 
-            //todo: check if file path is actually valid(does not contain : and so on)
+            const inputPrompt = new TextInputPrompt(this.app, "Please specify a file name", "cannot contain: * \" \\ / < > : | ?", title, title);
 
-            if (isInVault(this.app, filePath, '')) {
-                new Notice("there is already a file with that name");
-                return;
-            }
+            await inputPrompt
+                .openAndGetValue(async (text: TextComponent) => {
+                    const value = text.getValue();
+                    if(value.match(FILE_NAME_REGEX)) {
+                        inputPrompt.setValidationError(text, "that filename is not valid");
+                        return;
+                    }
+                    const filePath = normalizePath([dir, `${value}.md`].join('/'));
 
-            const file = await this.app.vault.create(filePath, appliedTemplate);
-            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-            if (view) {
-                await view.leaf.openFile(file, {
-                    state: {mode: 'preview'},
-                })
-            }
-            new Notice("Created note from feed");
+                    if (isInVault(this.app, filePath, '')) {
+                        inputPrompt.setValidationError(text, "there is already a note with that name");
+                        return;
+                    }
+
+                    this.close();
+                    inputPrompt.close();
+
+                    const file = await this.app.vault.create(filePath, appliedTemplate);
+
+                    await this.app.workspace.activeLeaf.openFile(file, {
+                        state: {mode: 'edit'},
+                    })
+                    new Notice("Created note from article");
+            });
         });
 
         new ButtonComponent(topButtons).setTooltip("paste to current note").setIcon("paste").onClick(() => {
@@ -141,7 +162,7 @@ export class FeedItemModal extends Modal {
             if (view) {
                 const editor = view.editor;
                 editor.replaceRange(htmlToMarkdown(this.item.content), editor.getCursor());
-                new Notice("inserted feed item into note");
+                new Notice("inserted article into note");
             }
         });
 
@@ -149,14 +170,14 @@ export class FeedItemModal extends Modal {
             await copy(htmlToMarkdown(this.item.content));
         });
 
-        let content = contentEl.createDiv('content');
+        const content = contentEl.createDiv('content');
         if (this.item.content) {
             content.append(sanitizeHTMLToDom(this.item.content));
         }
     }
 
-    onClose() {
-        let {contentEl} = this;
+    onClose() : void {
+        const {contentEl} = this;
         contentEl.empty();
     }
 }

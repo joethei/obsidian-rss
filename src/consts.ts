@@ -1,4 +1,5 @@
 export const VIEW_ID = "RSS_FEED";
+export const FILE_NAME_REGEX = /["\/<>:|?]/gm;
 
 //TODO: remove once api definition has been updated
 /**
@@ -15,4 +16,17 @@ export function sanitizeHTMLToDom(html: string): DocumentFragment {
         ADD_TAGS: ['iframe'],
         ADD_ATTR: ['frameborder', 'allowfullscreen', 'allow', 'aria-label-position'],
     });
+}
+
+//taken from: https://stackoverflow.com/a/43467144/5589264
+export function isValidHttpUrl(string: string) : boolean {
+    let url;
+
+    try {
+        url = new URL(string);
+    } catch (_) {
+        return false;
+    }
+
+    return url.protocol === "http:" || url.protocol === "https:";
 }

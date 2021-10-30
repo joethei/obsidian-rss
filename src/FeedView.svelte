@@ -1,6 +1,6 @@
 <script lang="ts">
     import {RssFeedMap} from "./rssParser";
-    import FeedItemView from "./FeedItemView.svelte";
+    import ItemView from "./ItemView.svelte";
     import RssReaderPlugin from "./main";
     import IconComponent from "./IconComponent.svelte";
 
@@ -36,7 +36,7 @@
         <div class="rss-feed-items">
             {#if !foldedState.get(feed.feed.name)}
                 {#each feed.content.items as item}
-                    <FeedItemView item={item} plugin={plugin}/>
+                    <ItemView item={item} plugin={plugin}/>
                 {/each}
             {/if}
         </div>

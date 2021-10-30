@@ -1,6 +1,6 @@
 import {Plugin, WorkspaceLeaf} from 'obsidian';
 import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings, RSSReaderSettingsTab} from "./settings";
-import ListFeedsViewLoader from "./ListFeedsViewLoader";
+import ViewLoader from "./ViewLoader";
 import {
 	favoritesStore,
 	configuredFeedsStore,
@@ -10,7 +10,6 @@ import {
 	sortedFeedsStore,
 	FeedItems
 } from "./stores";
-import {ImportModal} from "./importModal";
 import {VIEW_ID} from "./consts";
 import {getFeedItems, RssFeedMap} from "./rssParser";
 import {addFeatherIcon} from "obsidian-community-lib";
@@ -18,9 +17,9 @@ import groupBy from "lodash.groupby";
 
 export default class RssReaderPlugin extends Plugin {
 	settings: RssReaderSettings;
-	private view: ListFeedsViewLoader;
+	private view: ViewLoader;
 
-	async onload() {
+	async onload() : Promise<void> {
 		console.log('loading plugin rss reader');
 
 		addFeatherIcon("rss");
@@ -29,9 +28,9 @@ export default class RssReaderPlugin extends Plugin {
 		addFeatherIcon("star");
 		addFeatherIcon("clipboard");
 
+		//update settings whenever store contents change.
 		this.register(
 			settingsStore.subscribe((value: RssReaderSettings) => {
-				console.log("updated settings");
 				this.settings = value;
 			})
 		);
@@ -39,8 +38,8 @@ export default class RssReaderPlugin extends Plugin {
 		await this.loadSettings();
 
 		this.addCommand({
-			id: "rss-reveal",
-			name: "Open Feed",
+			id: "rss-open",
+			name: "Open",
 			checkCallback: (checking: boolean) => {
 				if(checking) {
 					return (this.app.workspace.getLeavesOfType(VIEW_ID).length === 0);
@@ -49,27 +48,37 @@ export default class RssReaderPlugin extends Plugin {
 			}
 		});
 
+		/* parser not fully implemented
 		this.addCommand({
 			id: "rss-import",
 			name: "Import OPML",
 			callback: () => {
 				new ImportModal(this.app, this).open();
 			}
-		});
+		});*/
 
-		this.registerView(VIEW_ID, (leaf: WorkspaceLeaf) => (this.view = new ListFeedsViewLoader(leaf, this)));
+		this.registerView(VIEW_ID, (leaf: WorkspaceLeaf) => (this.view = new ViewLoader(leaf, this)));
 
 		this.addSettingTab(new RSSReaderSettingsTab(this.app, this));
 
 		await this.updateFeeds();
 
-		this.registerInterval(window.setInterval(async() => {
+		let interval = window.setInterval(async() => {
 			await this.updateFeeds();
-		}, 1000 * 60 * 10));
+		}, this.settings.updateTime * 60 * 1000);
+		this.registerInterval(interval);
 
+		settingsStore.subscribe((settings: RssReaderSettings) => {
+			clearInterval(interval);
+			interval = window.setInterval(async() => {
+				await this.updateFeeds();
+			}, settings.updateTime * 60 * 1000);
+			this.registerInterval(interval);
+		});
+
+		//keep sorted store sorted when the configured feed change.
 		feedsStore.subscribe((feeds: RssFeedMap[]) => {
 			const sorted = groupBy(feeds, "feed.folder");
-			console.log(sorted);
 			sortedFeedsStore.update(() => sorted);
 		});
 
@@ -81,7 +90,7 @@ export default class RssReaderPlugin extends Plugin {
 
 	}
 
-	async updateFeeds() {
+	async updateFeeds() : Promise<void> {
 		const result: RssFeedMap[] = [];
 		for (const feed of this.settings.feeds) {
 			const items = await getFeedItems(feed);
@@ -90,7 +99,7 @@ export default class RssReaderPlugin extends Plugin {
 		feedsStore.update(() => result);
 	}
 
-	onunload() {
+	onunload() : void {
 		console.log('unloading plugin rss reader');
 		this.app.workspace
 			.getLeavesOfType(VIEW_ID)
@@ -134,7 +143,7 @@ export default class RssReaderPlugin extends Plugin {
 		});
 	}
 
-	async saveSettings() {
+	async saveSettings() : Promise<void> {
 		await this.saveData(this.settings);
 	}
 

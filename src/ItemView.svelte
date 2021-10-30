@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {FeedItemModal} from "./FeedItemModal";
+    import {ItemModal} from "./ItemModal";
     import {RssFeedItem} from "./rssParser";
     import RssReaderPlugin from "./main";
     import {favoritesStore, readStore} from "./stores";
@@ -17,7 +17,7 @@
                 <IconComponent iconName="star"/>
             {/if}
             <a on:click={() => {
-                new FeedItemModal(plugin, item).open();
+                new ItemModal(plugin, item).open();
                     }}
             >
                 {item.title}

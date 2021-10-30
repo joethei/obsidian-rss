@@ -7,9 +7,14 @@ Plugin for [Obsidian](https://obsidian.md)
 [![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
 ---
 
-> ⚠️Currently in beta
+![Demo GIF](https://i.joethei.space/08gWOSPupe.gif)
 
-[Demo Video](http://www.youtube.com/watch?v=_MjJ2TM6ylU)
+## Features
+- Reading RSS feeds from within obsidian
+- Sorting feeds into folders(sorting into nested folders is on the roadmap [#3](https://github.com/joethei/obsidian-rss/issues/3))
+- staring articles
+- creating new notes from articles
+- pasting article into current note
 
 ### Installing the plugin
 - using the build in Community plugins(once this plugin is accepted)

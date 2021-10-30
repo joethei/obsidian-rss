@@ -11,7 +11,7 @@ export class ImportModal extends Modal {
         this.plugin = plugin;
     }
 
-    onOpen() {
+    onOpen() : void {
         const {contentEl} = this;
         contentEl.createEl("h1", {text: "Import OPML"});
         new Setting(contentEl).setName("Data").setDesc("paste the content of the OPML file here").addText((text) => {
@@ -36,8 +36,8 @@ export class ImportModal extends Modal {
         }));
     }
 
-    onClose() {
-        let {contentEl} = this;
+    onClose() : void {
+        const {contentEl} = this;
         contentEl.empty();
     }
 }
