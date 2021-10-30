@@ -7,7 +7,7 @@ Plugin for [Obsidian](https://obsidian.md)
 [![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
 ---
 
-![Demo GIF](https://i.joethei.space/08gWOSPupe.gif)
+![Demo GIF](https://i.joethei.space/QQATWu36eC.gif)
 
 ## Features
 - Reading RSS feeds from within obsidian
