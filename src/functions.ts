@@ -63,7 +63,7 @@ export async function pasteToNote(plugin: RssReaderPlugin, item: RssFeedItem) : 
         const appliedTemplate = applyTemplate(item, plugin.settings.pasteTemplate, plugin.settings);
 
         const editor = view.editor;
-        editor.replaceRange(htmlToMarkdown(appliedTemplate), editor.getCursor());
+        editor.replaceRange(appliedTemplate, editor.getCursor());
 
         item.created = true;
         const items = plugin.settings.items;
