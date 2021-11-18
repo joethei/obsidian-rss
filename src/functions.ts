@@ -8,7 +8,7 @@ import {RssReaderSettings} from "./settings/settings";
 
 export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) : Promise<void> {
     const activeFile = plugin.app.workspace.getActiveFile();
-    let dir = plugin.app.fileManager.getNewFileParent(activeFile ? activeFile.path : "").name;
+    let dir = plugin.app.fileManager.getNewFileParent(activeFile ? activeFile.path : "").path;
 
     if(plugin.settings.saveLocation === "custom") {
         dir = plugin.settings.saveLocationFolder;

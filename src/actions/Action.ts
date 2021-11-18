@@ -14,10 +14,10 @@ export default class Action {
     static PASTE = new Action("paste to current note", "paste", (plugin, item) : Promise<void> => {
         return pasteToNote(plugin, item);
     });
-    static COPY = new Action("copy to clipboard", "feather-clipboard", ((plugin, item) : Promise<void> => {
+    static COPY = new Action("copy to clipboard", "feather-clipboard", ((_, item) : Promise<void> => {
         return copy(htmlToMarkdown(item.content));
     }));
-    static OPEN = new Action("open in browser", "open-elsewhere-glyph", ((plugin, item) : Promise<void> => {
+    static OPEN = new Action("open in browser", "open-elsewhere-glyph", ((_, item) : Promise<void> => {
         openInBrowser(item);
         return Promise.resolve();
     }));

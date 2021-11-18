@@ -26,7 +26,7 @@ export interface FilteredFolder{
 export class FilteredFolderModal extends BaseModal {
     name: string;
     filterType: string;
-    filterContent: string = "";
+    filterContent = "";
     sortOrder: string;
 
     saved = false;

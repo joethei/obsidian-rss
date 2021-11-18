@@ -7,7 +7,6 @@ import {RssFeedItem} from "../parser/rssParser";
 import RssReaderPlugin from "../main";
 import {sanitizeHTMLToDom} from "../consts";
 import Action from "../actions/Action";
-import tag from "svelte/types/compiler/parse/state/tag";
 
 export class ItemModal extends Modal {
 
@@ -21,15 +20,6 @@ export class ItemModal extends Modal {
         item.read = true;
 
         const items = this.plugin.settings.items;
-        /*for (const content of Object.values(items)) {
-            content.items.forEach((item) => {
-                if(this.item == item) {
-                    content.items.remove(item);
-                    content.items.push(this.item);
-                }
-            });
-        }*/
-
         this.plugin.writeFeedContent(() => {
             return items;
         });

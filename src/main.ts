@@ -110,7 +110,7 @@ export default class RssReaderPlugin extends Plugin {
     }
 
     filterItems(items: RssFeedItem[]) {
-        let filtered = new Array<FilteredFolderContent>();
+        const filtered = new Array<FilteredFolderContent>();
         for (const filter of this.settings.filtered) {
             // @ts-ignore
             const filterType = FilterType[filter.filterType];
