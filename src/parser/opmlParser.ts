@@ -17,8 +17,8 @@ export async function loadFeedsFromString(importData: string) : Promise<RssFeed[
 
             //if there are child elements(eg. parent is a folder)
             if(parentElement.getElementsByTagName("outline").length > 0) {
-                for (const elementsByTagNameKey in parentElement.getElementsByTagName("outline")) {
-                    const childElement = data.getElementsByTagName("outline")[elementsByTagNameKey];
+                for (const outlineElements in parentElement.getElementsByTagName("outline")) {
+                    const childElement = data.getElementsByTagName("outline")[outlineElements];
                     console.log(childElement);
                     if (childElement.nodeName == "outline") {
                         //@ts-ignore

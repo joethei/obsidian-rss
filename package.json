@@ -1,6 +1,6 @@
 {
   "name": "rss-reader",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Read RSS Feeds from inside obsidian",
   "main": "main.js",
   "scripts": {
@@ -24,7 +24,7 @@
     "eslint": "^7.32.0",
     "lodash.groupby": "^4.6.0",
     "obsidian": "^0.12.0",
-    "obsidian-community-lib": "0.0.17",
+    "obsidian-community-lib": "1.2.0",
     "rollup": "^2.32.1",
     "rollup-plugin-svelte": "^7.1.0",
     "svelte": "^3.43.1",

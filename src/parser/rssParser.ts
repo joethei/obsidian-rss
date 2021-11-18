@@ -9,8 +9,10 @@ import {RssFeed} from "../settings/settings";
 export interface RssFeedContent {
     subtitle: string,
     title: string,
+    name: string,
     link: string,
     image: string,
+    folder: string,
     description: string,
     items: RssFeedItem[]
 }
@@ -24,7 +26,11 @@ export interface RssFeedItem {
     creator: string,
     pubDate: string,
     folder: string,
-    feed: string
+    feed: string,
+    favorite: boolean,
+    read: boolean,
+    created: boolean,
+    tags: string[]
 }
 
 export interface RssFeedMap {
@@ -33,7 +39,6 @@ export interface RssFeedMap {
 }
 
 /**
- *
  * : to get namespaced element
  * . to get nested element
  * @param element
@@ -121,13 +126,17 @@ function buildItem(element: Element): RssFeedItem {
     return {
         title: getContent(element, ["title"]),
         description: getContent(element, ["description"]),
-        content: getContent(element, ["description", "content", "content:encoded"]),
+        content: getContent(element, ["description", "content", "content:encoded", "summary"]),
         category: getContent(element, ["category"]),
         link: getContent(element, ["link", "link#href"]),
         creator: getContent(element, ["creator", "dc:creator", "author", "author.name"]),
-        pubDate: getContent(element, ["pubDate", "published"]),
+        pubDate: getContent(element, ["pubDate", "published", "updated", "dc:date"]),
         folder: null,
-        feed: null
+        feed: null,
+        read: null,
+        favorite: null,
+        created: null,
+        tags: [],
     }
 }
 
@@ -159,9 +168,12 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
 
     rawItems.forEach((rawItem) => {
         const item = buildItem(rawItem);
-        if (item.title !== undefined) {
+        if (item.title !== undefined && item.title.length !== 0) {
             item.folder = feed.folder;
             item.feed = feed.name;
+            item.read = false;
+            item.favorite = false;
+            item.created = false;
             items.push(item);
         }
 
@@ -176,7 +188,9 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
         //we don't want any leading or trailing slashes in image urls(i.e. reddit does that)
         image: image ? image.replace(/^\/|\/$/g, '') : null,
         description: getContent(data, ["description"]),
-        items: items
+        items: items,
+        folder: feed.folder,
+        name: feed.name
     };
 
     return Promise.resolve(content);

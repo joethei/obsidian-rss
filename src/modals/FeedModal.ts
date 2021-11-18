@@ -5,7 +5,7 @@ import {getFeedItems} from "../parser/rssParser";
 import {isValidHttpUrl} from "../consts";
 import {BaseModal} from "./BaseModal";
 
-export class SettingsModal extends BaseModal {
+export class FeedModal extends BaseModal {
     name: string;
     url: string;
     folder: string;

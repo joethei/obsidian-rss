@@ -35,3 +35,29 @@ input.is-invalid {
     font-size: 0.875em;
     color: #dc3545;
 }
+
+.scrollable-content {
+    overflow: auto;
+    height: 60vh;
+}
+
+
+.rss-tooltip {
+    position: relative;
+}
+
+.rss-tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: var(--interactive-hover);
+    color: var(--text-normal);
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    position: absolute;
+    z-index: var(--layer-tooltip);
+}
+
+.rss-tooltip:hover .tooltiptext {
+    visibility: visible;
+}

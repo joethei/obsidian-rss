@@ -38,6 +38,5 @@ export default {
       dedupe: ["svelte"],
     }),
     commonjs(),
-
   ]
 };

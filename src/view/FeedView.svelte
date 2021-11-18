@@ -1,10 +1,10 @@
 <script lang="ts">
-    import {RssFeedMap} from "../parser/rssParser";
+    import {RssFeedContent} from "../parser/rssParser";
     import ItemView from "./ItemView.svelte";
     import RssReaderPlugin from "../main";
     import IconComponent from "./IconComponent.svelte";
 
-    export let feed: RssFeedMap = null;
+    export let feed: RssFeedContent = null;
     export let plugin: RssReaderPlugin;
 
     let foldedState: Map<string, boolean> = new Map();
@@ -21,21 +21,21 @@
 {:else}
 
     <div class="rss-feed" style="margin-left: 20px">
-        <div class="{foldedState.get(feed.feed.name) ? 'is-collapsed' : ''}" on:click={() => toggleFold(feed.feed.name)} >
+        <div class="{foldedState.get(feed.name) ?  'is-collapsed' : ''}" on:click={() => toggleFold(feed.name)} >
             <div class="rss-feed-title" style="overflow: hidden">
                 <IconComponent iconName="right-triangle"/>
                 <span>
-                    {feed.feed.name}
-                    {#if (feed.content.image)}
-                        <img src={feed.content.image} alt={feed.content.title} style="height: 1em;"/>
+                    {feed.name}
+                    {#if (feed.image)}
+                        <img src={feed.image} alt={feed.title} style="height: 1em;"/>
                     {/if}
                 </span>
             </div>
         </div>
 
         <div class="rss-feed-items">
-            {#if !foldedState.get(feed.feed.name)}
-                {#each feed.content.items as item}
+            {#if !foldedState.get(feed.name)}
+                {#each feed.items as item}
                     <ItemView item={item} plugin={plugin}/>
                 {/each}
             {/if}

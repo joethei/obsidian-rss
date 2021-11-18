@@ -1,54 +1,65 @@
 import {
     App,
-    ButtonComponent, DropdownComponent,
+    ButtonComponent, DropdownComponent, MomentFormatComponent,
     Notice,
     PluginSettingTab, SearchComponent,
     Setting,
     TextAreaComponent,
     TextComponent
 } from "obsidian";
-import MyPlugin from "../main";
 import RssReaderPlugin from "../main";
-import {SettingsModal} from "../modals/SettingsModal";
-import {FeedItems} from "../stores";
+import {FeedModal} from "../modals/FeedModal";
 import groupBy from "lodash.groupby";
 import {FolderSuggest} from "./FolderSuggestor";
+import {FilteredFolder, FilteredFolderModal} from "../modals/FilteredFolderModal";
+import {RssFeedContent} from "../parser/rssParser";
 
 export interface RssFeed {
-    name: string;
-    url: string;
-    folder: string;
+    name: string,
+    url: string,
+    folder: string,
 }
 
 export interface RssReaderSettings {
-    feeds: RssFeed[];
-    template: string;
-    updateTime: number;
-    saveLocation: string;
-    saveLocationFolder: string;
-    read: FeedItems,
-    favorites: FeedItems,
+    feeds: RssFeed[],
+    template: string,
+    pasteTemplate: string,
+    updateTime: number,
+    saveLocation: string,
+    saveLocationFolder: string,
+    filtered: FilteredFolder[],
+    items: RssFeedContent[],
+    dateFormat: string,
 }
 
 export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
     feeds: [],
-    read: {items: []},
-    favorites: {items: []},
     updateTime: 60,
+    filtered: [{
+        name: "Favorites",
+        filterType: "FAVORITES",
+        filterContent: "",
+        sortOrder: "ALPHABET_NORMAL"
+    }],
     saveLocation: 'default',
     saveLocationFolder: '',
+    items: [],
+    dateFormat: "YYYY-MM-DDTHH:MM:SS",
     template: "---\n" +
         "link: {{link}}\n" +
         "author: {{author}}\n" +
         "published: {{published}}\n" +
         "---\n" +
+        "{{title}}\n" +
         "{{content}}",
+    pasteTemplate: "## {{title}}\n" +
+        "{{content}}"
 });
 
 export class RSSReaderSettingsTab extends PluginSettingTab {
     plugin: RssReaderPlugin;
 
-    constructor(app: App, plugin: MyPlugin) {
+    constructor(app: App, plugin: RssReaderPlugin) {
         super(app, plugin);
         this.plugin = plugin;
     }
@@ -62,8 +73,8 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName("New file template")
-            .setDesc('When creating a note from a rss feed item this gets processed. ' +
-                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{content}}, {{folder}}, {{feed}}')
+            .setDesc('When creating a note from a article this gets processed. ' +
+                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{created}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{filename}')
             .addTextArea((textArea: TextAreaComponent) => {
                 textArea
                     .setValue(this.plugin.settings.template)
@@ -77,11 +88,27 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
+            .setName("paste article template")
+            .setDesc('When pasting/copying an article this gets processed. ' +
+                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{content}}, {{description}}, {{folder}}, {{feed}}')
+            .addTextArea((textArea: TextAreaComponent) => {
+                textArea
+                    .setValue(this.plugin.settings.pasteTemplate)
+                    .setPlaceholder(DEFAULT_SETTINGS.pasteTemplate)
+                    .onChange(async (value) => {
+                        await this.plugin.writeSettings(() => ({
+                            pasteTemplate: value
+                        }));
+                    });
+                textArea.inputEl.setAttr("rows", 8);
+            });
+
+        new Setting(containerEl)
             .setName("Default location for new notes")
             .setDesc("")
-            .addDropdown(async (dropDown: DropdownComponent) => {
-                dropDown
-                    .addOption("default", "In the default folder for Obsidian")
+            .addDropdown(async (dropdown: DropdownComponent) => {
+                dropdown
+                    .addOption("default", "In the default folder")
                     .addOption("custom", "In the folder specified below")
                     .setValue(this.plugin.settings.saveLocation)
                     .onChange(async (value: string) => {
@@ -111,7 +138,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         const refresh = new Setting(containerEl)
             .setName("Refresh time")
-            .setDesc("How often should the feeds be refreshed, in minutes")
+            .setDesc("How often should the feeds be refreshed, in minutes, use 0 to disable")
             .addText((text: TextComponent) => {
                 text
                     .setPlaceholder(String(DEFAULT_SETTINGS.updateTime))
@@ -147,17 +174,130 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 });
         });
 
+        let dateFormatSampleEl: MomentFormatComponent;
+        const dateFormat = new Setting(containerEl)
+            .setName("Date format")
+            .setDesc("")
+            .addMomentFormat((format: MomentFormatComponent) => {
+                dateFormatSampleEl = format
+                    .setDefaultFormat(DEFAULT_SETTINGS.dateFormat)
+                    .setPlaceholder(DEFAULT_SETTINGS.dateFormat)
+                    .setValue(this.plugin.settings.dateFormat)
+                    .onChange(async (value) => {
+                        await this.plugin.writeSettings(() => (
+                            {dateFormat: value}
+                        ));
+                    });
+            });
+        const referenceLink = dateFormat.descEl.createEl("a");
+        referenceLink.setAttr("href", "https://momentjs.com/docs/#/displaying/format/");
+        referenceLink.setText("Syntax Reference");
+        const text = dateFormat.descEl.createDiv("text");
+        text.setText("Your current syntax looks like this: ");
+        const sampleEl = text.createSpan("sample");
+        dateFormatSampleEl.setSampleEl(sampleEl);
+        dateFormat.addExtraButton((button) => {
+            button
+                .setIcon('reset')
+                .setTooltip('restore default')
+                .onClick(async () => {
+                    await this.plugin.writeSettings(() => ({
+                        dateFormat: DEFAULT_SETTINGS.dateFormat
+                    }));
+                    this.display();
+                });
+        });
+
+        containerEl.createEl("h3", {text: "Filtered Folders"});
+
+        new Setting(containerEl)
+            .setName("Add New")
+            .setDesc("Add new filtered folder")
+            .addButton((button: ButtonComponent): ButtonComponent => {
+                return button
+                    .setTooltip("add new filtered folder")
+                    .setIcon("create-new")
+                    .onClick(async () => {
+                        const modal = new FilteredFolderModal(this.plugin);
+
+                        modal.onClose = async () => {
+                            if (modal.saved) {
+                                if (this.plugin.settings.filtered.some(folder => folder.name === modal.name)) {
+                                    new Notice("you already have a filter configured with that name");
+                                    return;
+                                }
+                                await this.plugin.writeFiltered(() => (
+                                    this.plugin.settings.filtered.concat({
+                                            name: modal.name,
+                                            filterType: modal.filterType,
+                                            filterContent: modal.filterContent,
+                                            sortOrder: modal.sortOrder
+                                        }
+                                    )));
+                                this.display();
+                            }
+                        };
+
+                        modal.open();
+                    });
+            });
+
+        const filterContainer = containerEl.createDiv(
+            "filter-container"
+        );
+        const filtersDiv = filterContainer.createDiv("filters");
+        for (const id in this.plugin.settings.filtered) {
+            const filter = this.plugin.settings.filtered[id];
+            const setting = new Setting(filtersDiv);
+
+            setting.setName(filter.name);
+            setting.setDesc(filter.filterType + (filter.filterContent.length > 0) ? (" from " + filter.filterContent) : "");
+
+            setting
+                .addExtraButton((b) => {
+                    b.setIcon("pencil")
+                        .setTooltip("Edit")
+                        .onClick(() => {
+                            const modal = new FilteredFolderModal(this.plugin, filter);
+                            const oldFilter = filter;
+
+                            modal.onClose = async () => {
+                                if (modal.saved) {
+                                    const filters = this.plugin.settings.filtered;
+                                    filters.remove(oldFilter);
+                                    filters.push({name: modal.name, filterType: modal.filterType, filterContent: modal.filterContent, sortOrder: modal.sortOrder});
+                                    await this.plugin.writeFiltered(() => (filters));
+                                    this.display();
+                                }
+                            };
+
+                            modal.open();
+                        });
+                })
+                .addExtraButton((b) => {
+                    b.setIcon("trash")
+                        .setTooltip("Delete")
+                        .onClick(async () => {
+                            const filters = this.plugin.settings.filtered;
+                            filters.remove(filter);
+                            await this.plugin.writeFiltered(() => (filters));
+                            this.display();
+                        });
+                });
+
+        }
+
         containerEl.createEl("h3", {text: "Feeds"});
 
         new Setting(containerEl)
             .setName("Add New")
-            .setDesc("Add a new Feed.")
+            .setDesc("Add a new Feed")
             .addButton((button: ButtonComponent): ButtonComponent => {
                 return button
                     .setTooltip("add new Feed")
                     .setIcon("create-new")
                     .onClick(async () => {
-                        const modal = new SettingsModal(this.plugin);
+                        const modal = new FeedModal(this.plugin);
 
                         modal.onClose = async () => {
                             if (modal.saved) {
@@ -184,13 +324,13 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             "feed-container"
         );
 
-        const additional = additionalContainer.createDiv("feeds");
+        const feedsDiv = additionalContainer.createDiv("feeds");
         const sorted = groupBy(this.plugin.settings.feeds, "folder");
         for (const [, feeds] of Object.entries(sorted)) {
             for (const id in feeds) {
                 const feed = feeds[id];
 
-                const setting = new Setting(additional);
+                const setting = new Setting(feedsDiv);
 
                 setting.setName((feed.folder ? feed.folder : "No Folder") + " - " + feed.name);
                 setting.setDesc(feed.url);
@@ -200,7 +340,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                         b.setIcon("pencil")
                             .setTooltip("Edit")
                             .onClick(() => {
-                                const modal = new SettingsModal(this.plugin, feed);
+                                const modal = new FeedModal(this.plugin, feed);
                                 const oldFeed = feed;
 
                                 modal.onClose = async () => {

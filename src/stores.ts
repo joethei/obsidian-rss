@@ -1,16 +1,21 @@
 import {writable} from "svelte/store";
 import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings} from "./settings/settings";
-import {RssFeedItem, RssFeedMap} from "./parser/rssParser";
+import {RssFeedContent, RssFeedItem} from "./parser/rssParser";
 import Array from "obsidian";
+import {FilteredFolder} from "./modals/FilteredFolderModal";
 
 export interface FeedItems {
     items: RssFeedItem[];
 }
+export interface FilteredFolderContent {
+    filter: FilteredFolder;
+    items: FeedItems;
+}
 
 export const configuredFeedsStore = writable<Array<RssFeed>>([]);
-export const favoritesStore =  writable<FeedItems>({items: []});
-export const readStore = writable<FeedItems>({items: []});
+export const filteredStore = writable<Array<FilteredFolder>>([]);
 export const settingsStore = writable<RssReaderSettings>(DEFAULT_SETTINGS);
 
-export const feedsStore = writable<Array<RssFeedMap>>([]);
-export const sortedFeedsStore = writable<_.Dictionary<RssFeedMap[]>>();
+export const feedsStore = writable<RssFeedContent[]>([]);
+export const sortedFeedsStore = writable<_.Dictionary<RssFeedContent[]>>();
+export const filteredItemsStore = writable<Array<FilteredFolderContent>>();
