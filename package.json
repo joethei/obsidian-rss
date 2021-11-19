@@ -1,6 +1,6 @@
 {
   "name": "rss-reader",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Read RSS Feeds from inside obsidian",
   "main": "main.js",
   "scripts": {

@@ -1,7 +1,8 @@
 import {BaseModal} from "./BaseModal";
 import RssReaderPlugin from "../main";
-import {Setting} from "obsidian";
+import {Setting, TextComponent} from "obsidian";
 import {TextInputPrompt} from "./TextInputPrompt";
+import {NUMBER_REGEX, TAG_REGEX} from "../consts";
 
 export class TagModal extends BaseModal {
     plugin: RssReaderPlugin;
@@ -41,7 +42,13 @@ export class TagModal extends BaseModal {
 
         const buttons = new Setting(buttonEl).addButton((btn) => btn.setButtonText("new").onClick(async () => {
             const input = await new TextInputPrompt(this.app, "Tag", "new tag name", "", "tag name");
+            let textInput: TextComponent;
             input.openAndGetValue((value => {
+                textInput = value;
+                if(!value.getValue().match(TAG_REGEX) || value.getValue().match(NUMBER_REGEX) || value.getValue().contains(" ") || value.getValue().contains('#')) {
+                    input.setValidationError(textInput, "This is not a valid tag");
+                    return;
+                }
                 this.tags.push(value.getValue());
                 this.display();
                 input.close();

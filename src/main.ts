@@ -77,8 +77,8 @@ export default class RssReaderPlugin extends Plugin {
 
         //reset update timer on settings change.
         settingsStore.subscribe((settings: RssReaderSettings) => {
-            if(interval === undefined) return;
-            clearInterval(interval);
+            if(interval !== undefined)
+                clearInterval(interval);
             if (settings.updateTime != 0) {
                 interval = window.setInterval(async () => {
                     await this.updateFeeds();

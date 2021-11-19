@@ -5,7 +5,7 @@ import {
     PluginSettingTab, SearchComponent,
     Setting,
     TextAreaComponent,
-    TextComponent
+    TextComponent, ToggleComponent
 } from "obsidian";
 import RssReaderPlugin from "../main";
 import {FeedModal} from "../modals/FeedModal";
@@ -30,6 +30,7 @@ export interface RssReaderSettings {
     filtered: FilteredFolder[],
     items: RssFeedContent[],
     dateFormat: string,
+    askForFilename: boolean
 }
 
 export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
@@ -49,11 +50,13 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         "link: {{link}}\n" +
         "author: {{author}}\n" +
         "published: {{published}}\n" +
+        "tags: [{{tags:,}}]\n" +
         "---\n" +
         "{{title}}\n" +
         "{{content}}",
     pasteTemplate: "## {{title}}\n" +
-        "{{content}}"
+        "{{content}}",
+    askForFilename: true
 });
 
 export class RSSReaderSettingsTab extends PluginSettingTab {
@@ -74,7 +77,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName("New file template")
             .setDesc('When creating a note from a article this gets processed. ' +
-                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{created}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{filename}')
+                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{created}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{filename}, {{tags}}, {{#tags}}')
             .addTextArea((textArea: TextAreaComponent) => {
                 textArea
                     .setValue(this.plugin.settings.template)
@@ -90,7 +93,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName("paste article template")
             .setDesc('When pasting/copying an article this gets processed. ' +
-                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{content}}, {{description}}, {{folder}}, {{feed}}')
+                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{tags}}, {{#tags}}')
             .addTextArea((textArea: TextAreaComponent) => {
                 textArea
                     .setValue(this.plugin.settings.pasteTemplate)
@@ -148,7 +151,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                             new Notice("please specify a value");
                             return;
                         }
-                        if (Number(value) == 0) {
+                        if (Number(value) < 0) {
                             new Notice("please specify a bigger value");
                             return;
                         }
@@ -207,6 +210,19 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                     this.display();
                 });
         });
+
+        new Setting(containerEl)
+            .setName("Ask for filename")
+            .setDesc("Disable to use title as filename(with invalid symbols removed)")
+            .addToggle((toggle: ToggleComponent) => {
+               return toggle
+                   .setValue(this.plugin.settings.askForFilename)
+                   .onChange(async (value) => {
+                      await this.plugin.writeSettings(() => ({
+                          askForFilename: value
+                      }));
+                   });
+            });
 
         containerEl.createEl("h3", {text: "Filtered Folders"});
 

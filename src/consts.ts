@@ -1,5 +1,7 @@
 export const VIEW_ID = "RSS_FEED";
 export const FILE_NAME_REGEX = /["\/<>:|?]/gm;
+export const TAG_REGEX = /([\p{Letter}\p{Emoji_Presentation}\p{Number}\/_-]+)/u;
+export const NUMBER_REGEX = /^[0-9]*$/gm;
 
 //TODO: remove once api definition has been updated
 /**
