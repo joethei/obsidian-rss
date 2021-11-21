@@ -15,32 +15,6 @@ export class ItemModal extends Modal {
     private readButton: ButtonComponent;
     private favoriteButton: ButtonComponent;
 
-    private readonly eventListener = async (event: KeyboardEvent) => {
-        if(event.key === this.plugin.settings.hotkeys.read) {
-            await this.markAsRead();
-        }
-        if(event.key === this.plugin.settings.hotkeys.favorite) {
-            await this.markAsFavorite();
-        }
-        if(event.key === this.plugin.settings.hotkeys.create) {
-            await Action.CREATE_NOTE.processor(this.plugin, this.item);
-        }
-        if(event.key === this.plugin.settings.hotkeys.paste) {
-            await Action.PASTE.processor(this.plugin, this.item);
-        }
-        if(event.key === this.plugin.settings.hotkeys.copy) {
-            await Action.COPY.processor(this.plugin, this.item);
-        }
-        if(event.key === this.plugin.settings.hotkeys.tags) {
-            await Action.TAGS.processor(this.plugin, this.item);
-        }
-        if(event.key === this.plugin.settings.hotkeys.open) {
-            await Action.OPEN.processor(this.plugin, this.item);
-        }
-
-        console.log(event.key);
-    };
-
     constructor(plugin: RssReaderPlugin, item: RssFeedItem) {
         super(plugin.app);
         this.plugin = plugin;
@@ -50,6 +24,28 @@ export class ItemModal extends Modal {
         const items = this.plugin.settings.items;
         this.plugin.writeFeedContent(() => {
             return items;
+        });
+
+        this.scope.register([], this.plugin.settings.hotkeys.read, () => {
+            this.markAsRead();
+        });
+        this.scope.register([], this.plugin.settings.hotkeys.favorite, () => {
+            this.markAsFavorite();
+        });
+        this.scope.register([], this.plugin.settings.hotkeys.create, () => {
+            Action.CREATE_NOTE.processor(this.plugin, this.item);
+        });
+        this.scope.register([], this.plugin.settings.hotkeys.paste, () => {
+            Action.PASTE.processor(this.plugin, this.item);
+        });
+        this.scope.register([], this.plugin.settings.hotkeys.copy, () => {
+            Action.COPY.processor(this.plugin, this.item);
+        });
+        this.scope.register([], this.plugin.settings.hotkeys.tags, () => {
+            Action.TAGS.processor(this.plugin, this.item);
+        });
+        this.scope.register([], this.plugin.settings.hotkeys.open, () => {
+            Action.OPEN.processor(this.plugin, this.item);
         });
     }
 
@@ -111,6 +107,16 @@ export class ItemModal extends Modal {
                 });
             button.buttonEl.setAttribute("tabindex", "-1");
         });
+        /*//@ts-ignore
+        if(this.app.plugins.plugins["obsidian-tts"]) {
+            new ButtonComponent(topButtons)
+                .setIcon("audio-file")
+                .setTooltip("Read article")
+                .onClick(async () => {
+                    //@ts-ignore
+                   await this.app.plugins.plugins["obsidian-tts"].playText(this.item.content);
+                });
+        }*/
 
         const content = contentEl.createDiv('rss-content');
         content.addClass("scrollable-content");
@@ -122,11 +128,9 @@ export class ItemModal extends Modal {
     onClose(): void {
         const {contentEl} = this;
         contentEl.empty();
-        document.removeEventListener("keyup", this.eventListener, false);
     }
 
     async onOpen(): Promise<void> {
-        document.addEventListener("keyup", this.eventListener, false);
         await this.display();
     }
 }
