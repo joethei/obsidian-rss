@@ -10,7 +10,7 @@
   },
   "keywords": [],
   "author": "Johannes Theiner",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "devDependencies": {
     "@popperjs/core": "^2.10.2",
     "@rollup/plugin-commonjs": "^18.0.0",
