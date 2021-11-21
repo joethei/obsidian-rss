@@ -68,7 +68,7 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
     askForFilename: true,
     autoSync: false,
     hotkeys: {
-        create: "c",
+        create: "n",
         paste: "v",
         copy: "c",
         favorite: "f",
@@ -353,7 +353,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             .addText((text) => {
               text
                   .setValue(this.plugin.settings.hotkeys.create)
-                  .setValue(DEFAULT_SETTINGS.hotkeys.create)
+                  .setPlaceholder(DEFAULT_SETTINGS.hotkeys.create)
                   .onChange(async(value) => {
                       await this.plugin.writeSettings(() => ({
                          hotkeys: {
@@ -372,7 +372,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.paste)
-                    .setValue(DEFAULT_SETTINGS.hotkeys.paste)
+                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.paste)
                     .onChange(async(value) => {
                         await this.plugin.writeSettings(() => ({
                             hotkeys: {
@@ -391,7 +391,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.open)
-                    .setValue(DEFAULT_SETTINGS.hotkeys.open)
+                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.open)
                     .onChange(async(value) => {
                         await this.plugin.writeSettings(() => ({
                             hotkeys: {
@@ -410,7 +410,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.copy)
-                    .setValue(DEFAULT_SETTINGS.hotkeys.copy)
+                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.copy)
                     .onChange(async(value) => {
                         await this.plugin.writeSettings(() => ({
                             hotkeys: {
@@ -429,7 +429,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.favorite)
-                    .setValue(DEFAULT_SETTINGS.hotkeys.favorite)
+                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.favorite)
                     .onChange(async(value) => {
                         await this.plugin.writeSettings(() => ({
                             hotkeys: {
@@ -448,7 +448,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.read)
-                    .setValue(DEFAULT_SETTINGS.hotkeys.read)
+                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.read)
                     .onChange(async(value) => {
                         await this.plugin.writeSettings(() => ({
                             hotkeys: {
@@ -467,7 +467,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.tags)
-                    .setValue(DEFAULT_SETTINGS.hotkeys.tags)
+                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.tags)
                     .onChange(async(value) => {
                         await this.plugin.writeSettings(() => ({
                             hotkeys: {
