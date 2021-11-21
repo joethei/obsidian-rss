@@ -14,7 +14,6 @@
         foldedState = foldedState;
     }
 
-
 </script>
 
 {#if $filteredItemsStore}

@@ -1,7 +1,7 @@
 import {RssFeedItem} from "../parser/rssParser";
 import {createNewNote, openInBrowser, pasteToNote} from "../functions";
 import RssReaderPlugin from "../main";
-import {htmlToMarkdown} from "obsidian";
+import {htmlToMarkdown, Notice} from "obsidian";
 import {copy} from "obsidian-community-lib";
 import {TagModal} from "../modals/TagModal";
 
@@ -14,13 +14,16 @@ export default class Action {
     static PASTE = new Action("paste to current note", "paste", (plugin, item) : Promise<void> => {
         return pasteToNote(plugin, item);
     });
+
     static COPY = new Action("copy to clipboard", "feather-clipboard", ((_, item) : Promise<void> => {
         return copy(htmlToMarkdown(item.content));
     }));
+
     static OPEN = new Action("open in browser", "open-elsewhere-glyph", ((_, item) : Promise<void> => {
         openInBrowser(item);
         return Promise.resolve();
     }));
+
     static TAGS = new Action("edit tags", "tag-glyph", (((plugin, item) => {
         const modal = new TagModal(plugin, item.tags);
 
@@ -36,7 +39,37 @@ export default class Action {
         return Promise.resolve();
     })));
 
-    static actions = Array.of(Action.TAGS, Action.CREATE_NOTE, Action.PASTE, Action.COPY, Action.OPEN);
+    static READ = new Action("Mark as read/unread", "feather-eye", ((async (plugin, item) : Promise<void> => {
+        if (item.read) {
+            item.read = false;
+            new Notice("marked item as unread");
+        } else {
+            item.read = true;
+            new Notice("marked item as read");
+        }
+        const items = plugin.settings.items;
+        await plugin.writeFeedContent(() => {
+            return items;
+        });
+        return Promise.resolve();
+    })));
+
+    static FAVORITE = new Action("Mark as Favorite/remove from favorites", "star", ((async (plugin, item) : Promise<void> => {
+        if (item.favorite) {
+            item.favorite = false;
+            new Notice("removed item from favorites");
+        } else {
+            item.favorite = true;
+            new Notice("marked item as favorite");
+        }
+        const items = plugin.settings.items;
+        await plugin.writeFeedContent(() => {
+            return items;
+        });
+        return Promise.resolve();
+    })));
+
+    static actions = Array.of(Action.FAVORITE, Action.READ, Action.TAGS, Action.CREATE_NOTE, Action.PASTE, Action.COPY, Action.OPEN);
 
     readonly name: string;
     readonly icon: string;

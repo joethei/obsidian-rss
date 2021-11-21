@@ -1,7 +1,6 @@
 import {
     ButtonComponent,
     Modal,
-    Notice,
 } from "obsidian";
 import {RssFeedItem} from "../parser/rssParser";
 import RssReaderPlugin from "../main";
@@ -13,6 +12,35 @@ export class ItemModal extends Modal {
     private readonly plugin: RssReaderPlugin;
     private readonly item: RssFeedItem;
 
+    private readButton: ButtonComponent;
+    private favoriteButton: ButtonComponent;
+
+    private readonly eventListener = async (event: KeyboardEvent) => {
+        if(event.key === this.plugin.settings.hotkeys.read) {
+            await this.markAsRead();
+        }
+        if(event.key === this.plugin.settings.hotkeys.favorite) {
+            await this.markAsFavorite();
+        }
+        if(event.key === this.plugin.settings.hotkeys.create) {
+            await Action.CREATE_NOTE.processor(this.plugin, this.item);
+        }
+        if(event.key === this.plugin.settings.hotkeys.paste) {
+            await Action.PASTE.processor(this.plugin, this.item);
+        }
+        if(event.key === this.plugin.settings.hotkeys.copy) {
+            await Action.COPY.processor(this.plugin, this.item);
+        }
+        if(event.key === this.plugin.settings.hotkeys.tags) {
+            await Action.TAGS.processor(this.plugin, this.item);
+        }
+        if(event.key === this.plugin.settings.hotkeys.open) {
+            await Action.OPEN.processor(this.plugin, this.item);
+        }
+
+        console.log(event.key);
+    };
+
     constructor(plugin: RssReaderPlugin, item: RssFeedItem) {
         super(plugin.app);
         this.plugin = plugin;
@@ -23,6 +51,16 @@ export class ItemModal extends Modal {
         this.plugin.writeFeedContent(() => {
             return items;
         });
+    }
+
+    async markAsFavorite() : Promise<void> {
+        await Action.FAVORITE.processor(this.plugin, this.item);
+        this.favoriteButton.setIcon((this.item.favorite) ? 'star-glyph' : 'star');
+    }
+
+    async markAsRead() : Promise<void> {
+        await Action.READ.processor(this.plugin, this.item);
+        this.readButton.setIcon((this.item.read) ? 'feather-eye-off' : 'feather-eye');
     }
 
     display(): void {
@@ -48,52 +86,30 @@ export class ItemModal extends Modal {
             tagA.addClass("tag", "rss-tag");
         });
 
-        const readButton = new ButtonComponent(topButtons)
+        this.readButton = new ButtonComponent(topButtons)
             .setIcon(this.item.read ? 'feather-eye-off' : 'feather-eye')
             .setTooltip(this.item.read ? 'Mark as unread' : 'mark as read')
             .onClick(async () => {
-                if (this.item.read) {
-                    readButton.setIcon('feather-eye');
-                    this.item.read = false;
-                    new Notice("marked item as unread");
-                } else {
-                    this.item.read = true;
-                    readButton.setIcon('feather-eye-off');
-                    new Notice("marked item as read");
-                }
-                const items = this.plugin.settings.items;
-                await this.plugin.writeFeedContent(() => {
-                    return items;
-                });
+                await this.markAsRead();
             });
+        this.readButton.buttonEl.setAttribute("tabindex", "-1");
 
-        const favoriteButton = new ButtonComponent(topButtons)
+        this.favoriteButton = new ButtonComponent(topButtons)
             .setIcon(this.item.favorite ? 'star-glyph' : 'star')
             .setTooltip(this.item.favorite ? 'remove from favorites' : 'mark as favorite')
             .onClick(async () => {
-                if (this.item.favorite) {
-                    favoriteButton.setIcon('star');
-                    this.item.favorite = false;
-                    new Notice("removed item from favorites");
-                } else {
-                    favoriteButton.setIcon('star-glyph');
-                    this.item.favorite = true;
-                    new Notice("added item to favorites");
-                }
-                const items = this.plugin.settings.items;
-                await this.plugin.writeFeedContent(() => {
-                    return items;
-                });
-
+               await this.markAsFavorite();
             });
+        this.favoriteButton.buttonEl.setAttribute("tabindex", "-1");
 
-        Action.actions.forEach((action) => {
-            new ButtonComponent(topButtons)
+        Array.of(Action.TAGS, Action.CREATE_NOTE, Action.PASTE, Action.COPY, Action.OPEN).forEach((action) => {
+            const button = new ButtonComponent(topButtons)
                 .setIcon(action.icon)
                 .setTooltip(action.name)
                 .onClick(async () => {
                     await action.processor(this.plugin, this.item);
                 });
+            button.buttonEl.setAttribute("tabindex", "-1");
         });
 
         const content = contentEl.createDiv('rss-content');
@@ -106,9 +122,11 @@ export class ItemModal extends Modal {
     onClose(): void {
         const {contentEl} = this;
         contentEl.empty();
+        document.removeEventListener("keyup", this.eventListener, false);
     }
 
     async onOpen(): Promise<void> {
+        document.addEventListener("keyup", this.eventListener, false);
         await this.display();
     }
 }

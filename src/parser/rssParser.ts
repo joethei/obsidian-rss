@@ -33,11 +33,6 @@ export interface RssFeedItem {
     tags: string[]
 }
 
-export interface RssFeedMap {
-    feed: RssFeed,
-    content: RssFeedContent
-}
-
 /**
  * : to get namespaced element
  * . to get nested element

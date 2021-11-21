@@ -12,6 +12,9 @@ import {VIEW_ID} from "./consts";
 import {getFeedItems, RssFeedContent, RssFeedItem} from "./parser/rssParser";
 import {addFeatherIcon} from "obsidian-community-lib";
 import groupBy from "lodash.groupby";
+import mergeWith from "lodash.mergewith";
+import keyBy from "lodash.keyby";
+import values from "lodash.values";
 import {FilteredFolder, FilterType, SortOrder} from "./modals/FilteredFolderModal";
 
 export default class RssReaderPlugin extends Plugin {
@@ -75,6 +78,12 @@ export default class RssReaderPlugin extends Plugin {
             this.registerInterval(interval);
         }
 
+        if(this.settings.autoSync) {
+            this.registerInterval(window.setInterval(async () => {
+                await this.loadSettings();
+            }, 1000 * 60));
+        }
+
         //reset update timer on settings change.
         settingsStore.subscribe((settings: RssReaderSettings) => {
             if(interval !== undefined)
@@ -97,7 +106,9 @@ export default class RssReaderPlugin extends Plugin {
 
             let items: RssFeedItem[] = [];
             for (const feed in Object.keys(feeds)) {
-                items = items.concat(feeds[feed].items);
+                //@ts-ignore
+                const feedItems = feeds[feed].items.sort((a, b) => window.moment(b.pubDate) - window.moment(a.pubDate));
+                items = items.concat(feedItems);
             }
             this.filterItems(items);
         });
@@ -109,7 +120,7 @@ export default class RssReaderPlugin extends Plugin {
         });
     }
 
-    filterItems(items: RssFeedItem[]) {
+    filterItems(items: RssFeedItem[]) : void {
         const filtered = new Array<FilteredFolderContent>();
         for (const filter of this.settings.filtered) {
             // @ts-ignore
@@ -162,12 +173,49 @@ export default class RssReaderPlugin extends Plugin {
     }
 
     async updateFeeds(): Promise<void> {
+        interface IStringTMap<T> {
+            [key: string]: T;
+        }
+
+        type IIdentified = {
+            link?: string;
+        };
+        function mergeArrayById<T extends IIdentified>(
+            array1: T[],
+            array2: T[]
+        ): T[] {
+            const mergedObjectMap: IStringTMap<T> = keyBy(array1, 'link');
+
+            const finalArray: T[] = [];
+
+            for (const object of array2) {
+                if (object.link && mergedObjectMap[object.link]) {
+                    mergedObjectMap[object.link] = {
+                        ...mergedObjectMap[object.link],
+                        ...object,
+                    };
+                } else {
+                    finalArray.push(object);
+                }
+            }
+
+            values(mergedObjectMap).forEach(object => {
+                finalArray.push(object);
+            });
+
+            return finalArray;
+        }
+        function customizer(objValue: string | any[], srcValue: any) {
+            if (Array.isArray(objValue)) {
+                return mergeArrayById(objValue, srcValue);
+            }
+        }
         let result: RssFeedContent[] = [];
         for (const feed of this.settings.feeds) {
             const items = await getFeedItems(feed);
             result.push(items);
         }
-        result = Object.assign({}, result, this.settings.items);
+        result = mergeWith(result, this.settings.items, customizer);
         await this.writeFeedContent(() => result);
     }
 

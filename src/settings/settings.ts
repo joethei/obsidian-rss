@@ -8,11 +8,10 @@ import {
     TextComponent, ToggleComponent
 } from "obsidian";
 import RssReaderPlugin from "../main";
-import {FeedModal} from "../modals/FeedModal";
-import groupBy from "lodash.groupby";
 import {FolderSuggest} from "./FolderSuggestor";
 import {FilteredFolder, FilteredFolderModal} from "../modals/FilteredFolderModal";
 import {RssFeedContent} from "../parser/rssParser";
+import {displayFeedSettings} from "./FeedSettings";
 
 export interface RssFeed {
     name: string,
@@ -30,7 +29,17 @@ export interface RssReaderSettings {
     filtered: FilteredFolder[],
     items: RssFeedContent[],
     dateFormat: string,
-    askForFilename: boolean
+    askForFilename: boolean,
+    autoSync: boolean,
+    hotkeys: {
+        create: string,
+        paste: string,
+        copy: string,
+        favorite: string,
+        read: string,
+        tags: string,
+        open: string,
+    }
 }
 
 export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
@@ -56,7 +65,17 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         "{{content}}",
     pasteTemplate: "## {{title}}\n" +
         "{{content}}",
-    askForFilename: true
+    askForFilename: true,
+    autoSync: false,
+    hotkeys: {
+        create: "c",
+        paste: "v",
+        copy: "c",
+        favorite: "f",
+        read: "r",
+        tags: "t",
+        open: "o",
+    }
 });
 
 export class RSSReaderSettingsTab extends PluginSettingTab {
@@ -73,6 +92,8 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
         containerEl.empty();
 
         containerEl.createEl('h2', {text: 'RSS Reader Settings'});
+
+        containerEl.createEl('h3', {text: 'File creation'});
 
         new Setting(containerEl)
             .setName("New file template")
@@ -139,6 +160,42 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 });
         }
 
+        let dateFormatSampleEl: MomentFormatComponent;
+        const dateFormat = new Setting(containerEl)
+            .setName("Date format")
+            .setDesc("")
+            .addMomentFormat((format: MomentFormatComponent) => {
+                dateFormatSampleEl = format
+                    .setDefaultFormat(DEFAULT_SETTINGS.dateFormat)
+                    .setPlaceholder(DEFAULT_SETTINGS.dateFormat)
+                    .setValue(this.plugin.settings.dateFormat)
+                    .onChange(async (value) => {
+                        await this.plugin.writeSettings(() => (
+                            {dateFormat: value}
+                        ));
+                    });
+            });
+        const referenceLink = dateFormat.descEl.createEl("a");
+        referenceLink.setAttr("href", "https://momentjs.com/docs/#/displaying/format/");
+        referenceLink.setText("Syntax Reference");
+        const text = dateFormat.descEl.createDiv("text");
+        text.setText("Your current syntax looks like this: ");
+        const sampleEl = text.createSpan("sample");
+        dateFormatSampleEl.setSampleEl(sampleEl);
+        dateFormat.addExtraButton((button) => {
+            button
+                .setIcon('reset')
+                .setTooltip('restore default')
+                .onClick(async () => {
+                    await this.plugin.writeSettings(() => ({
+                        dateFormat: DEFAULT_SETTINGS.dateFormat
+                    }));
+                    this.display();
+                });
+        });
+
+        containerEl.createEl("h3", {text: "Misc"});
+
         const refresh = new Setting(containerEl)
             .setName("Refresh time")
             .setDesc("How often should the feeds be refreshed, in minutes, use 0 to disable")
@@ -177,51 +234,30 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 });
         });
 
-        let dateFormatSampleEl: MomentFormatComponent;
-        const dateFormat = new Setting(containerEl)
-            .setName("Date format")
-            .setDesc("")
-            .addMomentFormat((format: MomentFormatComponent) => {
-                dateFormatSampleEl = format
-                    .setDefaultFormat(DEFAULT_SETTINGS.dateFormat)
-                    .setPlaceholder(DEFAULT_SETTINGS.dateFormat)
-                    .setValue(this.plugin.settings.dateFormat)
+        new Setting(containerEl)
+            .setName("Multi device usage")
+            .setDesc("Keep article status synced when using multiple devices at the same time\n(Requires a restart to become effective)")
+            .addToggle((toggle: ToggleComponent) => {
+                return toggle
+                    .setValue(this.plugin.settings.autoSync)
                     .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => (
-                            {dateFormat: value}
-                        ));
+                        await this.plugin.writeSettings(() => ({
+                            autoSync: value
+                        }));
                     });
             });
-        const referenceLink = dateFormat.descEl.createEl("a");
-        referenceLink.setAttr("href", "https://momentjs.com/docs/#/displaying/format/");
-        referenceLink.setText("Syntax Reference");
-        const text = dateFormat.descEl.createDiv("text");
-        text.setText("Your current syntax looks like this: ");
-        const sampleEl = text.createSpan("sample");
-        dateFormatSampleEl.setSampleEl(sampleEl);
-        dateFormat.addExtraButton((button) => {
-            button
-                .setIcon('reset')
-                .setTooltip('restore default')
-                .onClick(async () => {
-                    await this.plugin.writeSettings(() => ({
-                        dateFormat: DEFAULT_SETTINGS.dateFormat
-                    }));
-                    this.display();
-                });
-        });
 
         new Setting(containerEl)
             .setName("Ask for filename")
             .setDesc("Disable to use title as filename(with invalid symbols removed)")
             .addToggle((toggle: ToggleComponent) => {
-               return toggle
-                   .setValue(this.plugin.settings.askForFilename)
-                   .onChange(async (value) => {
-                      await this.plugin.writeSettings(() => ({
-                          askForFilename: value
-                      }));
-                   });
+                return toggle
+                    .setValue(this.plugin.settings.askForFilename)
+                    .onChange(async (value) => {
+                        await this.plugin.writeSettings(() => ({
+                            askForFilename: value
+                        }));
+                    });
             });
 
         containerEl.createEl("h3", {text: "Filtered Folders"});
@@ -262,7 +298,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             "filter-container"
         );
         const filtersDiv = filterContainer.createDiv("filters");
-        for (const id in this.plugin.settings.filtered) {
+        for (const id in this.plugin.settings.filtered.sort((a,b) => a.name.localeCompare(b.name))) {
             const filter = this.plugin.settings.filtered[id];
             const setting = new Setting(filtersDiv);
 
@@ -303,87 +339,146 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         }
 
-        containerEl.createEl("h3", {text: "Feeds"});
-
-        new Setting(containerEl)
-            .setName("Add New")
-            .setDesc("Add a new Feed")
-            .addButton((button: ButtonComponent): ButtonComponent => {
-                return button
-                    .setTooltip("add new Feed")
-                    .setIcon("create-new")
-                    .onClick(async () => {
-                        const modal = new FeedModal(this.plugin);
-
-                        modal.onClose = async () => {
-                            if (modal.saved) {
-                                if (this.plugin.settings.feeds.some(item => item.url === modal.url)) {
-                                    new Notice("you already have a feed configured with that url");
-                                    return;
-                                }
-                                await this.plugin.writeFeeds(() => (
-                                    this.plugin.settings.feeds.concat({
-                                            name: modal.name,
-                                            url: modal.url,
-                                            folder: modal.folder
-                                        }
-                                    )));
-                                this.display();
-                            }
-                        };
-
-                        modal.open();
-                    });
-            });
-
-        const additionalContainer = containerEl.createDiv(
+        const feedsContainer = containerEl.createDiv(
             "feed-container"
         );
+        displayFeedSettings(this.plugin, feedsContainer);
 
-        const feedsDiv = additionalContainer.createDiv("feeds");
-        const sorted = groupBy(this.plugin.settings.feeds, "folder");
-        for (const [, feeds] of Object.entries(sorted)) {
-            for (const id in feeds) {
-                const feed = feeds[id];
+        containerEl.createEl("h2", {text: "Hotkeys"});
+        containerEl.createEl("h3", {text: "when reading a article"});
 
-                const setting = new Setting(feedsDiv);
 
-                setting.setName((feed.folder ? feed.folder : "No Folder") + " - " + feed.name);
-                setting.setDesc(feed.url);
+        new Setting(containerEl)
+            .setName("Create new note")
+            .addText((text) => {
+              text
+                  .setValue(this.plugin.settings.hotkeys.create)
+                  .setValue(DEFAULT_SETTINGS.hotkeys.create)
+                  .onChange(async(value) => {
+                      await this.plugin.writeSettings(() => ({
+                         hotkeys: {
+                             ...this.plugin.settings.hotkeys,
+                             create: value
 
-                setting
-                    .addExtraButton((b) => {
-                        b.setIcon("pencil")
-                            .setTooltip("Edit")
-                            .onClick(() => {
-                                const modal = new FeedModal(this.plugin, feed);
-                                const oldFeed = feed;
+                         }
+                      }));
+                  });
+                text.inputEl.setAttr("maxlength", 1);
+                text.inputEl.style.width = "20%";
+            });
 
-                                modal.onClose = async () => {
-                                    if (modal.saved) {
-                                        const feeds = this.plugin.settings.feeds;
-                                        feeds.remove(oldFeed);
-                                        feeds.push({name: modal.name, url: modal.url, folder: modal.folder});
-                                        await this.plugin.writeFeeds(() => (feeds));
-                                        this.display();
-                                    }
-                                };
+        new Setting(containerEl)
+            .setName("Paste to current note")
+            .addText((text) => {
+                text
+                    .setValue(this.plugin.settings.hotkeys.paste)
+                    .setValue(DEFAULT_SETTINGS.hotkeys.paste)
+                    .onChange(async(value) => {
+                        await this.plugin.writeSettings(() => ({
+                            hotkeys: {
+                                ...this.plugin.settings.hotkeys,
+                                paste: value
 
-                                modal.open();
-                            });
-                    })
-                    .addExtraButton((b) => {
-                        b.setIcon("trash")
-                            .setTooltip("Delete")
-                            .onClick(async () => {
-                                const feeds = this.plugin.settings.feeds;
-                                feeds.remove(feed);
-                                await this.plugin.writeFeeds(() => (feeds));
-                                this.display();
-                            });
+                            }
+                        }));
                     });
-            }
+                text.inputEl.setAttr("maxlength", 1);
+                text.inputEl.style.width = "20%";
+            });
 
-        }
+        new Setting(containerEl)
+            .setName("Open in browser")
+            .addText((text) => {
+                text
+                    .setValue(this.plugin.settings.hotkeys.open)
+                    .setValue(DEFAULT_SETTINGS.hotkeys.open)
+                    .onChange(async(value) => {
+                        await this.plugin.writeSettings(() => ({
+                            hotkeys: {
+                                ...this.plugin.settings.hotkeys,
+                                open: value
+
+                            }
+                        }));
+                    });
+                text.inputEl.setAttr("maxlength", 1);
+                text.inputEl.style.width = "20%";
+            });
+
+        new Setting(containerEl)
+            .setName("Copy to clipboard")
+            .addText((text) => {
+                text
+                    .setValue(this.plugin.settings.hotkeys.copy)
+                    .setValue(DEFAULT_SETTINGS.hotkeys.copy)
+                    .onChange(async(value) => {
+                        await this.plugin.writeSettings(() => ({
+                            hotkeys: {
+                                ...this.plugin.settings.hotkeys,
+                                copy: value
+
+                            }
+                        }));
+                    });
+                text.inputEl.setAttr("maxlength", 1);
+                text.inputEl.style.width = "20%";
+            });
+
+        new Setting(containerEl)
+            .setName("Mark as favorites/remove from favorites")
+            .addText((text) => {
+                text
+                    .setValue(this.plugin.settings.hotkeys.favorite)
+                    .setValue(DEFAULT_SETTINGS.hotkeys.favorite)
+                    .onChange(async(value) => {
+                        await this.plugin.writeSettings(() => ({
+                            hotkeys: {
+                                ...this.plugin.settings.hotkeys,
+                                favorite: value
+
+                            }
+                        }));
+                    });
+                text.inputEl.setAttr("maxlength", 1);
+                text.inputEl.style.width = "20%";
+            });
+
+        new Setting(containerEl)
+            .setName("Mark as read/unread")
+            .addText((text) => {
+                text
+                    .setValue(this.plugin.settings.hotkeys.read)
+                    .setValue(DEFAULT_SETTINGS.hotkeys.read)
+                    .onChange(async(value) => {
+                        await this.plugin.writeSettings(() => ({
+                            hotkeys: {
+                                ...this.plugin.settings.hotkeys,
+                                read: value
+
+                            }
+                        }));
+                    });
+                text.inputEl.setAttr("maxlength", 1);
+                text.inputEl.style.width = "20%";
+            });
+
+        new Setting(containerEl)
+            .setName("Edit tags")
+            .addText((text) => {
+                text
+                    .setValue(this.plugin.settings.hotkeys.tags)
+                    .setValue(DEFAULT_SETTINGS.hotkeys.tags)
+                    .onChange(async(value) => {
+                        await this.plugin.writeSettings(() => ({
+                            hotkeys: {
+                                ...this.plugin.settings.hotkeys,
+                                tags: value
+
+                            }
+                        }));
+                    });
+                text.inputEl.setAttr("maxlength", 1);
+                text.inputEl.style.width = "20%";
+            });
     }
 }
