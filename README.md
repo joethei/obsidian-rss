@@ -47,7 +47,7 @@ If you want to style the plugin differently you can use the following css classe
 For help with styling you can also check out the `#appearance` channel on the [Obsidian Members Group Discord](https://obsidian.md/community)
 
 ### Installing the plugin
-- using the build in Community plugins(once this plugin is accepted)
+- `Settings > Third-party plugins > Community Plugins > Browse` and search for `RSS Reader`
 - Using the [Beta Reviewers Auto-update Tester](https://github.com/TfTHacker/obsidian42-brat) plugin with the repo path: `joethei/obsidian-rss`
 - Copy over `main.js`, `styles.css`, `manifest.json` from the releases to your vault `VaultFolder/.obsidian/plugins/rss-reader/`.
 
