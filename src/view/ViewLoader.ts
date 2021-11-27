@@ -1,10 +1,10 @@
 import {ItemView, WorkspaceLeaf} from "obsidian";
-import ListFeedsView from "./FolderView.svelte";
+import FolderView from "./FolderView.svelte";
 import RssReaderPlugin from "../main";
 import {VIEW_ID} from "../consts";
 
 export default class ViewLoader extends ItemView {
-    private feed: ListFeedsView;
+    private feed: FolderView;
     private readonly plugin: RssReaderPlugin;
 
 
@@ -26,7 +26,7 @@ export default class ViewLoader extends ItemView {
     }
 
     protected async onOpen(): Promise<void> {
-        this.feed = new ListFeedsView({
+        this.feed = new FolderView({
             target: (this as any).contentEl,
             props: {
                 plugin: this.plugin

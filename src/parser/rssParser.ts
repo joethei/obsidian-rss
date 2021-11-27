@@ -1,5 +1,6 @@
 import {request} from "obsidian";
 import {RssFeed} from "../settings/settings";
+import {Md5} from "ts-md5";
 
 /**
  * parser for .rss files, build from scratch
@@ -14,6 +15,7 @@ export interface RssFeedContent {
     image: string,
     folder: string,
     description: string,
+    language: string,
     items: RssFeedItem[]
 }
 
@@ -24,13 +26,18 @@ export interface RssFeedItem {
     category: string,
     link: string,
     creator: string,
+    language: string,
+    enclosure: string,
+    enclosureType: string,
+    image: string,
     pubDate: string,
     folder: string,
     feed: string,
     favorite: boolean,
     read: boolean,
     created: boolean,
-    tags: string[]
+    tags: string[],
+    hash: string
 }
 
 /**
@@ -121,17 +128,22 @@ function buildItem(element: Element): RssFeedItem {
     return {
         title: getContent(element, ["title"]),
         description: getContent(element, ["description"]),
-        content: getContent(element, ["description", "content", "content:encoded", "summary"]),
+        content: getContent(element, [ "itunes:summary", "description", "content", "content:encoded", "summary"]),
         category: getContent(element, ["category"]),
         link: getContent(element, ["link", "link#href"]),
         creator: getContent(element, ["creator", "dc:creator", "author", "author.name"]),
         pubDate: getContent(element, ["pubDate", "published", "updated", "dc:date"]),
+        enclosure: getContent(element, ["enclosure#url"]),
+        enclosureType: getContent(element, ["enclosure#type"]),
+        image: getContent(element, ["itunes:image#href"]),
+        language: null,
         folder: null,
         feed: null,
         read: null,
         favorite: null,
         created: null,
         tags: [],
+        hash: null,
     }
 }
 
@@ -161,6 +173,8 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
     const items: RssFeedItem[] = [];
     const rawItems = getAllItems(data);
 
+    const language = getContent(data, ["language"]).substr(0,2);
+
     rawItems.forEach((rawItem) => {
         const item = buildItem(rawItem);
         if (item.title !== undefined && item.title.length !== 0) {
@@ -169,6 +183,9 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
             item.read = false;
             item.favorite = false;
             item.created = false;
+            item.language = language;
+            item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
+
             items.push(item);
         }
 
@@ -185,7 +202,8 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
         description: getContent(data, ["description"]),
         items: items,
         folder: feed.folder,
-        name: feed.name
+        name: feed.name,
+        language: language,
     };
 
     return Promise.resolve(content);

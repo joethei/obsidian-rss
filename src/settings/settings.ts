@@ -39,7 +39,9 @@ export interface RssReaderSettings {
         read: string,
         tags: string,
         open: string,
-    }
+        tts: string
+    },
+    folded: string[]
 }
 
 export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
@@ -75,7 +77,9 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         read: "r",
         tags: "t",
         open: "o",
-    }
+        tts: "s"
+    },
+    folded: []
 });
 
 export class RSSReaderSettingsTab extends PluginSettingTab {
@@ -480,5 +484,27 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 text.inputEl.setAttr("maxlength", 1);
                 text.inputEl.style.width = "20%";
             });
+
+        //@ts-ignore
+        if(this.app.plugins.plugins["obsidian-tts"]) {
+            new Setting(containerEl)
+                .setName("Text to Speech")
+                .addText((text) => {
+                    text
+                        .setValue(this.plugin.settings.hotkeys.tts)
+                        .setPlaceholder(DEFAULT_SETTINGS.hotkeys.tts)
+                        .onChange(async(value) => {
+                            await this.plugin.writeSettings(() => ({
+                                hotkeys: {
+                                    ...this.plugin.settings.hotkeys,
+                                    tts: value
+
+                                }
+                            }));
+                        });
+                    text.inputEl.setAttr("maxlength", 1);
+                    text.inputEl.style.width = "20%";
+                });
+        }
     }
 }

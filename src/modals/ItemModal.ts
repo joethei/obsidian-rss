@@ -1,5 +1,5 @@
 import {
-    ButtonComponent,
+    ButtonComponent, htmlToMarkdown,
     Modal,
 } from "obsidian";
 import {RssFeedItem} from "../parser/rssParser";
@@ -26,27 +26,66 @@ export class ItemModal extends Modal {
             return items;
         });
 
-        this.scope.register([], this.plugin.settings.hotkeys.read, () => {
-            this.markAsRead();
-        });
-        this.scope.register([], this.plugin.settings.hotkeys.favorite, () => {
-            this.markAsFavorite();
-        });
-        this.scope.register([], this.plugin.settings.hotkeys.create, () => {
-            Action.CREATE_NOTE.processor(this.plugin, this.item);
-        });
-        this.scope.register([], this.plugin.settings.hotkeys.paste, () => {
-            Action.PASTE.processor(this.plugin, this.item);
-        });
-        this.scope.register([], this.plugin.settings.hotkeys.copy, () => {
-            Action.COPY.processor(this.plugin, this.item);
-        });
-        this.scope.register([], this.plugin.settings.hotkeys.tags, () => {
-            Action.TAGS.processor(this.plugin, this.item);
-        });
-        this.scope.register([], this.plugin.settings.hotkeys.open, () => {
-            Action.OPEN.processor(this.plugin, this.item);
-        });
+        if(this.plugin.settings.hotkeys.read) {
+            this.scope.register([], this.plugin.settings.hotkeys.read, () => {
+                this.markAsRead();
+            });
+        }
+
+        if(this.plugin.settings.hotkeys.favorite) {
+            this.scope.register([], this.plugin.settings.hotkeys.favorite, () => {
+                this.markAsFavorite();
+            });
+        }
+
+        if(this.plugin.settings.hotkeys.create) {
+            this.scope.register([], this.plugin.settings.hotkeys.create, () => {
+                Action.CREATE_NOTE.processor(this.plugin, this.item);
+            });
+        }
+
+        if(this.plugin.settings.hotkeys.paste) {
+            this.scope.register([], this.plugin.settings.hotkeys.paste, () => {
+                Action.PASTE.processor(this.plugin, this.item);
+            });
+        }
+
+        if(this.plugin.settings.hotkeys.copy) {
+            this.scope.register([], this.plugin.settings.hotkeys.copy, () => {
+                Action.COPY.processor(this.plugin, this.item);
+            });
+        }
+
+        if(this.plugin.settings.hotkeys.tags) {
+            this.scope.register([], this.plugin.settings.hotkeys.tags, () => {
+                Action.TAGS.processor(this.plugin, this.item);
+            });
+        }
+
+        if(this.plugin.settings.hotkeys.open) {
+            this.scope.register([], this.plugin.settings.hotkeys.open, () => {
+                Action.OPEN.processor(this.plugin, this.item);
+            });
+        }
+
+
+        //@ts-ignore
+        if(this.app.plugins.plugins["obsidian-tts"] && this.plugin.settings.hotkeys.tts) {
+            this.scope.register([], this.plugin.settings.hotkeys.tts, () => {
+                //@ts-ignore
+                const tts = this.app.plugins.plugins["obsidian-tts"].ttsService;
+                if(tts.isSpeaking()) {
+                    if(tts.isPaused()) {
+                     tts.resume();
+                    }else {
+                        tts.pause();
+                    }
+                    return;
+                }
+                const content = htmlToMarkdown(this.item.content);
+                tts.say(this.item.title, content, this.item.language);
+            });
+        }
     }
 
     async markAsFavorite() : Promise<void> {
@@ -107,19 +146,28 @@ export class ItemModal extends Modal {
                 });
             button.buttonEl.setAttribute("tabindex", "-1");
         });
-        /*//@ts-ignore
+        //@ts-ignore
         if(this.app.plugins.plugins["obsidian-tts"]) {
             new ButtonComponent(topButtons)
-                .setIcon("audio-file")
+                .setIcon("feather-headphones")
                 .setTooltip("Read article")
                 .onClick(async () => {
+                    const content = htmlToMarkdown(this.item.content);
                     //@ts-ignore
-                   await this.app.plugins.plugins["obsidian-tts"].playText(this.item.content);
+                   await this.app.plugins.plugins["obsidian-tts"].ttsService.say(this.item.title, content, this.item.language);
                 });
-        }*/
+        }
 
         const content = contentEl.createDiv('rss-content');
         content.addClass("scrollable-content");
+
+        if(this.item.enclosure) {
+            if(this.item.enclosureType.toLowerCase().contains("audio")) {
+                const audio = content.createEl("audio", {attr: {controls: "controls"}});
+                audio.createEl("source", {attr: {src: this.item.enclosure, type: this.item.enclosureType}});
+            }
+        }
+
         if (this.item.content) {
             content.append(sanitizeHTMLToDom(this.item.content));
         }

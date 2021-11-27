@@ -1,20 +1,20 @@
-import {Modal, TextComponent} from "obsidian";
+import {AbstractTextComponent, Modal} from "obsidian";
 
 export class BaseModal extends Modal {
 
 
     //taken from github.com/valentine195/obsidian-admonition
-    setValidationError(textInput: TextComponent, message?: string) : void {
-        textInput.inputEl.addClass("is-invalid");
+    setValidationError(input: AbstractTextComponent<any>, message?: string) : void {
+        input.inputEl.addClass("is-invalid");
         if (message) {
-            textInput.inputEl.parentElement.addClasses([
+            input.inputEl.parentElement.addClasses([
                 "has-invalid-message",
                 "unset-align-items"
             ]);
-            textInput.inputEl.parentElement.parentElement.addClass(
+            input.inputEl.parentElement.parentElement.addClass(
                 ".unset-align-items"
             );
-            let mDiv = textInput.inputEl.parentElement.querySelector(
+            let mDiv = input.inputEl.parentElement.querySelector(
                 ".invalid-feedback"
             ) as HTMLDivElement;
 
@@ -22,25 +22,25 @@ export class BaseModal extends Modal {
                 mDiv = createDiv({ cls: "invalid-feedback" });
             }
             mDiv.innerText = message;
-            mDiv.insertAfter(textInput.inputEl);
+            mDiv.insertAfter(input.inputEl);
         }
     }
 
-    removeValidationError(textInput: TextComponent) : void {
-        textInput.inputEl.removeClass("is-invalid");
-        textInput.inputEl.parentElement.removeClasses([
+    removeValidationError(input: AbstractTextComponent<any>) : void {
+        input.inputEl.removeClass("is-invalid");
+        input.inputEl.parentElement.removeClasses([
             "has-invalid-message",
             "unset-align-items"
         ]);
-        textInput.inputEl.parentElement.parentElement.removeClass(
+        input.inputEl.parentElement.parentElement.removeClass(
             ".unset-align-items"
         );
 
         if (
-            textInput.inputEl.parentElement.querySelector(".invalid-feedback")
+            input.inputEl.parentElement.querySelector(".invalid-feedback")
         ) {
-            textInput.inputEl.parentElement.removeChild(
-                textInput.inputEl.parentElement.querySelector(
+            input.inputEl.parentElement.removeChild(
+                input.inputEl.parentElement.querySelector(
                     ".invalid-feedback"
                 )
             );

@@ -19,3 +19,6 @@ export const settingsStore = writable<RssReaderSettings>(DEFAULT_SETTINGS);
 export const feedsStore = writable<RssFeedContent[]>([]);
 export const sortedFeedsStore = writable<_.Dictionary<RssFeedContent[]>>();
 export const filteredItemsStore = writable<Array<FilteredFolderContent>>();
+
+export const foldedState = writable<Array<string>>();
+export const tagsStore = writable<Set<string>>();

@@ -6,7 +6,7 @@ import {
     settingsStore,
     feedsStore,
     sortedFeedsStore,
-    filteredStore, filteredItemsStore, FilteredFolderContent
+    filteredStore, filteredItemsStore, FilteredFolderContent, foldedState, tagsStore
 } from "./stores";
 import {VIEW_ID} from "./consts";
 import {getFeedItems, RssFeedContent, RssFeedItem} from "./parser/rssParser";
@@ -16,6 +16,7 @@ import mergeWith from "lodash.mergewith";
 import keyBy from "lodash.keyby";
 import values from "lodash.values";
 import {FilteredFolder, FilterType, SortOrder} from "./modals/FilteredFolderModal";
+import {Md5} from "ts-md5";
 
 export default class RssReaderPlugin extends Plugin {
     settings: RssReaderSettings;
@@ -28,6 +29,7 @@ export default class RssReaderPlugin extends Plugin {
         addFeatherIcon("eye-off");
         addFeatherIcon("star");
         addFeatherIcon("clipboard");
+        addFeatherIcon("headphones");
 
         //update settings whenever store contents change.
         this.register(
@@ -71,14 +73,14 @@ export default class RssReaderPlugin extends Plugin {
         this.addSettingTab(new RSSReaderSettingsTab(this.app, this));
 
         let interval: number;
-        if(this.settings.updateTime !== 0) {
+        if (this.settings.updateTime !== 0) {
             interval = window.setInterval(async () => {
                 await this.updateFeeds();
             }, this.settings.updateTime * 60 * 1000);
             this.registerInterval(interval);
         }
 
-        if(this.settings.autoSync) {
+        if (this.settings.autoSync) {
             this.registerInterval(window.setInterval(async () => {
                 await this.loadSettings();
             }, 1000 * 60));
@@ -86,7 +88,7 @@ export default class RssReaderPlugin extends Plugin {
 
         //reset update timer on settings change.
         settingsStore.subscribe((settings: RssReaderSettings) => {
-            if(interval !== undefined)
+            if (interval !== undefined)
                 clearInterval(interval);
             if (settings.updateTime != 0) {
                 interval = window.setInterval(async () => {
@@ -107,9 +109,22 @@ export default class RssReaderPlugin extends Plugin {
             let items: RssFeedItem[] = [];
             for (const feed in Object.keys(feeds)) {
                 //@ts-ignore
-                const feedItems = feeds[feed].items.sort((a, b) => window.moment(b.pubDate) - window.moment(a.pubDate));
+                const feedItems = feeds[feed].items;
                 items = items.concat(feedItems);
             }
+
+            //collect all tags for auto completion
+            const tags: string[] = [];
+            for (let item of items) {
+                tags.push(...item.tags);
+            }
+            //@ts-ignore
+            const fileTags = this.app.metadataCache.getTags();
+            for(const tag of Object.keys(fileTags)) {
+                tags.push(tag.replace('#', ''));
+            }
+            tagsStore.update(() => new Set<string>(tags.filter(tag => tag.length > 0)));
+
             this.filterItems(items);
         });
 
@@ -120,7 +135,7 @@ export default class RssReaderPlugin extends Plugin {
         });
     }
 
-    filterItems(items: RssFeedItem[]) : void {
+    filterItems(items: RssFeedItem[]): void {
         const filtered = new Array<FilteredFolderContent>();
         for (const filter of this.settings.filtered) {
             // @ts-ignore
@@ -178,44 +193,51 @@ export default class RssReaderPlugin extends Plugin {
         }
 
         type IIdentified = {
-            link?: string;
+            hash: string;
         };
+
         function mergeArrayById<T extends IIdentified>(
             array1: T[],
             array2: T[]
         ): T[] {
-            const mergedObjectMap: IStringTMap<T> = keyBy(array1, 'link');
+            const mergedObjectMap: IStringTMap<T> = keyBy(array1, 'hash');
 
             const finalArray: T[] = [];
 
             for (const object of array2) {
-                if (object.link && mergedObjectMap[object.link]) {
-                    mergedObjectMap[object.link] = {
-                        ...mergedObjectMap[object.link],
-                        ...object,
-                    };
-                } else {
-                    finalArray.push(object);
-                }
+                mergedObjectMap[object.hash] = {
+                    ...mergedObjectMap[object.hash],
+                    ...object,
+                };
             }
 
             values(mergedObjectMap).forEach(object => {
                 finalArray.push(object);
             });
-
             return finalArray;
         }
+
         function customizer(objValue: string | any[], srcValue: any) {
             if (Array.isArray(objValue)) {
                 return mergeArrayById(objValue, srcValue);
             }
         }
+
         let result: RssFeedContent[] = [];
         for (const feed of this.settings.feeds) {
             const items = await getFeedItems(feed);
             result.push(items);
         }
-        result = mergeWith(result, this.settings.items, customizer);
+        let items = this.settings.items;
+        for (const feed of items) {
+            for (let item of feed.items) {
+                if(item.hash === undefined) {
+                    item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
+                }
+            }
+        }
+
+        result = mergeWith(result, items, customizer);
         await this.writeFeedContent(() => result);
     }
 
@@ -277,6 +299,7 @@ export default class RssReaderPlugin extends Plugin {
         settingsStore.set(this.settings);
         configuredFeedsStore.set(this.settings.feeds);
         feedsStore.set(this.settings.items);
+        foldedState.set(this.settings.folded);
     }
 
     async saveSettings(): Promise<void> {
@@ -292,7 +315,7 @@ export default class RssReaderPlugin extends Plugin {
     }
 
     async writeFeedContent(changeOpts: (items: RssFeedContent[]) => Partial<RssFeedContent[]>): Promise<void> {
-        await feedsStore.update((old) => ({...old, ...changeOpts(old)}));
+        await feedsStore.update((old) => ({...changeOpts(old)}));
         await this.writeSettings((old) => ({
             items: changeOpts(old.items)
         }));
@@ -304,6 +327,13 @@ export default class RssReaderPlugin extends Plugin {
             filtered: changeOpts(old.filtered)
         }));
         await this.updateFeeds();
+    }
+
+    async writeFolded(folded: string[]): Promise<void> {
+        await foldedState.update(() => (folded));
+        await this.writeSettings(() => ({
+            folded: folded
+        }));
     }
 
     async writeSettings(changeOpts: (settings: RssReaderSettings) => Partial<RssReaderSettings>): Promise<void> {

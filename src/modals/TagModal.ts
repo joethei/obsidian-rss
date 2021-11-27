@@ -1,8 +1,8 @@
 import {BaseModal} from "./BaseModal";
 import RssReaderPlugin from "../main";
-import {Setting, TextComponent} from "obsidian";
-import {TextInputPrompt} from "./TextInputPrompt";
+import {SearchComponent, Setting} from "obsidian";
 import {NUMBER_REGEX, TAG_REGEX} from "../consts";
+import {TagSuggest} from "../view/TagSuggest";
 
 export class TagModal extends BaseModal {
     plugin: RssReaderPlugin;
@@ -23,49 +23,74 @@ export class TagModal extends BaseModal {
         const tagDiv = contentEl.createDiv("tags");
 
         for (const tag in this.tags) {
-            const setting = new Setting(tagDiv);
+            new Setting(tagDiv)
+                .addSearch(async (search: SearchComponent) => {
+                    new TagSuggest(this.app, search.inputEl);
+                    search
+                        .setValue(this.tags[tag])
+                        .onChange(async (value: string) => {
+                            if (!value.match(TAG_REGEX) || value.match(NUMBER_REGEX) || value.contains(" ") || value.contains('#')) {
+                                this.setValidationError(search, "This is not a valid tag");
+                                return;
+                            }
+                            this.tags = this.tags.filter(e => e !== this.tags[tag]);
+                            this.tags.push(value);
+                        });
+                })
+                .addExtraButton((button) => {
+                    button
+                        .setTooltip("Delete")
+                        .setIcon("trash")
+                        .onClick(() => {
+                            this.tags = this.tags.filter(e => e !== this.tags[tag]);
+                            this.display();
+                        });
 
-            setting.setName(this.tags[tag]);
+                });
+        }
 
-            setting.addExtraButton((b) => {
-                b
-                    .setIcon("trash")
-                    .setTooltip("Delete")
+        let tagValue = "";
+        let tagComponent: SearchComponent;
+        const newTag = new Setting(tagDiv)
+            .addSearch(async (search: SearchComponent) => {
+                tagComponent = search;
+                new TagSuggest(this.app, search.inputEl);
+                search
+                    .onChange(async (value: string) => {
+                        if (!value.match(TAG_REGEX) || value.match(NUMBER_REGEX) || value.contains(" ") || value.contains('#')) {
+                            this.setValidationError(search, "This is not a valid tag");
+                            return;
+                        }
+                        tagValue = value;
+                    });
+            }).addExtraButton(button => {
+                button
+                    .setTooltip("Create")
+                    .setIcon("create-new")
                     .onClick(() => {
-                        this.tags = this.tags.filter(e => e !== this.tags[tag]);
-                        console.log("new tags " + this.tags);
+                        if (!tagValue.match(TAG_REGEX) || tagValue.match(NUMBER_REGEX) || tagValue.contains(" ") || tagValue.contains('#')) {
+                            this.setValidationError(tagComponent, "This is not a valid tag");
+                            return;
+                        }
+                        this.tags.push(tagValue);
                         this.display();
                     });
-            });
-        }
+        });
+        newTag.controlEl.addClass("rss-setting-input");
+
         const buttonEl = contentEl.createSpan("actionButtons");
 
-        const buttons = new Setting(buttonEl).addButton((btn) => btn.setButtonText("new").onClick(async () => {
-            const input = await new TextInputPrompt(this.app, "Tag", "new tag name", "", "tag name");
-            let textInput: TextComponent;
-            input.openAndGetValue((value => {
-                textInput = value;
-                if(!value.getValue().match(TAG_REGEX) || value.getValue().match(NUMBER_REGEX) || value.getValue().contains(" ") || value.getValue().contains('#')) {
-                    input.setValidationError(textInput, "This is not a valid tag");
-                    return;
-                }
-                this.tags.push(value.getValue());
-                this.display();
-                input.close();
-            }));
-        }));
-
-        buttons.addExtraButton((btn) => btn.setTooltip("Save").setIcon("checkmark").onClick(async () => {
+        new Setting(buttonEl).addExtraButton((btn) => btn.setTooltip("Save").setIcon("checkmark").onClick(async () => {
             this.close();
         }));
     }
 
-    onClose() : void {
+    onClose(): void {
         const {contentEl} = this;
         contentEl.empty();
     }
 
-    async onOpen() : Promise<void> {
+    async onOpen(): Promise<void> {
         await this.display();
     }
 

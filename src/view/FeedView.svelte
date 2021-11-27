@@ -5,15 +5,24 @@
     import IconComponent from "./IconComponent.svelte";
     import {Menu} from "obsidian";
     import Action from "../actions/Action";
+    import {foldedState} from "../stores";
 
     export let feed: RssFeedContent = null;
     export let plugin: RssReaderPlugin;
 
-    let foldedState: Map<string, boolean> = new Map();
+    let folded: string[] = [];
+    foldedState.subscribe(value => {
+        folded = value;
+    });
 
     function toggleFold(feed: string) {
-        foldedState.set(feed, !foldedState.get(feed));
-        foldedState = foldedState;
+        if(!folded) {
+            folded = [];
+        }
+        if(folded.contains(feed)) {
+            folded.remove(feed);
+        }else folded.push(feed);
+        plugin.writeFolded(folded);
     }
 
     async function openMenu(e: MouseEvent): Promise<void> {
@@ -31,7 +40,7 @@
         });
         menu.addItem((menuItem) => {
             menuItem
-                .setIcon("create-new")
+                .setIcon("feather-eye")
                 .setTitle("Mark all as read")
                 .onClick(async () => {
                     for (let item of feed.items) {
@@ -54,7 +63,7 @@
 {:else}
 
     <div class="rss-feed" style="margin-left: 20px">
-        <div class="{foldedState.get(feed.name) ?  'is-collapsed' : ''}" on:click={() => toggleFold(feed.name)}
+        <div class="{folded.contains(feed.name) ?  'is-collapsed' : ''}" on:click={() => toggleFold(feed.name)}
              on:contextmenu={openMenu}>
             <div class="rss-feed-title" style="overflow: hidden">
                 <IconComponent iconName="right-triangle"/>
@@ -68,7 +77,7 @@
         </div>
 
         <div class="rss-feed-items">
-            {#if !foldedState.get(feed.name)}
+            {#if !folded.contains(feed.name)}
                 {#each feed.items as item}
                     <ItemView item={item} plugin={plugin}/>
                 {/each}

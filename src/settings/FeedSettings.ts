@@ -77,12 +77,21 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
                         });
                 })
                 .addExtraButton((b) => {
-                    b.setIcon("trash")
+                    b
+                        .setIcon("trash")
                         .setTooltip("Delete")
                         .onClick(async () => {
                             const feeds = plugin.settings.feeds;
                             feeds.remove(feed);
-                            await plugin.writeFeeds(() => (feeds));
+                            await plugin.writeFeeds(() => feeds);
+
+                            //delete all items from feed
+                            let content = plugin.settings.items;
+                            content = content.filter((content) => {
+                                return content.name !== feed.name;
+                            });
+                            await plugin.writeFeedContent(() => content);
+
                             displayFeedSettings(plugin, container);
                         });
                 });
