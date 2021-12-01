@@ -5,6 +5,7 @@ import {FILE_NAME_REGEX} from "./consts";
 import {isInVault} from "obsidian-community-lib";
 import RssReaderPlugin from "./main";
 import {RssReaderSettings} from "./settings/settings";
+import t from "./l10n/locale";
 
 export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) : Promise<void> {
     const activeFile = plugin.app.workspace.getActiveFile();
@@ -16,19 +17,19 @@ export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) 
     //make sure there are no slashes in the title.
     const title = item.title.replace(/[\/\\:]/g, ' ');
 
-    const inputPrompt = new TextInputPrompt(plugin.app, "Please specify a file name", "cannot contain: * \" \\ / < > : | ?", title, title);
+    const inputPrompt = new TextInputPrompt(plugin.app, t("specify_name"), t("cannot_contain") + " * \" \\ / < > : | ?", title, title);
     if(plugin.settings.askForFilename) {
         await inputPrompt
             .openAndGetValue(async (text: TextComponent) => {
                 const value = text.getValue();
                 if(value.match(FILE_NAME_REGEX)) {
-                    inputPrompt.setValidationError(text, "that filename is not valid");
+                    inputPrompt.setValidationError(text, t("invalid_filename"));
                     return;
                 }
                 const filePath = normalizePath([dir, `${value}.md`].join('/'));
 
                 if (isInVault(plugin.app, filePath, '')) {
-                    inputPrompt.setValidationError(text, "there is already a note with that name");
+                    inputPrompt.setValidationError(text, t("note_exists"));
                     return;
                 }
                 inputPrompt.close();
@@ -45,7 +46,7 @@ export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) 
 
 async function createNewFile(plugin: RssReaderPlugin, item: RssFeedItem, path: string, title: string) {
     if (isInVault(plugin.app, path, '')) {
-        new Notice("there is already a note with that name");
+        new Notice(t("note_exists"));
         return;
     }
 
@@ -63,13 +64,13 @@ async function createNewFile(plugin: RssReaderPlugin, item: RssFeedItem, path: s
         return items;
     });
 
-    new Notice("Created note from article");
+    new Notice(t("created_note"));
 }
 
 export async function pasteToNote(plugin: RssReaderPlugin, item: RssFeedItem) : Promise<void> {
     const file = plugin.app.workspace.getActiveFile();
     if (file === null) {
-        new Notice("no file active");
+        new Notice(t("no_file_active"));
         return;
     }
 
@@ -86,7 +87,7 @@ export async function pasteToNote(plugin: RssReaderPlugin, item: RssFeedItem) : 
             return items;
         });
 
-        new Notice("inserted article into note");
+        new Notice(t("RSS_Reader") + t("inserted_article"));
     }
 }
 

@@ -2,6 +2,7 @@ import {ItemView, WorkspaceLeaf} from "obsidian";
 import FolderView from "./FolderView.svelte";
 import RssReaderPlugin from "../main";
 import {VIEW_ID} from "../consts";
+import t from "../l10n/locale";
 
 export default class ViewLoader extends ItemView {
     private feed: FolderView;
@@ -14,7 +15,7 @@ export default class ViewLoader extends ItemView {
     }
 
     getDisplayText(): string {
-        return "RSS Feeds";
+        return t("RSS_Feeds");
     }
 
     getViewType(): string {

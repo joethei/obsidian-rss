@@ -3,6 +3,7 @@ import RssReaderPlugin from "../main";
 import {SearchComponent, Setting} from "obsidian";
 import {NUMBER_REGEX, TAG_REGEX} from "../consts";
 import {TagSuggest} from "../view/TagSuggest";
+import t from "../l10n/locale";
 
 export class TagModal extends BaseModal {
     plugin: RssReaderPlugin;
@@ -18,7 +19,7 @@ export class TagModal extends BaseModal {
         const {contentEl} = this;
         contentEl.empty();
 
-        contentEl.createEl("h1", {text: "Edit Tags"});
+        contentEl.createEl("h1", {text: t("edit_tags")});
 
         const tagDiv = contentEl.createDiv("tags");
 
@@ -30,7 +31,7 @@ export class TagModal extends BaseModal {
                         .setValue(this.tags[tag])
                         .onChange(async (value: string) => {
                             if (!value.match(TAG_REGEX) || value.match(NUMBER_REGEX) || value.contains(" ") || value.contains('#')) {
-                                this.setValidationError(search, "This is not a valid tag");
+                                this.setValidationError(search, t("invalid_tag"));
                                 return;
                             }
                             this.tags = this.tags.filter(e => e !== this.tags[tag]);
@@ -39,7 +40,7 @@ export class TagModal extends BaseModal {
                 })
                 .addExtraButton((button) => {
                     button
-                        .setTooltip("Delete")
+                        .setTooltip(t("delete"))
                         .setIcon("trash")
                         .onClick(() => {
                             this.tags = this.tags.filter(e => e !== this.tags[tag]);
@@ -58,7 +59,7 @@ export class TagModal extends BaseModal {
                 search
                     .onChange(async (value: string) => {
                         if (!value.match(TAG_REGEX) || value.match(NUMBER_REGEX) || value.contains(" ") || value.contains('#')) {
-                            this.setValidationError(search, "This is not a valid tag");
+                            this.setValidationError(search, t("invalid_tag"));
                             return;
                         }
                         tagValue = value;
@@ -69,20 +70,24 @@ export class TagModal extends BaseModal {
                     .setIcon("create-new")
                     .onClick(() => {
                         if (!tagValue.match(TAG_REGEX) || tagValue.match(NUMBER_REGEX) || tagValue.contains(" ") || tagValue.contains('#')) {
-                            this.setValidationError(tagComponent, "This is not a valid tag");
+                            this.setValidationError(tagComponent, t("invalid_tag"));
                             return;
                         }
                         this.tags.push(tagValue);
                         this.display();
                     });
-        });
+            });
         newTag.controlEl.addClass("rss-setting-input");
 
         const buttonEl = contentEl.createSpan("actionButtons");
 
-        new Setting(buttonEl).addExtraButton((btn) => btn.setTooltip("Save").setIcon("checkmark").onClick(async () => {
-            this.close();
-        }));
+        new Setting(buttonEl).addExtraButton((btn) =>
+            btn
+                .setTooltip(t("save"))
+                .setIcon("checkmark")
+                .onClick(async () => {
+                    this.close();
+                }));
     }
 
     onClose(): void {

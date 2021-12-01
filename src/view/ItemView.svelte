@@ -53,35 +53,35 @@
 </script>
 
 {#if item}
-    <div class="is-clickable rss-tooltip" style="margin-left: 20px">
-        <div class="rss-feed-item {(item.read) ? 'rss-read' : 'rss-not-read'}">
-            {#if (item.favorite)}
-                <IconComponent iconName="star"/>
-            {/if}
-            {#if (item.created)}
-                <IconComponent iconName="document"/>
-            {/if}
-            <a on:click={() => {
+    <li class="is-clickable rss-tooltip rss-feed-item {(item.read) ? 'rss-read' : 'rss-not-read'}">
+        {#if (item.favorite)}
+            <IconComponent iconName="star"/>
+        {/if}
+        {#if (item.created)}
+            <IconComponent iconName="document"/>
+        {/if}
+        <a on:click={() => {
                 new ItemModal(plugin, item).open();
                     }}
-               on:contextmenu={openMenu}
-               on:mouseover={toggleHover}
-               on:mouseleave={toggleHover}
-            >
-                {item.title}
-            </a>
+           on:contextmenu={openMenu}
+           on:mouseover={toggleHover}
+           on:mouseleave={toggleHover}
+        >
+            {item.title}
+        </a>
 
+        {#if item.tags.length > 0}
             <span>
-            {#each item.tags as tag}
-                &nbsp;<a class="tag rss-tag">{tag}</a>
-            {/each}
+                {#each item.tags as tag}
+                    &nbsp;<a class="tag rss-tag" href="#{tag}">{tag}</a>
+                {/each}
             </span>
-        </div>
+        {/if}
         {#if (hover)}
             {#if (item.description !== item.content)}
                 <HtmlTooltip content="{item.description}"/>
             {/if}
         {/if}
-    </div>
+    </li>
 
 {/if}

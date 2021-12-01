@@ -3,20 +3,21 @@ import groupBy from "lodash.groupby";
 import {ButtonComponent, Notice, Setting} from "obsidian";
 import {FeedModal} from "../modals/FeedModal";
 import RssReaderPlugin from "../main";
+import t from "../l10n/locale";
 
 
 export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElement) : void {
 
     container.empty();
 
-    container.createEl("h3", {text: "Feeds"});
+    container.createEl("h3", {text: t("feeds")});
 
     new Setting(container)
-        .setName("Add New")
-        .setDesc("Add a new Feed")
+        .setName(t("add_new"))
+        .setDesc(t("add_new_feed"))
         .addButton((button: ButtonComponent): ButtonComponent => {
             return button
-                .setTooltip("add new Feed")
+                .setTooltip(t("add_new_feed"))
                 .setIcon("create-new")
                 .onClick(async () => {
                     const modal = new FeedModal(plugin);
@@ -24,7 +25,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
                     modal.onClose = async () => {
                         if (modal.saved) {
                             if (plugin.settings.feeds.some(item => item.url === modal.url)) {
-                                new Notice("you already have a feed configured with that url");
+                                new Notice(t("feed_already_configured"));
                                 return;
                             }
                             await plugin.writeFeeds(() => (
@@ -52,13 +53,13 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
 
             const setting = new Setting(feedsDiv);
 
-            setting.setName((feed.folder ? feed.folder : "No Folder") + " - " + feed.name);
+            setting.setName((feed.folder ? feed.folder : t("no_folder")) + " - " + feed.name);
             setting.setDesc(feed.url);
 
             setting
                 .addExtraButton((b) => {
                     b.setIcon("pencil")
-                        .setTooltip("Edit")
+                        .setTooltip(t("edit"))
                         .onClick(() => {
                             const modal = new FeedModal(plugin, feed);
                             const oldFeed = feed;
@@ -79,7 +80,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
                 .addExtraButton((b) => {
                     b
                         .setIcon("trash")
-                        .setTooltip("Delete")
+                        .setTooltip(t("delete"))
                         .onClick(async () => {
                             const feeds = plugin.settings.feeds;
                             feeds.remove(feed);

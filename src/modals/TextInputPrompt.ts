@@ -1,5 +1,6 @@
 import {App, Setting, TextComponent} from "obsidian";
 import {BaseModal} from "./BaseModal";
+import t from "../l10n/locale";
 
 //slightly modified version from https://github.com/zsviczian/obsidian-excalidraw-plugin
 export class TextInputPrompt extends BaseModal {
@@ -36,7 +37,7 @@ export class TextInputPrompt extends BaseModal {
 
         new Setting(div).addButton((b) => {
             b
-                .setButtonText("Save")
+                .setButtonText(t("save"))
                 .onClick(async () => {
                     this.resolve(this.textComponent);
                 });

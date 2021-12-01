@@ -4,6 +4,7 @@ import {RssFeed} from "../settings/settings";
 import {getFeedItems} from "../parser/rssParser";
 import {isValidHttpUrl} from "../consts";
 import {BaseModal} from "./BaseModal";
+import t from "../l10n/locale";
 
 export class FeedModal extends BaseModal {
     name: string;
@@ -29,8 +30,8 @@ export class FeedModal extends BaseModal {
 
         let nameText: TextComponent;
         const name = new Setting(contentEl)
-            .setName("Name")
-            .setDesc("Name of feed")
+            .setName(t("name"))
+            .setDesc(t("name_help"))
             .addText((text) => {
                 nameText = text;
                 text.setValue(this.name)
@@ -43,8 +44,8 @@ export class FeedModal extends BaseModal {
 
         let urlText: TextComponent;
         const url = new Setting(contentEl)
-            .setName("url")
-            .setDesc("url of feed")
+            .setName("URL")
+            .setDesc(t("url_help"))
             .addText((text) => {
                 urlText = text;
                 text.setValue(this.url)
@@ -57,7 +58,8 @@ export class FeedModal extends BaseModal {
         url.controlEl.addClass("rss-setting-input");
 
         new Setting(contentEl)
-            .setName("Folder")
+            .setName(t("folder"))
+            .setDesc(t("folder_help"))
             .addText((text) => {
                 text.setValue(this.folder)
                     .onChange((value) => {
@@ -68,32 +70,32 @@ export class FeedModal extends BaseModal {
         const footerEl = contentEl.createDiv();
         const footerButtons = new Setting(footerEl);
         footerButtons.addButton((b) => {
-            b.setTooltip("Save")
+            b.setTooltip(t("save"))
                 .setIcon("checkmark")
                 .onClick(async () => {
                     let error = false;
                     if(!nameText.getValue().length) {
-                        this.setValidationError(nameText, "you need to specify a name");
+                        this.setValidationError(nameText, t("invalid_name"));
                         error = true;
                     }
 
                     if(!urlText.getValue().length) {
-                        this.setValidationError(urlText, "you need to specify a url");
+                        this.setValidationError(urlText, t("invalid_url"));
                         error = true;
                     }
                     if(!isValidHttpUrl(urlText.getValue())) {
-                        this.setValidationError(urlText, "This url is not valid");
+                        this.setValidationError(urlText, t("invalid_url"));
                         error = true;
                     }else {
                         const items = await getFeedItems({name: "test", url: urlText.getValue(), folder: ""});
                         if(items.items.length == 0) {
-                            this.setValidationError(urlText, "this feed does not have any entries");
+                            this.setValidationError(urlText, t("invalid_feed"));
                             error = true;
                         }
                     }
 
                     if(error) {
-                        new Notice("please fix errors before saving.");
+                        new Notice(t("fix_errors"));
                         return;
                     }
                     this.saved = true;
@@ -103,7 +105,7 @@ export class FeedModal extends BaseModal {
         });
         footerButtons.addExtraButton((b) => {
             b.setIcon("cross")
-                .setTooltip("Cancel")
+                .setTooltip(t("cancel"))
                 .onClick(() => {
                     this.saved = false;
                     this.close();

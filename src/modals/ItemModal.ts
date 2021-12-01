@@ -6,6 +6,7 @@ import {RssFeedItem} from "../parser/rssParser";
 import RssReaderPlugin from "../main";
 import {sanitizeHTMLToDom} from "../consts";
 import Action from "../actions/Action";
+import t from "../l10n/locale";
 
 export class ItemModal extends Modal {
 
@@ -91,11 +92,13 @@ export class ItemModal extends Modal {
     async markAsFavorite() : Promise<void> {
         await Action.FAVORITE.processor(this.plugin, this.item);
         this.favoriteButton.setIcon((this.item.favorite) ? 'star-glyph' : 'star');
+        this.favoriteButton.setTooltip((this.item.favorite) ? t("remove_from_favorites") : t("mark_as_favorite"));
     }
 
     async markAsRead() : Promise<void> {
         await Action.READ.processor(this.plugin, this.item);
         this.readButton.setIcon((this.item.read) ? 'feather-eye-off' : 'feather-eye');
+        this.readButton.setTooltip((this.item.read) ? t("mark_as_unread") : t("mark_as_unread"));
     }
 
     display(): void {
@@ -123,7 +126,7 @@ export class ItemModal extends Modal {
 
         this.readButton = new ButtonComponent(topButtons)
             .setIcon(this.item.read ? 'feather-eye-off' : 'feather-eye')
-            .setTooltip(this.item.read ? 'Mark as unread' : 'mark as read')
+            .setTooltip(this.item.read ? t("mark_as_unread") : t("mark_as_read"))
             .onClick(async () => {
                 await this.markAsRead();
             });
@@ -131,7 +134,7 @@ export class ItemModal extends Modal {
 
         this.favoriteButton = new ButtonComponent(topButtons)
             .setIcon(this.item.favorite ? 'star-glyph' : 'star')
-            .setTooltip(this.item.favorite ? 'remove from favorites' : 'mark as favorite')
+            .setTooltip(this.item.favorite ? t("remove_from_favorites") : t("mark_as_favorite"))
             .onClick(async () => {
                await this.markAsFavorite();
             });
@@ -150,7 +153,7 @@ export class ItemModal extends Modal {
         if(this.app.plugins.plugins["obsidian-tts"]) {
             new ButtonComponent(topButtons)
                 .setIcon("feather-headphones")
-                .setTooltip("Read article")
+                .setTooltip(t("read_article_tts"))
                 .onClick(async () => {
                     const content = htmlToMarkdown(this.item.content);
                     //@ts-ignore

@@ -6,6 +6,7 @@
     import {Menu} from "obsidian";
     import Action from "../actions/Action";
     import {foldedState} from "../stores";
+    import t from "../l10n/locale";
 
     export let feed: RssFeedContent = null;
     export let plugin: RssReaderPlugin;
@@ -16,12 +17,12 @@
     });
 
     function toggleFold(feed: string) {
-        if(!folded) {
+        if (!folded) {
             folded = [];
         }
-        if(folded.contains(feed)) {
+        if (folded.contains(feed)) {
             folded.remove(feed);
-        }else folded.push(feed);
+        } else folded.push(feed);
         plugin.writeFolded(folded);
     }
 
@@ -31,7 +32,7 @@
         menu.addItem((menuItem) => {
             menuItem
                 .setIcon("create-new")
-                .setTitle("Create all")
+                .setTitle(t("create_all"))
                 .onClick(async () => {
                     for (let item of feed.items) {
                         await Action.CREATE_NOTE.processor(plugin, item);
@@ -41,7 +42,7 @@
         menu.addItem((menuItem) => {
             menuItem
                 .setIcon("feather-eye")
-                .setTitle("Mark all as read")
+                .setTitle(t("mark_all_as_read"))
                 .onClick(async () => {
                     for (let item of feed.items) {
                         item.read = true;
@@ -62,11 +63,11 @@
     <p>...loading</p>
 {:else}
 
-    <div class="rss-feed" style="margin-left: 20px">
+    <div class="rss-feed">
         <div class="{folded.contains(feed.name) ?  'is-collapsed' : ''}" on:click={() => toggleFold(feed.name)}
              on:contextmenu={openMenu}>
             <div class="rss-feed-title" style="overflow: hidden">
-                <IconComponent iconName="right-triangle"/>
+                <IconComponent iconName="feather-chevron-down"/>
                 <span>
                     {feed.name}
                     {#if (feed.image)}
@@ -78,9 +79,11 @@
 
         <div class="rss-feed-items">
             {#if !folded.contains(feed.name)}
-                {#each feed.items as item}
-                    <ItemView item={item} plugin={plugin}/>
-                {/each}
+                <ul>
+                    {#each feed.items as item}
+                        <ItemView item={item} plugin={plugin}/>
+                    {/each}
+                </ul>
             {/if}
         </div>
 

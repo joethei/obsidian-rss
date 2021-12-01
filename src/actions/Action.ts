@@ -4,27 +4,28 @@ import RssReaderPlugin from "../main";
 import {htmlToMarkdown, Notice} from "obsidian";
 import {copy} from "obsidian-community-lib";
 import {TagModal} from "../modals/TagModal";
+import t from "../l10n/locale";
 
 export default class Action {
 
-    static CREATE_NOTE = new Action("create new note", "create-new", (plugin, item) : Promise<void> => {
+    static CREATE_NOTE = new Action(t("create_note"), "create-new", (plugin, item) : Promise<void> => {
         return createNewNote(plugin, item);
     });
 
-    static PASTE = new Action("paste to current note", "paste", (plugin, item) : Promise<void> => {
+    static PASTE = new Action(t("paste_to_note"), "paste", (plugin, item) : Promise<void> => {
         return pasteToNote(plugin, item);
     });
 
-    static COPY = new Action("copy to clipboard", "feather-clipboard", ((_, item) : Promise<void> => {
+    static COPY = new Action(t("copy_to_clipboard"), "feather-clipboard", ((_, item) : Promise<void> => {
         return copy(htmlToMarkdown(item.content));
     }));
 
-    static OPEN = new Action("open in browser", "open-elsewhere-glyph", ((_, item) : Promise<void> => {
+    static OPEN = new Action(t("open_browser"), "open-elsewhere-glyph", ((_, item) : Promise<void> => {
         openInBrowser(item);
         return Promise.resolve();
     }));
 
-    static TAGS = new Action("edit tags", "tag-glyph", (((plugin, item) => {
+    static TAGS = new Action(t("edit_tags"), "tag-glyph", (((plugin, item) => {
         const modal = new TagModal(plugin, item.tags);
 
         modal.onClose = async () => {
@@ -39,13 +40,13 @@ export default class Action {
         return Promise.resolve();
     })));
 
-    static READ = new Action("Mark as read/unread", "feather-eye", ((async (plugin, item) : Promise<void> => {
+    static READ = new Action(t("mark_as_read_unread"), "feather-eye", ((async (plugin, item) : Promise<void> => {
         if (item.read) {
             item.read = false;
-            new Notice("marked item as unread");
+            new Notice(t("marked_as_unread"));
         } else {
             item.read = true;
-            new Notice("marked item as read");
+            new Notice(t("marked_as_read"));
         }
         const items = plugin.settings.items;
         await plugin.writeFeedContent(() => {
@@ -54,13 +55,13 @@ export default class Action {
         return Promise.resolve();
     })));
 
-    static FAVORITE = new Action("Mark as Favorite/remove from favorites", "star", ((async (plugin, item) : Promise<void> => {
+    static FAVORITE = new Action(t("mark_as_favorite_remove"), "star", ((async (plugin, item) : Promise<void> => {
         if (item.favorite) {
             item.favorite = false;
-            new Notice("removed item from favorites");
+            new Notice(t("removed_from_favorites"));
         } else {
             item.favorite = true;
-            new Notice("marked item as favorite");
+            new Notice(t("added_to_favorites"));
         }
         const items = plugin.settings.items;
         await plugin.writeFeedContent(() => {

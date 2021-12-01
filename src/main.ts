@@ -17,6 +17,7 @@ import keyBy from "lodash.keyby";
 import values from "lodash.values";
 import {FilteredFolder, FilterType, SortOrder} from "./modals/FilteredFolderModal";
 import {Md5} from "ts-md5";
+import t from "./l10n/locale";
 
 export default class RssReaderPlugin extends Plugin {
     settings: RssReaderSettings;
@@ -30,6 +31,7 @@ export default class RssReaderPlugin extends Plugin {
         addFeatherIcon("star");
         addFeatherIcon("clipboard");
         addFeatherIcon("headphones");
+        addFeatherIcon("chevron-down");
 
         //update settings whenever store contents change.
         this.register(
@@ -42,7 +44,7 @@ export default class RssReaderPlugin extends Plugin {
 
         this.addCommand({
             id: "rss-open",
-            name: "Open",
+            name: t("open"),
             checkCallback: (checking: boolean) => {
                 if (checking) {
                     return (this.app.workspace.getLeavesOfType(VIEW_ID).length === 0);
@@ -62,7 +64,7 @@ export default class RssReaderPlugin extends Plugin {
 
         this.addCommand({
             id: 'rss-refresh',
-            name: 'Refresh feeds',
+            name: t("refresh_feeds"),
             callback: async () => {
                 await this.updateFeeds();
             }

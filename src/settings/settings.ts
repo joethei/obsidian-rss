@@ -12,6 +12,7 @@ import {FolderSuggest} from "./FolderSuggestor";
 import {FilteredFolder, FilteredFolderModal} from "../modals/FilteredFolderModal";
 import {RssFeedContent} from "../parser/rssParser";
 import {displayFeedSettings} from "./FeedSettings";
+import t from "../l10n/locale";
 
 export interface RssFeed {
     name: string,
@@ -95,14 +96,14 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         containerEl.empty();
 
-        containerEl.createEl('h2', {text: 'RSS Reader Settings'});
+        containerEl.createEl('h2', {text: t("RSS_Reader")+ " " + t("settings")});
 
-        containerEl.createEl('h3', {text: 'File creation'});
+        containerEl.createEl('h3', {text: t("file_creation")});
 
         new Setting(containerEl)
-            .setName("New file template")
-            .setDesc('When creating a note from a article this gets processed. ' +
-                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{created}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{filename}, {{tags}}, {{#tags}}')
+            .setName(t("template_new"))
+            .setDesc(t("template_new_help") + ' ' +
+                t("available_variables") + ' {{title}}, {{link}}, {{author}}, {{published}}, {{created}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{filename}, {{tags}}, {{#tags}}')
             .addTextArea((textArea: TextAreaComponent) => {
                 textArea
                     .setValue(this.plugin.settings.template)
@@ -116,9 +117,9 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("paste article template")
-            .setDesc('When pasting/copying an article this gets processed. ' +
-                'Available variables are: {{title}}, {{link}}, {{author}}, {{published}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{tags}}, {{#tags}}')
+            .setName(t("template_paste"))
+            .setDesc(t("template_paste_help") + ' ' +
+                t("available_variables") + '{{title}}, {{link}}, {{author}}, {{published}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{tags}}, {{#tags}}')
             .addTextArea((textArea: TextAreaComponent) => {
                 textArea
                     .setValue(this.plugin.settings.pasteTemplate)
@@ -132,12 +133,12 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Default location for new notes")
-            .setDesc("")
+            .setName(t("file_location"))
+            .setDesc(t("file_location_help"))
             .addDropdown(async (dropdown: DropdownComponent) => {
                 dropdown
-                    .addOption("default", "In the default folder")
-                    .addOption("custom", "In the folder specified below")
+                    .addOption("default", t("file_location_default"))
+                    .addOption("custom", t("file_location_custom"))
                     .setValue(this.plugin.settings.saveLocation)
                     .onChange(async (value: string) => {
                         await this.plugin.writeSettings(() => (
@@ -149,8 +150,8 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         if (this.plugin.settings.saveLocation == "custom") {
             new Setting(containerEl)
-                .setName("Folder to create new articles in")
-                .setDesc("newly created articles will appear in this folder")
+                .setName(t("file_location_folder"))
+                .setDesc(t("file_location_folder_help"))
                 .addSearch(async (search: SearchComponent) => {
                     new FolderSuggest(this.app, search.inputEl);
                     search
@@ -166,8 +167,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         let dateFormatSampleEl: MomentFormatComponent;
         const dateFormat = new Setting(containerEl)
-            .setName("Date format")
-            .setDesc("")
+            .setName(t("date_format"))
             .addMomentFormat((format: MomentFormatComponent) => {
                 dateFormatSampleEl = format
                     .setDefaultFormat(DEFAULT_SETTINGS.dateFormat)
@@ -181,15 +181,15 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
         const referenceLink = dateFormat.descEl.createEl("a");
         referenceLink.setAttr("href", "https://momentjs.com/docs/#/displaying/format/");
-        referenceLink.setText("Syntax Reference");
+        referenceLink.setText(t("syntax_reference"));
         const text = dateFormat.descEl.createDiv("text");
-        text.setText("Your current syntax looks like this: ");
+        text.setText(t("syntax_looks"));
         const sampleEl = text.createSpan("sample");
         dateFormatSampleEl.setSampleEl(sampleEl);
         dateFormat.addExtraButton((button) => {
             button
                 .setIcon('reset')
-                .setTooltip('restore default')
+                .setTooltip(t("reset"))
                 .onClick(async () => {
                     await this.plugin.writeSettings(() => ({
                         dateFormat: DEFAULT_SETTINGS.dateFormat
@@ -198,22 +198,35 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 });
         });
 
+        new Setting(containerEl)
+            .setName(t("ask_filename"))
+            .setDesc(t("ask_filename_help"))
+            .addToggle((toggle: ToggleComponent) => {
+                return toggle
+                    .setValue(this.plugin.settings.askForFilename)
+                    .onChange(async (value) => {
+                        await this.plugin.writeSettings(() => ({
+                            askForFilename: value
+                        }));
+                    });
+            });
+
         containerEl.createEl("h3", {text: "Misc"});
 
         const refresh = new Setting(containerEl)
-            .setName("Refresh time")
-            .setDesc("How often should the feeds be refreshed, in minutes, use 0 to disable")
+            .setName(t("refresh_time"))
+            .setDesc(t("refresh_time_help"))
             .addText((text: TextComponent) => {
                 text
                     .setPlaceholder(String(DEFAULT_SETTINGS.updateTime))
                     .setValue(String(this.plugin.settings.updateTime))
                     .onChange(async (value) => {
                         if (value.length === 0) {
-                            new Notice("please specify a value");
+                            new Notice(t("specify_positive_number"));
                             return;
                         }
                         if (Number(value) < 0) {
-                            new Notice("please specify a bigger value");
+                            new Notice(t("specify_positive_number"));
                             return;
                         }
 
@@ -239,8 +252,8 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
         });
 
         new Setting(containerEl)
-            .setName("Multi device usage")
-            .setDesc("Keep article status synced when using multiple devices at the same time\n(Requires a restart to become effective)")
+            .setName(t("multi_device_usage"))
+            .setDesc(t("multi_device_usage_help"))
             .addToggle((toggle: ToggleComponent) => {
                 return toggle
                     .setValue(this.plugin.settings.autoSync)
@@ -251,27 +264,14 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                     });
             });
 
-        new Setting(containerEl)
-            .setName("Ask for filename")
-            .setDesc("Disable to use title as filename(with invalid symbols removed)")
-            .addToggle((toggle: ToggleComponent) => {
-                return toggle
-                    .setValue(this.plugin.settings.askForFilename)
-                    .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => ({
-                            askForFilename: value
-                        }));
-                    });
-            });
-
-        containerEl.createEl("h3", {text: "Filtered Folders"});
+        containerEl.createEl("h3", {text: t("filtered_folders")});
 
         new Setting(containerEl)
-            .setName("Add New")
-            .setDesc("Add new filtered folder")
+            .setName(t("add_new"))
+            .setDesc(t("add_new_filter"))
             .addButton((button: ButtonComponent): ButtonComponent => {
                 return button
-                    .setTooltip("add new filtered folder")
+                    .setTooltip(t("add_new_filter"))
                     .setIcon("create-new")
                     .onClick(async () => {
                         const modal = new FilteredFolderModal(this.plugin);
@@ -279,7 +279,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                         modal.onClose = async () => {
                             if (modal.saved) {
                                 if (this.plugin.settings.filtered.some(folder => folder.name === modal.name)) {
-                                    new Notice("you already have a filter configured with that name");
+                                    new Notice(t("filter_exists"));
                                     return;
                                 }
                                 await this.plugin.writeFiltered(() => (
@@ -307,12 +307,12 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             const setting = new Setting(filtersDiv);
 
             setting.setName(filter.name);
-            setting.setDesc(filter.filterType + (filter.filterContent.length > 0) ? (" from " + filter.filterContent) : "");
+            setting.setDesc(filter.filterType + (filter.filterContent.length > 0) ? filter.filterContent : "");
 
             setting
                 .addExtraButton((b) => {
                     b.setIcon("pencil")
-                        .setTooltip("Edit")
+                        .setTooltip(t("edit"))
                         .onClick(() => {
                             const modal = new FilteredFolderModal(this.plugin, filter);
                             const oldFilter = filter;
@@ -332,7 +332,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 })
                 .addExtraButton((b) => {
                     b.setIcon("trash")
-                        .setTooltip("Delete")
+                        .setTooltip(t("delete"))
                         .onClick(async () => {
                             const filters = this.plugin.settings.filtered;
                             filters.remove(filter);
@@ -348,12 +348,12 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
         );
         displayFeedSettings(this.plugin, feedsContainer);
 
-        containerEl.createEl("h2", {text: "Hotkeys"});
-        containerEl.createEl("h3", {text: "when reading a article"});
+        containerEl.createEl("h2", {text: t("hotkeys")});
+        containerEl.createEl("h3", {text: t("hotkeys_reading")});
 
 
         new Setting(containerEl)
-            .setName("Create new note")
+            .setName(t("create_note"))
             .addText((text) => {
               text
                   .setValue(this.plugin.settings.hotkeys.create)
@@ -372,7 +372,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Paste to current note")
+            .setName(t("paste_to_note"))
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.paste)
@@ -391,7 +391,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Open in browser")
+            .setName(t("open_browser"))
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.open)
@@ -410,7 +410,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Copy to clipboard")
+            .setName(t("copy_to_clipboard"))
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.copy)
@@ -429,7 +429,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Mark as favorites/remove from favorites")
+            .setName(t("mark_as_favorite_remove"))
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.favorite)
@@ -448,7 +448,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Mark as read/unread")
+            .setName(t("mark_as_read_unread"))
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.read)
@@ -467,7 +467,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Edit tags")
+            .setName(t("edit_tags"))
             .addText((text) => {
                 text
                     .setValue(this.plugin.settings.hotkeys.tags)
@@ -488,7 +488,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
         //@ts-ignore
         if(this.app.plugins.plugins["obsidian-tts"]) {
             new Setting(containerEl)
-                .setName("Text to Speech")
+                .setName(t("read_article_tts"))
                 .addText((text) => {
                     text
                         .setValue(this.plugin.settings.hotkeys.tts)

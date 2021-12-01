@@ -9,10 +9,8 @@
         node.append(sanitizeHTMLToDom(content));
     }
 
-
-
 </script>
 
 {#if content.length > 0}
-    <span use:html={content} class="tooltiptext"></span>
+    <p use:html={content} class="tooltiptext"></p>
 {/if}
