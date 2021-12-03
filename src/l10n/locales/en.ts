@@ -8,7 +8,7 @@ export default {
     create_all: "Create all",
 
     //folder actions
-    mark_all_as_read: "Mark all als read",
+    mark_all_as_read: "Mark all as read",
 
     filtered_folders: "Filtered Folders",
     folders: "Folders",
