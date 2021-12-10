@@ -1,7 +1,10 @@
-import {DropdownComponent, Notice, Setting, TextComponent} from "obsidian";
+import {DropdownComponent, Notice, SearchComponent, Setting, TextComponent} from "obsidian";
 import RssReaderPlugin from "../main";
 import {BaseModal} from "./BaseModal";
 import t from "../l10n/locale";
+import {ArraySuggest} from "../view/ArraySuggest";
+import {get} from "svelte/store";
+import {folderStore, tagsStore} from "../stores";
 
 export enum FilterType {
     TAGS,
@@ -83,12 +86,12 @@ export class FilteredFolderModal extends BaseModal {
         new Setting(contentEl)
             .setName(t("filter"))
             .setDesc(t("filter_help"))
-            .addText((text) => {
-                text
+            .addSearch(async (search: SearchComponent) => {
+                new ArraySuggest(this.app, search.inputEl, new Set([...get(tagsStore), ...get(folderStore)]));
+                search
                     .setValue(this.filterContent)
-                    .onChange((value) => {
+                    .onChange(async (value: string) => {
                         this.filterContent = value;
-                        this.removeValidationError(text);
                     });
             });
 

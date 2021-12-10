@@ -22,3 +22,4 @@ export const filteredItemsStore = writable<Array<FilteredFolderContent>>();
 
 export const foldedState = writable<Array<string>>();
 export const tagsStore = writable<Set<string>>();
+export const folderStore = writable<Set<string>>();

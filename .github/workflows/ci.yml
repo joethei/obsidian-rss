@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: Install modules
         run: yarn
-
       - name: Lint
         run: yarn run lint
+      - name: Lint CSS
+        run: yarn run lint-css

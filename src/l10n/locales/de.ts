@@ -36,6 +36,13 @@ export default {
     removed_from_favorites: "Von den Favoriten entfernt",
     added_to_favorites: "Als Favorit markiert",
 
+    read: "gelesen",
+    unread: "ungelesen",
+    favorites: "Favoriten",
+    favorite: "Favorit",
+    tags: "Tags",
+    tag: "Tag",
+
     //base modal
     save: "Speichern",
     cancel: "Abbrechen",
@@ -124,4 +131,33 @@ export default {
     filter_exists: "Es exisitiert bereits ein Feed mit diesem Namen",
     hotkeys: "Tastenkürzel",
     hotkeys_reading: "in der Leseansicht",
+
+    refreshed_feeds: "Feeds aktualisiert",
+
+    //import modal
+    import: "Importieren",
+    import_opml: "Aus OPML importieren",
+    imported_x_feeds: "%1 Feeds importiert",
+    choose_file: "Datei auswählen",
+    choose_file_help: "Wähle eine Datei aus der importiert werden soll",
+    export_opml: "Als OPML exportieren",
+
+    default_filename: "Vorlage für Dateinamen",
+    default_filename_help: "Alle Variablen aus der einfügen Vorlage können verwendet werden",
+
+    //cleanup modal
+    cleanup: "Artikel aufräumen",
+    cleanup_help: "Entfernt alle Artikel auf die folgende Kriterien zutreffen",
+    cleanup_help2: "Alle Artikel die noch im Feed vorhanden sind werden beim nächsten aktualisieren wieder erscheinen",
+    perform_cleanup: "ausführen",
+    all: "Alle",
+    from_feed: "von Feed",
+    older_than: "älter als X Tage",
+    older_than_help: "Leerlassen für alle, wird ignoriert wenn Artikel kein Veröffentlichungsdatum hat",
+    advanced: "Erweitert",
+    remove_wrong_feed: "Alle Artikel entfernen die im falschen Feed gelandet sind",
+    remove_wrong_feed_help: "Aufgrund eines Fehlers in Versionen vor 0.8 könnte dies passiert sein",
+    scanning_items: "Verarbeite Artikel (%1 / %2)",
+
+    created_export: "OPML Export in Vault erstellt"
 }

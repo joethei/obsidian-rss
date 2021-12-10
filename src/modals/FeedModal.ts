@@ -1,10 +1,11 @@
-import {Notice, Setting, TextComponent} from "obsidian";
+import {Notice, SearchComponent, Setting, TextComponent} from "obsidian";
 import RssReaderPlugin from "../main";
 import {RssFeed} from "../settings/settings";
 import {getFeedItems} from "../parser/rssParser";
 import {isValidHttpUrl} from "../consts";
 import {BaseModal} from "./BaseModal";
 import t from "../l10n/locale";
+import {FeedFolderSuggest} from "../view/FeedFolderSuggest";
 
 export class FeedModal extends BaseModal {
     name: string;
@@ -60,9 +61,12 @@ export class FeedModal extends BaseModal {
         new Setting(contentEl)
             .setName(t("folder"))
             .setDesc(t("folder_help"))
-            .addText((text) => {
-                text.setValue(this.folder)
-                    .onChange((value) => {
+            .addSearch(async (search: SearchComponent) => {
+                new FeedFolderSuggest(this.app, search.inputEl);
+                search
+                    .setValue(this.folder)
+                    .setPlaceholder(t("no_folder"))
+                    .onChange(async (value: string) => {
                         this.folder = value;
                     });
             });

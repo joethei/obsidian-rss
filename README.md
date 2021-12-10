@@ -11,20 +11,30 @@ Plugin for [Obsidian](https://obsidian.md)
 
 ## Features
 - Reading RSS feeds from within obsidian
-- Sorting feeds into folders(sorting into nested folders is on the roadmap [#3](https://github.com/joethei/obsidian-rss/issues/3))
+- Sorting feeds into folders
 - staring articles
 - creating new notes from articles
 - pasting article into current note
 - creating custom filters
 - tagging articles
+- support for audio and video feeds
+- reading articles with Text to speech (if the [TTS plugin](https://github.com/joethei/obsidian-tts) is installed)
+- multi language support(see [#43](https://github.com/joethei/obsidian-rss/issues/43) for translation instructions)
+- and more on the [Roadmap](https://github.com/joethei/obsidian-rss/projects/1)
 
 ![Demo GIF](https://i.joethei.space/QQATWu36eC.gif)
+
 
 ## Finding the RSS feed for a website
 
 - Search for the RSS logo or a link on the website
 - Use an browser addon ([Firefox](https://addons.mozilla.org/en-US/firefox/addon/awesome-rss/), [Chrome based](https://chrome.google.com/webstore/detail/get-rss-feed-url/kfghpdldaipanmkhfpdcjglncmilendn?hl=de))
 - Search the websites sourcecode for `rss`
+
+## Tips
+- get fulltext content for some truncated RSS feeds with [morss.it](https://morss.it/)
+- get feeds from some social media sites with [RSS Box](https://rssbox.herokuapp.com/)
+- Filter content from feeds [SiftRSS](https://siftrss.com/)
 
 ## Styling
 If you want to style the plugin differently you can use the following css classes

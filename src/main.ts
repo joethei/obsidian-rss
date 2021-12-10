@@ -1,12 +1,12 @@
 import {Notice, Plugin, WorkspaceLeaf} from 'obsidian';
-import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings, RSSReaderSettingsTab} from "./settings/settings";
+import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings} from "./settings/settings";
 import ViewLoader from "./view/ViewLoader";
 import {
     configuredFeedsStore,
     settingsStore,
     feedsStore,
     sortedFeedsStore,
-    filteredStore, filteredItemsStore, FilteredFolderContent, foldedState, tagsStore
+    filteredStore, filteredItemsStore, FilteredFolderContent, foldedState, tagsStore, folderStore
 } from "./stores";
 import {VIEW_ID} from "./consts";
 import {getFeedItems, RssFeedContent, RssFeedItem} from "./parser/rssParser";
@@ -18,6 +18,9 @@ import values from "lodash.values";
 import {FilteredFolder, FilterType, SortOrder} from "./modals/FilteredFolderModal";
 import {Md5} from "ts-md5";
 import t from "./l10n/locale";
+import {RSSReaderSettingsTab} from "./settings/SettingsTab";
+import {CleanupModal} from "./modals/CleanupModal";
+
 
 export default class RssReaderPlugin extends Plugin {
     settings: RssReaderSettings;
@@ -32,6 +35,8 @@ export default class RssReaderPlugin extends Plugin {
         addFeatherIcon("clipboard");
         addFeatherIcon("headphones");
         addFeatherIcon("chevron-down");
+        addFeatherIcon("upload");
+        addFeatherIcon("trash");
 
         //update settings whenever store contents change.
         this.register(
@@ -53,20 +58,20 @@ export default class RssReaderPlugin extends Plugin {
             }
         });
 
-        /* parser not fully implemented
-        this.addCommand({
-            id: "rss-import",
-            name: "Import OPML",
-            callback: () => {
-                new ImportModal(this.app, this).open();
-            }
-        });*/
 
         this.addCommand({
             id: 'rss-refresh',
             name: t("refresh_feeds"),
             callback: async () => {
                 await this.updateFeeds();
+            }
+        });
+
+        this.addCommand({
+            id: 'rss-cleanup',
+            name: t("cleanup"),
+            callback: async () => {
+                new CleanupModal(this).open();
             }
         });
 
@@ -117,15 +122,25 @@ export default class RssReaderPlugin extends Plugin {
 
             //collect all tags for auto completion
             const tags: string[] = [];
-            for (let item of items) {
-                tags.push(...item.tags);
+            for (const item of items) {
+                if(item !== undefined)
+                    tags.push(...item.tags);
             }
+
             //@ts-ignore
             const fileTags = this.app.metadataCache.getTags();
             for(const tag of Object.keys(fileTags)) {
                 tags.push(tag.replace('#', ''));
             }
             tagsStore.update(() => new Set<string>(tags.filter(tag => tag.length > 0)));
+
+            //collect all folders for auto-completion
+            const folders: string[] = [];
+            for (const item of items) {
+                if(item !== undefined)
+                    folders.push(item.folder);
+            }
+            folderStore.update(() => new Set<string>(folders.filter(folder => folder.length > 0)));
 
             this.filterItems(items);
         });
@@ -198,10 +213,7 @@ export default class RssReaderPlugin extends Plugin {
             hash: string;
         };
 
-        function mergeArrayById<T extends IIdentified>(
-            array1: T[],
-            array2: T[]
-        ): T[] {
+        function mergeArrayById<T extends IIdentified>(array1: T[], array2: T[]): T[] {
             const mergedObjectMap: IStringTMap<T> = keyBy(array1, 'hash');
 
             const finalArray: T[] = [];
@@ -230,9 +242,13 @@ export default class RssReaderPlugin extends Plugin {
             const items = await getFeedItems(feed);
             result.push(items);
         }
-        let items = this.settings.items;
+
+        const items = this.settings.items;
         for (const feed of items) {
-            for (let item of feed.items) {
+            if(feed.hash === undefined || feed.hash === "") {
+                feed.hash = <string>new Md5().appendStr(feed.name).appendStr(feed.folder).end();
+            }
+            for (const item of feed.items) {
                 if(item.hash === undefined) {
                     item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
                 }
@@ -240,6 +256,7 @@ export default class RssReaderPlugin extends Plugin {
         }
 
         result = mergeWith(result, items, customizer);
+        new  Notice(t("refreshed_feeds"));
         await this.writeFeedContent(() => result);
     }
 
@@ -297,7 +314,18 @@ export default class RssReaderPlugin extends Plugin {
     }
 
     async loadSettings(): Promise<void> {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        const configPath = this.app.vault.configDir + "/plugins/rss-reader/data.json";
+        try {
+            JSON.parse(await this.app.vault.adapter.read(configPath));
+        } catch (e) {
+            console.log("RSS Reader: could not parse json, check if the plugins data.json is valid.");
+            console.error(e);
+            new Notice(t("RSS_Reader") + " could not parse plugin data. If this message keeps showing up, check the console");
+            return Promise.resolve();
+        }
+
+        const data = await this.loadData();
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
         settingsStore.set(this.settings);
         configuredFeedsStore.set(this.settings.feeds);
         feedsStore.set(this.settings.items);

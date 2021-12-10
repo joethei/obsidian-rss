@@ -4,9 +4,14 @@ import {ButtonComponent, Notice, Setting} from "obsidian";
 import {FeedModal} from "../modals/FeedModal";
 import RssReaderPlugin from "../main";
 import t from "../l10n/locale";
+import {ImportModal} from "../modals/ImportModal";
+import {RssFeed} from "./settings";
+import {Md5} from "ts-md5";
+import {CleanupModal} from "../modals/CleanupModal";
+import {generateOPML} from "../parser/opmlExport";
 
 
-export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElement) : void {
+export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElement): void {
 
     container.empty();
 
@@ -15,7 +20,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
     new Setting(container)
         .setName(t("add_new"))
         .setDesc(t("add_new_feed"))
-        .addButton((button: ButtonComponent): ButtonComponent => {
+        .addButton((button: ButtonComponent) => {
             return button
                 .setTooltip(t("add_new_feed"))
                 .setIcon("create-new")
@@ -41,6 +46,39 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
 
                     modal.open();
                 });
+        })
+        .addExtraButton(async (button) => {
+            button
+                .setTooltip(t("import_opml"))
+                .setIcon("import-glyph")
+                .onClick(() => {
+                    const modal = new ImportModal(plugin);
+                    modal.onClose = () => {
+                        displayFeedSettings(plugin, container);
+                    };
+                    modal.open();
+                });
+        })
+        .addExtraButton(async (button) => {
+            button
+                .setTooltip(t("export_opml"))
+                .setIcon("feather-upload")
+                .onClick(() => {
+                    if (plugin.app.vault.adapter.exists("rss-feeds-export.opml")) {
+                        plugin.app.vault.adapter.remove("rss-feeds-export.opml");
+                    }
+                    plugin.app.vault.create("rss-feeds-export.opml", generateOPML(plugin.settings.feeds));
+                    new Notice(t("created_export"));
+
+                });
+        })
+        .addExtraButton(async (button) => {
+            button
+                .setTooltip(t("perform_cleanup"))
+                .setIcon("feather-trash")
+                .onClick(() => {
+                    new CleanupModal(plugin).open();
+                });
         });
 
     const feedsDiv = container.createDiv("feeds");
@@ -62,13 +100,34 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
                         .setTooltip(t("edit"))
                         .onClick(() => {
                             const modal = new FeedModal(plugin, feed);
-                            const oldFeed = feed;
+                            const oldFeed: RssFeed = feed;
 
                             modal.onClose = async () => {
                                 if (modal.saved) {
                                     const feeds = plugin.settings.feeds;
                                     feeds.remove(oldFeed);
                                     feeds.push({name: modal.name, url: modal.url, folder: modal.folder});
+
+                                    const items = plugin.settings.items;
+
+                                    //make sure this data is transferred to the new entry, or this will cause a lot
+                                    //of chaos when renaming, like putting entries into the wrong feed.
+                                    items.filter((content) => {
+                                        return content.name === oldFeed.name && content.folder === oldFeed.folder;
+                                    }).forEach((content) => {
+                                        content.name = modal.name;
+                                        content.folder = modal.folder;
+                                        content.hash = <string>new Md5().appendStr(modal.name).appendStr(modal.folder).end();
+                                        content.items.forEach(item => {
+                                            item.feed = modal.name;
+                                            item.folder = modal.folder;
+                                            item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
+                                        });
+                                    });
+                                    await plugin.writeFeedContent(() => {
+                                        return items;
+                                    });
+
                                     await plugin.writeFeeds(() => (feeds));
                                     displayFeedSettings(plugin, container);
                                 }

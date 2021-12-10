@@ -64,7 +64,7 @@
 {:else}
 
     <div class="rss-feed">
-        <div class="{folded.contains(feed.name) ?  'is-collapsed' : ''}" on:click={() => toggleFold(feed.name)}
+        <div class="{folded.contains(feed.name) ?  'is-collapsed' : ''} tree-item-self is-clickable" on:click={() => toggleFold(feed.name)}
              on:contextmenu={openMenu}>
             <div class="rss-feed-title" style="overflow: hidden">
                 <IconComponent iconName="feather-chevron-down"/>
@@ -79,11 +79,16 @@
 
         <div class="rss-feed-items">
             {#if !folded.contains(feed.name)}
-                <ul>
+                <div class="tree-item-children">
                     {#each feed.items as item}
-                        <ItemView item={item} plugin={plugin}/>
+                        <div class="tree-item">
+                            <div class="tree-item-self">
+                                <ItemView item={item} plugin={plugin}/>
+                            </div>
+                        </div>
                     {/each}
-                </ul>
+                </div>
+
             {/if}
         </div>
 

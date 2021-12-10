@@ -2,8 +2,10 @@ import {BaseModal} from "./BaseModal";
 import RssReaderPlugin from "../main";
 import {SearchComponent, Setting} from "obsidian";
 import {NUMBER_REGEX, TAG_REGEX} from "../consts";
-import {TagSuggest} from "../view/TagSuggest";
+import {ArraySuggest} from "../view/ArraySuggest";
 import t from "../l10n/locale";
+import {get} from "svelte/store";
+import {tagsStore} from "../stores";
 
 export class TagModal extends BaseModal {
     plugin: RssReaderPlugin;
@@ -26,7 +28,7 @@ export class TagModal extends BaseModal {
         for (const tag in this.tags) {
             new Setting(tagDiv)
                 .addSearch(async (search: SearchComponent) => {
-                    new TagSuggest(this.app, search.inputEl);
+                    new ArraySuggest(this.app, search.inputEl, get(tagsStore));
                     search
                         .setValue(this.tags[tag])
                         .onChange(async (value: string) => {
@@ -55,7 +57,7 @@ export class TagModal extends BaseModal {
         const newTag = new Setting(tagDiv)
             .addSearch(async (search: SearchComponent) => {
                 tagComponent = search;
-                new TagSuggest(this.app, search.inputEl);
+                new ArraySuggest(this.app, search.inputEl, get(tagsStore));
                 search
                     .onChange(async (value: string) => {
                         if (!value.match(TAG_REGEX) || value.match(NUMBER_REGEX) || value.contains(" ") || value.contains('#')) {

@@ -1,0 +1,39 @@
+<opml>
+    <head>
+        <title>Obsidian RSS Export</title>
+    </head>
+    <body>
+        <outline title="History">
+            <outline title="Eleanor" xmlUrl="https://eleanorkonik.com/feed/"/>
+            <outline title="The Iceberg" xmlUrl="https://newsletter.eleanorkonik.com/rss/"/>
+        </outline>
+        <outline title="Obsidian">
+            <outline title="Community Talks"
+                     xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCxNSTq2kmupdR6LD400FpvA"/>
+            <outline title="Roundup" xmlUrl="https://www.obsidianroundup.org/blog/rss/"/>
+        </outline>
+        <outline title="Software Development">
+            <outline title="Pragmatic Engineer Blog" xmlUrl="https://blog.pragmaticengineer.com/rss/"/>
+            <outline title="Pragmatic Engineer Newsletter" xmlUrl="https://newsletter.pragmaticengineer.com/feed"/>
+            <outline title="Heise Developer" xmlUrl="https://www.heise.de/developer/rss/news.rdf"/>
+            <outline title="the next big thing" xmlUrl="https://www.heise.de/developer/rss/next-big-thing-blog.rdf"/>
+            <outline title="Tales from the Web side"
+                     xmlUrl="https://www.heise.de/developer/rss/tales-from-the-web-side-blog.rdf"/>
+            <outline title="Continuous Architecture"
+                     xmlUrl="https://www.heise.de/developer/rss/continuous-architecture-blog.rdf"/>
+            <outline title="Der Pragmatische Architekt"
+                     xmlUrl="https://www.heise.de/developer/rss/der-pragmatische-architekt-blog.rdf"/>
+            <outline title="&quot;Ich roll' dann mal aus&quot;"
+                     xmlUrl="https://www.heise.de/developer/rss/ich-roll-dann-mal-aus.rdf"/>
+        </outline>
+        <outline title="Music">
+            <outline title="Monstercat" xmlUrl="https://feeds.megaphone.fm/MSC1713576256"/>
+        </outline>
+        <outline title="Video">
+            <outline title="kurz informiert" xmlUrl="https://www.heise.de/rss/topnews-video.rss"/>
+        </outline>
+        <outline title="Interesting Stuff">
+            <outline title="The Marginalian" xmlUrl="http://feeds.feedburner.com/brainpickings/rss?format=xml"/>
+        </outline>
+    </body>
+</opml>

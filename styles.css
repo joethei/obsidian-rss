@@ -61,3 +61,11 @@ input.is-invalid {
 .rss-tooltip:hover .tooltiptext {
     visibility: visible;
 }
+
+.rss-content img {
+    max-width: 100%;
+}
+
+.rss-subtitle {
+    display: inline;
+}

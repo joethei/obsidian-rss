@@ -36,6 +36,13 @@ export default {
     removed_from_favorites: "removed item from favorites",
     added_to_favorites: "marked item as favorite",
 
+    read: "read",
+    unread: "unread",
+    favorites: "Favorites",
+    favorite: "Favorite",
+    tags: "Tags",
+    tag: "Tag",
+
     //base modal
     save: "Save",
     cancel: "Cancel",
@@ -124,4 +131,33 @@ export default {
     filter_exists: "you already have a filter configured with that name",
     hotkeys: "Hotkeys",
     hotkeys_reading: "when reading a article",
+
+    refreshed_feeds: "Feeds refreshed",
+
+    //import modal
+    import: "Import",
+    import_opml: "Import from OPML",
+    imported_x_feeds: "Imported %1 feeds",
+    choose_file: "Choose file",
+    choose_file_help: "Choose file to import",
+    export_opml: "Export as OPML",
+
+    default_filename: "Template for filename",
+    default_filename_help: "All variables from the paste template are available",
+
+    //cleanup modal
+    cleanup: "Cleanup articles",
+    cleanup_help: "Removes all entries which fit the criteria specified below.",
+    cleanup_help2: "Keep in mind that all articles that still exist in the feed will reappear on the next refresh",
+    perform_cleanup: "Perform cleanup",
+    all: "all",
+    from_feed: "from feed",
+    older_than: "older than X Days",
+    older_than_help: "keep empty for all, will be ignored if there is no publishing date associated with entry",
+    advanced: "Advanced",
+    remove_wrong_feed: "Remove all articles that are in the incorrect feed",
+    remove_wrong_feed_help: "This might have happened due to a bug in versions pre 0.8",
+    scanning_items: "Scanning Articles (%1 / %2)",
+
+    created_export: "Created OPML file in your Vaults root folder"
 }

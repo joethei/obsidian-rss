@@ -1,5 +1,5 @@
 import {RssFeedItem} from "./parser/rssParser";
-import {htmlToMarkdown, MarkdownView, normalizePath, Notice, TextComponent} from "obsidian";
+import {htmlToMarkdown, MarkdownView, normalizePath, Notice, TextComponent, moment} from "obsidian";
 import {TextInputPrompt} from "./modals/TextInputPrompt";
 import {FILE_NAME_REGEX} from "./consts";
 import {isInVault} from "obsidian-community-lib";
@@ -14,11 +14,13 @@ export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) 
     if(plugin.settings.saveLocation === "custom") {
         dir = plugin.settings.saveLocationFolder;
     }
-    //make sure there are no slashes in the title.
-    const title = item.title.replace(/[\/\\:]/g, ' ');
 
-    const inputPrompt = new TextInputPrompt(plugin.app, t("specify_name"), t("cannot_contain") + " * \" \\ / < > : | ?", title, title);
+    let filename = applyTemplate(item, plugin.settings.defaultFilename, plugin.settings);
+    //make sure there are no slashes in the title.
+    filename = filename.replace(/[\/\\:]/g, ' ');
+
     if(plugin.settings.askForFilename) {
+        const inputPrompt = new TextInputPrompt(plugin.app, t("specify_name"), t("cannot_contain") + " * \" \\ / < > : | ?", filename, filename);
         await inputPrompt
             .openAndGetValue(async (text: TextComponent) => {
                 const value = text.getValue();
@@ -36,7 +38,7 @@ export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) 
                 await createNewFile(plugin, item, filePath, value);
             });
     }else {
-        const replacedTitle = item.title.replace(FILE_NAME_REGEX, '');
+        const replacedTitle = filename.replace(FILE_NAME_REGEX, '');
         const filePath = normalizePath([dir, `${replacedTitle}.md`].join('/'));
         await createNewFile(plugin, item, filePath, item.title);
     }
@@ -92,16 +94,15 @@ export async function pasteToNote(plugin: RssReaderPlugin, item: RssFeedItem) : 
 }
 
 function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderSettings, filename?: string) : string {
-    const content = htmlToMarkdown(item.content);
-
-    let result = replaceAll(template, "{{title}}", item.title);
-    result = replaceAll(result, "{{link}}", item.link);
-    result = replaceAll(result, "{{author}}", item.creator);
-    result = replaceAll(result, "{{content}}", content);
-    result = replaceAll(result, "{{published}}", window.moment(item.pubDate).format(settings.dateFormat));
-    result = replaceAll(result, "{{feed}}", item.feed);
-    result = replaceAll(result, "{{folder}}", item.folder);
-    result = replaceAll(result, "{{description}}", item.description);
+    let result = template.replace(/{{title}}/g, item.title);
+    result = result.replace(/{{link}}/g, item.link);
+    result = result.replace(/{{author}}/g, item.creator);
+    result = result.replace(/{{published}}/g, moment(item.pubDate).format(settings.dateFormat));
+    result = result.replace(/{{date}}/g, moment().format(settings.dateFormat));
+    result = result.replace(/{{feed}}/g, item.feed);
+    result = result.replace(/{{folder}}/g, item.folder);
+    result = result.replace(/{{description}}/g, item.description);
+    result = result.replace(/{{media}}/g, item.enclosure);
 
     result = result.replace(/({{tags:).*(}})/g, function (k) {
         const value = k.split(":")[1];
@@ -115,12 +116,24 @@ function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderS
         return item.tags.map(i => '#' + i).join(separator);
     });
 
-    result = replaceAll(result, "{{tags}}", item.tags.join(", "));
-    result = replaceAll(result, "{{#tags}}", item.tags.map(i => '#' + i).join(", "));
+    result = result.replace(/{{tags}}/, item.tags.join(", "));
+    result = result.replace(/{{#tags}}/, item.tags.map(i => '#' + i).join(", "));
     if(filename) {
-        result = replaceAll(result, "{{filename}}", filename);
-        result = replaceAll(result, "{{created}}", window.moment().format(settings.dateFormat));
+        result = result.replace(/{{filename}}/g, filename);
+        result = result.replace(/{{created}}/g, moment().format(settings.dateFormat));
     }
+
+    let content = htmlToMarkdown(item.content);
+
+    /*
+    fixes #48
+    replacing $ with $$$, because that is a special regex character:
+    https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/string/replace#specifying_a_string_as_a_parameter
+    solution taken from: https://stackoverflow.com/a/22612228/5589264
+    */
+    content = content.replace(/\$/g, "$$$");
+
+    result = result.replace(/{{content}}/g, content);
 
     return result;
 }
@@ -129,13 +142,4 @@ export function openInBrowser(item: RssFeedItem) : void {
     if (typeof item.link === "string") {
         window.open(item.link, '_blank');
     }
-}
-
-//taken from: https://stackoverflow.com/a/1144788/5589264
-function escapeRegExp(string: string) : string {
-    return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
-
-function replaceAll(str: string, find: string, replace: string) : string {
-    return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
 }

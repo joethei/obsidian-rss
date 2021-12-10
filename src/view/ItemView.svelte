@@ -53,7 +53,7 @@
 </script>
 
 {#if item}
-    <li class="is-clickable rss-tooltip rss-feed-item {(item.read) ? 'rss-read' : 'rss-not-read'}">
+    <div class="is-clickable rss-tooltip rss-feed-item {(item.read) ? 'rss-read' : 'rss-not-read'}">
         {#if (item.favorite)}
             <IconComponent iconName="star"/>
         {/if}
@@ -66,6 +66,8 @@
            on:contextmenu={openMenu}
            on:mouseover={toggleHover}
            on:mouseleave={toggleHover}
+           on:focus={toggleHover}
+           href="/"
         >
             {item.title}
         </a>
@@ -82,6 +84,6 @@
                 <HtmlTooltip content="{item.description}"/>
             {/if}
         {/if}
-    </li>
+    </div>
 
 {/if}
