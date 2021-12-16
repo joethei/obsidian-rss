@@ -1,4 +1,4 @@
-import {DropdownComponent, FuzzySuggestModal, Notice, SearchComponent, Setting, TextComponent} from "obsidian";
+import {DropdownComponent, Notice, SearchComponent, Setting, TextComponent} from "obsidian";
 import RssReaderPlugin from "../main";
 import {BaseModal} from "./BaseModal";
 import t from "../l10n/locale";

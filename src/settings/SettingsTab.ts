@@ -4,7 +4,7 @@ import {
     DropdownComponent,
     MomentFormatComponent,
     Notice,
-    PluginSettingTab, Scope,
+    PluginSettingTab,
     SearchComponent,
     Setting,
     TextAreaComponent,

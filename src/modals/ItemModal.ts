@@ -18,7 +18,7 @@ export class ItemModal extends Modal {
     private readButton: ButtonComponent;
     private favoriteButton: ButtonComponent;
 
-    constructor(plugin: RssReaderPlugin, item: RssFeedItem, items: RssFeedItem[], save: boolean = true) {
+    constructor(plugin: RssReaderPlugin, item: RssFeedItem, items: RssFeedItem[], save= true) {
         super(plugin.app);
         this.plugin = plugin;
         this.items = items;

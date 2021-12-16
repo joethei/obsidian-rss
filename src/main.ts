@@ -1,4 +1,4 @@
-import {FuzzySuggestModal, Notice, Plugin, WorkspaceLeaf} from 'obsidian';
+import {Notice, Plugin, WorkspaceLeaf} from 'obsidian';
 import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings} from "./settings/settings";
 import ViewLoader from "./view/ViewLoader";
 import {

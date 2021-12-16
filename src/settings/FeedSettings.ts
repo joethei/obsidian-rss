@@ -1,6 +1,6 @@
 import sortBy from "lodash.sortby";
 import groupBy from "lodash.groupby";
-import {ButtonComponent, Modal, moment, Notice, request, Setting} from "obsidian";
+import {ButtonComponent, moment, Notice, request, Setting} from "obsidian";
 import {FeedModal} from "../modals/FeedModal";
 import RssReaderPlugin from "../main";
 import t from "../l10n/locale";
@@ -9,7 +9,7 @@ import {RssFeed} from "./settings";
 import {Md5} from "ts-md5";
 import {CleanupModal} from "../modals/CleanupModal";
 import {generateOPML} from "../parser/opmlExport";
-import {getFeedItems, RssFeedContent, RssFeedItem} from "../parser/rssParser";
+import {getFeedItems, RssFeedContent} from "../parser/rssParser";
 import {MessageModal} from "../modals/MessageModal";
 
 

@@ -2,7 +2,7 @@ import RssReaderPlugin from "../main";
 import t from "../l10n/locale";
 import {Setting} from "obsidian";
 
-export function displayHotkeys(plugin: RssReaderPlugin, containerEl: HTMLElement) {
+export function displayHotkeys(plugin: RssReaderPlugin, containerEl: HTMLElement) : void {
 
     containerEl.empty();
 

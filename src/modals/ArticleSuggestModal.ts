@@ -18,7 +18,7 @@ export class ArticleSuggestModal extends SuggestModal<RssFeedItem> {
         return this.items;
     }
 
-    onChooseSuggestion(item: RssFeedItem, evt: MouseEvent | KeyboardEvent): void {
+    onChooseSuggestion(item: RssFeedItem, _: MouseEvent | KeyboardEvent): void {
         this.close();
         new ItemModal(this.plugin, item, this.items, false).open();
     }
@@ -29,7 +29,7 @@ export class ArticleSuggestModal extends SuggestModal<RssFeedItem> {
         });
     }
 
-    renderSuggestion(item: RssFeedItem, el: HTMLElement) {
+    renderSuggestion(item: RssFeedItem, el: HTMLElement) : void {
         el.createEl("div", { text: item.title });
         el.createEl("small", { text: moment(item.pubDate).format(this.plugin.settings.dateFormat) + " " + item.creator });
     }
