@@ -1,6 +1,6 @@
 import sortBy from "lodash.sortby";
 import groupBy from "lodash.groupby";
-import {ButtonComponent, Notice, Setting} from "obsidian";
+import {ButtonComponent, Modal, moment, Notice, request, Setting} from "obsidian";
 import {FeedModal} from "../modals/FeedModal";
 import RssReaderPlugin from "../main";
 import t from "../l10n/locale";
@@ -9,6 +9,8 @@ import {RssFeed} from "./settings";
 import {Md5} from "ts-md5";
 import {CleanupModal} from "../modals/CleanupModal";
 import {generateOPML} from "../parser/opmlExport";
+import {getFeedItems, RssFeedContent, RssFeedItem} from "../parser/rssParser";
+import {MessageModal} from "../modals/MessageModal";
 
 
 export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElement): void {
@@ -23,7 +25,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
         .addButton((button: ButtonComponent) => {
             return button
                 .setTooltip(t("add_new_feed"))
-                .setIcon("create-new")
+                .setIcon("feather-plus")
                 .onClick(async () => {
                     const modal = new FeedModal(plugin);
 
@@ -50,7 +52,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
         .addExtraButton(async (button) => {
             button
                 .setTooltip(t("import_opml"))
-                .setIcon("import-glyph")
+                .setIcon("feather-download")
                 .onClick(() => {
                     const modal = new ImportModal(plugin);
                     modal.onClose = () => {
@@ -80,8 +82,14 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
                     new CleanupModal(plugin).open();
                 });
         });
-
     const feedsDiv = container.createDiv("feeds");
+    displayFeedList(plugin, feedsDiv);
+}
+
+function displayFeedList(plugin: RssReaderPlugin, container: HTMLElement, disabled = false) {
+
+    container.empty();
+
     const sorted = sortBy(groupBy(plugin.settings.feeds, "folder"), function (o) {
         return o[0].folder;
     });
@@ -89,14 +97,16 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
         for (const id in feeds) {
             const feed = feeds[id];
 
-            const setting = new Setting(feedsDiv);
+            const setting = new Setting(container);
 
             setting.setName((feed.folder ? feed.folder : t("no_folder")) + " - " + feed.name);
             setting.setDesc(feed.url);
 
             setting
                 .addExtraButton((b) => {
-                    b.setIcon("pencil")
+                    b
+                        .setDisabled(disabled)
+                        .setIcon("feather-edit")
                         .setTooltip(t("edit"))
                         .onClick(() => {
                             const modal = new FeedModal(plugin, feed);
@@ -129,16 +139,74 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
                                     });
 
                                     await plugin.writeFeeds(() => (feeds));
-                                    displayFeedSettings(plugin, container);
+                                    displayFeedList(plugin, container);
                                 }
                             };
 
                             modal.open();
                         });
                 })
+                .addExtraButton((button) => {
+                    button
+                        .setDisabled(disabled)
+                        .setTooltip(t("from_archive"))
+                        .setIcon("feather-archive")
+                        .onClick(async () => {
+                            const modal = new MessageModal(plugin, t("reading_archive"));
+                            modal.open();
+                            displayFeedList(plugin, container, true);
+
+                            const timemap = await request({
+                                method: "GET",
+                                url: "https://web.archive.org/web/timemap/link/" + feed.url
+                            });
+                            const items: RssFeedContent[] = [];
+                            const lines = timemap.split("\n");
+                            for (const line of lines) {
+                                if (line.contains("memento")) {
+                                    const link = line.slice(1, line.indexOf(">"));
+                                    const first = link.substring(0, 41);
+                                    const second = link.substring(42);
+                                    items.push(await getFeedItems({
+                                        name: feed.name,
+                                        url: first + "id_" + second,
+                                        folder: feed.folder
+                                    }));
+                                }
+                            }
+
+                            modal.setMessage(t("scanning_duplicates"));
+
+                            for (const feed of plugin.settings.items) {
+                                for (const content of items) {
+                                    if (feed.folder === content.folder && feed.name === content.name) {
+                                        const sortedItems = content.items.sort((a, b) => {
+                                            return moment(b.pubDate).diff(moment(a.pubDate));
+                                        });
+                                        for (const item of sortedItems) {
+                                            const filter = feed.items.filter((filterItem) => {
+                                                return filterItem.folder === item.folder && filterItem.title === item.title;
+                                            });
+                                            if (filter.length === 0) {
+                                                feed.items.push(item);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            await plugin.writeFeedContent(() => {
+                                return plugin.settings.items;
+                            });
+                            displayFeedList(plugin, container, false);
+                            modal.setMessage(t("refreshed_feeds"));
+                            modal.close();
+                        });
+                })
                 .addExtraButton((b) => {
                     b
-                        .setIcon("trash")
+                        .setDisabled(disabled)
+                        .setIcon("feather-trash")
                         .setTooltip(t("delete"))
                         .onClick(async () => {
                             const feeds = plugin.settings.feeds;
@@ -152,10 +220,9 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
                             });
                             await plugin.writeFeedContent(() => content);
 
-                            displayFeedSettings(plugin, container);
+                            displayFeedList(plugin, container);
                         });
                 });
         }
-
     }
 }

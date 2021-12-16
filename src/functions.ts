@@ -98,11 +98,24 @@ function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderS
     result = result.replace(/{{link}}/g, item.link);
     result = result.replace(/{{author}}/g, item.creator);
     result = result.replace(/{{published}}/g, moment(item.pubDate).format(settings.dateFormat));
+    result = result.replace(/{{created}}/g, moment().format(settings.dateFormat));
     result = result.replace(/{{date}}/g, moment().format(settings.dateFormat));
     result = result.replace(/{{feed}}/g, item.feed);
     result = result.replace(/{{folder}}/g, item.folder);
     result = result.replace(/{{description}}/g, item.description);
     result = result.replace(/{{media}}/g, item.enclosure);
+
+    result = result.replace(/({{published:).*(}})/g, function (k) {
+        const value = k.split(":")[1];
+        const format = value.substring(0, value.indexOf("}"));
+        return moment(item.pubDate).format(format);
+    });
+
+    result = result.replace(/({{created:).*(}})/g, function (k) {
+        const value = k.split(":")[1];
+        const format = value.substring(0, value.indexOf("}"));
+        return moment().format(format);
+    });
 
     result = result.replace(/({{tags:).*(}})/g, function (k) {
         const value = k.split(":")[1];
@@ -120,7 +133,6 @@ function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderS
     result = result.replace(/{{#tags}}/, item.tags.map(i => '#' + i).join(", "));
     if(filename) {
         result = result.replace(/{{filename}}/g, filename);
-        result = result.replace(/{{created}}/g, moment().format(settings.dateFormat));
     }
 
     let content = htmlToMarkdown(item.content);

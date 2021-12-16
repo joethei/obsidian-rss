@@ -10,6 +10,7 @@
 
     export let plugin: RssReaderPlugin = null;
     export let item: RssFeedItem = null;
+    export let items: RssFeedItem[] = null;
 
     let hover = false;
 
@@ -61,7 +62,7 @@
             <IconComponent iconName="document"/>
         {/if}
         <a on:click={() => {
-                new ItemModal(plugin, item).open();
+                new ItemModal(plugin, item, items).open();
                     }}
            on:contextmenu={openMenu}
            on:mouseover={toggleHover}

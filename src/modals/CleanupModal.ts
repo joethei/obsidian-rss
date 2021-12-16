@@ -131,7 +131,7 @@ export class CleanupModal extends BaseModal {
 
         new Setting(contentEl).addButton((button) => {
             button
-                .setIcon("trash")
+                .setIcon("feather-trash")
                 .setTooltip(t("perform_cleanup"))
                 .onClick(async () => {
 

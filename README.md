@@ -36,6 +36,21 @@ Plugin for [Obsidian](https://obsidian.md)
 - get feeds from some social media sites with [RSS Box](https://rssbox.herokuapp.com/)
 - Filter content from feeds [SiftRSS](https://siftrss.com/)
 
+## Template variables
+- `{{title}}` title of article
+- `{{link}}` link to article
+- `{{author}}` author of article
+- `{{published}}` publishing date, you can also specify a custom date format like this: `{{published:YYYYMMDD}}`
+- `{{created}}` date of note creation, you can also specify a custom date format like this: `{{created:YYYYMMDD}}`
+- `{{content}}` the actual content
+- `{{description}}` short description
+- `{{folder}}` the folder the feed is in
+- `{{feed}}` the name of the feed
+- `{{filename}}` the filename, only available in the new file template
+- `{{tags}}` - tags, seperated by comma, you can also specify a seperator like this: `{{tags:;}}`
+- `{{#tags}}` - tags with, seperated by comma, with #, you can also specify a seperator like this: `{{#tags:;}}`
+- `{{media}}` link to media
+
 ## Styling
 If you want to style the plugin differently you can use the following css classes
 

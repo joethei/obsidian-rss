@@ -1,4 +1,4 @@
-import {request} from "obsidian";
+import {moment, request} from "obsidian";
 import {RssFeed} from "../settings/settings";
 import {Md5} from "ts-md5";
 
@@ -102,7 +102,7 @@ function getContent(element: Element | Document, names: string[]): string {
                 if (data.nodeName === elementName) {
                     //@ts-ignore
                     const tmp = data.getAttr(attr);
-                    if(tmp.length > 0) {
+                    if (tmp.length > 0) {
                         value = tmp;
                     }
                 }
@@ -123,7 +123,7 @@ function getContent(element: Element | Document, names: string[]): string {
         }
 
     });
-    if(value === undefined) {
+    if (value === undefined) {
         return "";
     }
     return value;
@@ -133,7 +133,7 @@ function buildItem(element: Element): RssFeedItem {
     return {
         title: getContent(element, ["title"]),
         description: getContent(element, ["description"]),
-        content: getContent(element, [ "itunes:summary", "description", "summary", "media:description", "content", "content:encoded"]),
+        content: getContent(element, ["itunes:summary", "description", "summary", "media:description", "content", "content:encoded"]),
         category: getContent(element, ["category"]),
         link: getContent(element, ["link", "link#href"]),
         creator: getContent(element, ["creator", "dc:creator", "author", "author.name"]),
@@ -179,7 +179,7 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
     const items: RssFeedItem[] = [];
     const rawItems = getAllItems(data);
 
-    const language = getContent(data, ["language"]).substr(0,2);
+    const language = getContent(data, ["language"]).substr(0, 2);
 
     rawItems.forEach((rawItem) => {
         const item = buildItem(rawItem);
@@ -194,7 +194,6 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
 
             items.push(item);
         }
-
     })
 
     const image = getContent(data, ["image", "image.url", "icon"]);

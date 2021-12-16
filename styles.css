@@ -69,3 +69,8 @@ input.is-invalid {
 .rss-subtitle {
     display: inline;
 }
+
+/*action buttons on mobile should not take one line each*/
+.is-mobile button.rss-button {
+    width: auto;
+}

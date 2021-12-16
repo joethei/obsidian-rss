@@ -11,31 +11,45 @@ export class ItemModal extends Modal {
 
     private readonly plugin: RssReaderPlugin;
     private readonly item: RssFeedItem;
+    private readonly items: RssFeedItem[];
+
+    private readonly save: boolean;
 
     private readButton: ButtonComponent;
     private favoriteButton: ButtonComponent;
 
-    constructor(plugin: RssReaderPlugin, item: RssFeedItem) {
+    constructor(plugin: RssReaderPlugin, item: RssFeedItem, items: RssFeedItem[], save: boolean = true) {
         super(plugin.app);
         this.plugin = plugin;
+        this.items = items;
         this.item = item;
-        item.read = true;
+        this.save = save;
 
-        const items = this.plugin.settings.items;
-        this.plugin.writeFeedContent(() => {
-            return items;
-        });
+        if(this.save) {
+            this.item.read = true;
 
-        if (this.plugin.settings.hotkeys.read) {
-            this.scope.register([], this.plugin.settings.hotkeys.read, () => {
-                this.markAsRead();
+            const feedContents = this.plugin.settings.items;
+            this.plugin.writeFeedContent(() => {
+                return feedContents;
             });
-        }
 
-        if (this.plugin.settings.hotkeys.favorite) {
-            this.scope.register([], this.plugin.settings.hotkeys.favorite, () => {
-                this.markAsFavorite();
-            });
+            if (this.plugin.settings.hotkeys.read) {
+                this.scope.register([], this.plugin.settings.hotkeys.read, () => {
+                    this.markAsRead();
+                });
+            }
+
+            if (this.plugin.settings.hotkeys.favorite) {
+                this.scope.register([], this.plugin.settings.hotkeys.favorite, () => {
+                    this.markAsFavorite();
+                });
+            }
+
+            if (this.plugin.settings.hotkeys.tags) {
+                this.scope.register([], this.plugin.settings.hotkeys.tags, () => {
+                    Action.TAGS.processor(this.plugin, this.item);
+                });
+            }
         }
 
         if (this.plugin.settings.hotkeys.create) {
@@ -56,15 +70,20 @@ export class ItemModal extends Modal {
             });
         }
 
-        if (this.plugin.settings.hotkeys.tags) {
-            this.scope.register([], this.plugin.settings.hotkeys.tags, () => {
-                Action.TAGS.processor(this.plugin, this.item);
-            });
-        }
-
         if (this.plugin.settings.hotkeys.open) {
             this.scope.register([], this.plugin.settings.hotkeys.open, () => {
                 Action.OPEN.processor(this.plugin, this.item);
+            });
+        }
+
+        if(this.plugin.settings.hotkeys.next) {
+            this.scope.register([], this.plugin.settings.hotkeys.next, () => {
+                this.next();
+            });
+        }
+        if(this.plugin.settings.hotkeys.previous) {
+            this.scope.register([], this.plugin.settings.hotkeys.previous, () => {
+                this.previous();
             });
         }
 
@@ -88,6 +107,30 @@ export class ItemModal extends Modal {
         }
     }
 
+    previous() : void {
+        let index = this.items.findIndex((item) => {
+            return item === this.item;
+        });
+        index++;
+        const item = this.items[index];
+        if(item !== undefined) {
+            this.close();
+            new ItemModal(this.plugin, item, this.items, this.save).open();
+        }
+    }
+
+    next() : void {
+        let index = this.items.findIndex((item) => {
+            return item === this.item;
+        });
+        index--;
+        const item = this.items[index];
+        if(item !== undefined) {
+            this.close();
+            new ItemModal(this.plugin, item, this.items, this.save).open();
+        }
+    }
+
     async markAsFavorite(): Promise<void> {
         await Action.FAVORITE.processor(this.plugin, this.item);
         this.favoriteButton.setIcon((this.item.favorite) ? 'star-glyph' : 'star');
@@ -108,25 +151,34 @@ export class ItemModal extends Modal {
         contentEl.style.height = "100%";
         contentEl.style.overflowY = "hidden";
 
-        const topButtons = contentEl.createSpan('topButtons');
+        const topButtons = contentEl.createDiv('topButtons');
 
-        this.readButton = new ButtonComponent(topButtons)
-            .setIcon(this.item.read ? 'feather-eye-off' : 'feather-eye')
-            .setTooltip(this.item.read ? t("mark_as_unread") : t("mark_as_read"))
-            .onClick(async () => {
-                await this.markAsRead();
-            });
-        this.readButton.buttonEl.setAttribute("tabindex", "-1");
+        let actions = Array.of(Action.CREATE_NOTE, Action.PASTE, Action.COPY, Action.OPEN);
 
-        this.favoriteButton = new ButtonComponent(topButtons)
-            .setIcon(this.item.favorite ? 'star-glyph' : 'star')
-            .setTooltip(this.item.favorite ? t("remove_from_favorites") : t("mark_as_favorite"))
-            .onClick(async () => {
-                await this.markAsFavorite();
-            });
-        this.favoriteButton.buttonEl.setAttribute("tabindex", "-1");
+        if(this.save) {
+            this.readButton = new ButtonComponent(topButtons)
+                .setIcon(this.item.read ? 'feather-eye-off' : 'feather-eye')
+                .setTooltip(this.item.read ? t("mark_as_unread") : t("mark_as_read"))
+                .onClick(async () => {
+                    await this.markAsRead();
+                });
+            this.readButton.buttonEl.setAttribute("tabindex", "-1");
+            this.readButton.buttonEl.addClass("rss-button");
 
-        Array.of(Action.TAGS, Action.CREATE_NOTE, Action.PASTE, Action.COPY, Action.OPEN).forEach((action) => {
+            this.favoriteButton = new ButtonComponent(topButtons)
+                .setIcon(this.item.favorite ? 'star-glyph' : 'star')
+                .setTooltip(this.item.favorite ? t("remove_from_favorites") : t("mark_as_favorite"))
+                .onClick(async () => {
+                    await this.markAsFavorite();
+                });
+            this.favoriteButton.buttonEl.setAttribute("tabindex", "-1");
+            this.favoriteButton.buttonEl.addClass("rss-button");
+
+            actions = Array.of(Action.TAGS, ...actions);
+        }
+
+
+        actions.forEach((action) => {
             const button = new ButtonComponent(topButtons)
                 .setIcon(action.icon)
                 .setTooltip(action.name)
@@ -134,10 +186,11 @@ export class ItemModal extends Modal {
                     await action.processor(this.plugin, this.item);
                 });
             button.buttonEl.setAttribute("tabindex", "-1");
+            button.buttonEl.addClass("rss-button");
         });
         //@ts-ignore
         if (this.app.plugins.plugins["obsidian-tts"]) {
-            new ButtonComponent(topButtons)
+            const ttsButton = new ButtonComponent(topButtons)
                 .setIcon("feather-headphones")
                 .setTooltip(t("read_article_tts"))
                 .onClick(async () => {
@@ -145,7 +198,24 @@ export class ItemModal extends Modal {
                     //@ts-ignore
                     await this.app.plugins.plugins["obsidian-tts"].ttsService.say(this.item.title, content, this.item.language);
                 });
+            ttsButton.buttonEl.addClass("rss-button");
         }
+
+        const prevButton = new ButtonComponent(topButtons)
+            .setIcon("left-arrow-with-tail")
+            .setTooltip(t("previous"))
+            .onClick(() => {
+               this.previous();
+            });
+        prevButton.buttonEl.addClass("rss-button");
+
+        const nextButton = new ButtonComponent(topButtons)
+            .setIcon("right-arrow-with-tail")
+            .setTooltip(t("next"))
+            .onClick(() => {
+                this.next();
+            });
+        nextButton.buttonEl.addClass("rss-button");
 
         const title = contentEl.createEl('h1', 'rss-title');
         title.setText(this.item.title);

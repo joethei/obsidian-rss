@@ -1,12 +1,17 @@
-import {Notice, Plugin, WorkspaceLeaf} from 'obsidian';
+import {FuzzySuggestModal, Notice, Plugin, WorkspaceLeaf} from 'obsidian';
 import {DEFAULT_SETTINGS, RssFeed, RssReaderSettings} from "./settings/settings";
 import ViewLoader from "./view/ViewLoader";
 import {
     configuredFeedsStore,
-    settingsStore,
     feedsStore,
+    FilteredFolderContent,
+    filteredItemsStore,
+    filteredStore,
+    foldedState,
+    folderStore,
+    settingsStore,
     sortedFeedsStore,
-    filteredStore, filteredItemsStore, FilteredFolderContent, foldedState, tagsStore, folderStore
+    tagsStore
 } from "./stores";
 import {VIEW_ID} from "./consts";
 import {getFeedItems, RssFeedContent, RssFeedItem} from "./parser/rssParser";
@@ -15,11 +20,13 @@ import groupBy from "lodash.groupby";
 import mergeWith from "lodash.mergewith";
 import keyBy from "lodash.keyby";
 import values from "lodash.values";
-import {FilteredFolder, FilterType, SortOrder} from "./modals/FilteredFolderModal";
+import {FilteredFolder, SortOrder} from "./modals/FilteredFolderModal";
 import {Md5} from "ts-md5";
 import t from "./l10n/locale";
 import {RSSReaderSettingsTab} from "./settings/SettingsTab";
 import {CleanupModal} from "./modals/CleanupModal";
+import {TextInputPrompt} from "./modals/TextInputPrompt";
+import {ArticleSuggestModal} from "./modals/ArticleSuggestModal";
 
 
 export default class RssReaderPlugin extends Plugin {
@@ -27,6 +34,7 @@ export default class RssReaderPlugin extends Plugin {
 
     async onload(): Promise<void> {
         console.log('loading plugin rss reader');
+        new Notice(t("RSS_Reader") + ": Please check your settings, the default value for the date format had an error, the correct format for minutes is mm not MM",100000);
 
         addFeatherIcon("rss");
         addFeatherIcon("eye");
@@ -34,9 +42,12 @@ export default class RssReaderPlugin extends Plugin {
         addFeatherIcon("star");
         addFeatherIcon("clipboard");
         addFeatherIcon("headphones");
-        addFeatherIcon("chevron-down");
         addFeatherIcon("upload");
         addFeatherIcon("trash");
+        addFeatherIcon("plus");
+        addFeatherIcon("edit");
+        addFeatherIcon("download");
+        addFeatherIcon("archive");
 
         //update settings whenever store contents change.
         this.register(
@@ -72,6 +83,24 @@ export default class RssReaderPlugin extends Plugin {
             name: t("cleanup"),
             callback: async () => {
                 new CleanupModal(this).open();
+            }
+        });
+
+        this.addCommand({
+           id: 'rss-open-feed',
+            name: "Open Feed from URL",
+            callback: async () => {
+              const input = new TextInputPrompt(this.app, "URL", "URL", "", "", t("open"));
+              await input.openAndGetValue(async (text) => {
+                  const items = await getFeedItems({name: "", folder: "", url: text.getValue()});
+                  if(!items || items.items.length === 0) {
+                      input.setValidationError(text, t("invalid_feed"));
+                      return;
+                  }
+
+                  input.close();
+                  new ArticleSuggestModal(this, items.items).open();
+              });
             }
         });
 
@@ -156,30 +185,35 @@ export default class RssReaderPlugin extends Plugin {
         const filtered = new Array<FilteredFolderContent>();
         for (const filter of this.settings.filtered) {
             // @ts-ignore
-            const filterType = FilterType[filter.filterType];
-            // @ts-ignore
             const sortOrder = SortOrder[filter.sortOrder];
             let filteredItems: RssFeedItem[];
-            if (filterType == FilterType.READ) {
-                filteredItems = items.filter((item) => {
-                    return item.read && (filter.filterContent.split(",").contains(item.folder) || filter.filterContent.length == 0);
+            filteredItems = items.filter((item) => {
+                return item.read === filter.read || item.read !== filter.unread;
+            });
+            if(filter.favorites) {
+            filteredItems = filteredItems.filter((item) => {
+                    return item.favorite === filter.favorites;
                 });
             }
-            if (filterType == FilterType.FAVORITES) {
-                filteredItems = items.filter((item) => {
-                    return item.favorite && (filter.filterContent.split(",").contains(item.folder) || filter.filterContent.length == 0);
+            if(filter.filterFolders.length > 0) {
+                filteredItems = filteredItems.filter((item) => {
+                   filter.filterFolders.includes(item.folder);
                 });
             }
-            if (filterType == FilterType.UNREAD) {
-                filteredItems = items.filter((item) => {
-                    return !item.read && (filter.filterContent.split(",").contains(item.folder) || filter.filterContent.length == 0);
+            if(filter.filterFeeds.length > 0) {
+                filteredItems = filteredItems.filter((item) => {
+                    filter.filterFeeds.includes(item.feed);
                 });
             }
-            if (filterType == FilterType.TAGS) {
-                filteredItems = items.filter((item) => {
-                    return item.tags.some((tag) => filter.filterContent.split(",").contains(tag));
+            if(filter.filterTags.length > 0) {
+                filteredItems = filteredItems.filter((item) => {
+                    for (const tag of filter.filterTags) {
+                        if(!item.tags.contains(tag)) return false;
+                    }
+                    return true;
                 });
             }
+
             const sortedItems = this.sortItems(filteredItems, sortOrder);
             filtered.push({filter: filter, items: {items: sortedItems}});
         }
@@ -187,6 +221,7 @@ export default class RssReaderPlugin extends Plugin {
     }
 
     sortItems(items: RssFeedItem[], sortOrder: SortOrder): RssFeedItem[] {
+        if(!items) return items;
         if (sortOrder === SortOrder.ALPHABET_NORMAL) {
             return items.sort((a, b) => a.title.localeCompare(b.title));
         }
@@ -249,6 +284,9 @@ export default class RssReaderPlugin extends Plugin {
                 feed.hash = <string>new Md5().appendStr(feed.name).appendStr(feed.folder).end();
             }
             for (const item of feed.items) {
+                if(item.folder !== feed.folder || item.feed !== feed.name) {
+                    feed.items.remove(item);
+                }
                 if(item.hash === undefined) {
                     item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
                 }
@@ -276,11 +314,52 @@ export default class RssReaderPlugin extends Plugin {
         });
     }
 
-    //migrate from old settings pre 0.6.0
     async migrateData(): Promise<void> {
         const configPath = this.app.vault.configDir + "/plugins/rss-reader/data.json";
         const config = JSON.parse(await this.app.vault.adapter.read(configPath));
 
+        if(config.filtered.length === 0) return;
+        if(config.filtered[0].filterType === undefined) return;
+
+        new Notice("RSS Reader: migrating data");
+
+        for (const filter of config.filtered) {
+            const newFilter: FilteredFolder = {
+                filterFolders: [],
+                filterTags: [],
+                filterFeeds: [],
+                favorites: false,
+                read: false,
+                unread: false,
+                sortOrder: filter.sortOrder,
+                name: filter.name
+            };
+
+            if(filter.filterType === "FAVORITES") newFilter.favorites = true;
+            if(filter.filterType === "READ") newFilter.read = true;
+            if(filter.filterType === "UNREAD") newFilter.unread = true;
+            if(filter.filterType === "TAGS") {
+                if(filter.filterContent !== "") {
+                    newFilter.filterTags = filter.filterContent.split(",");
+                }
+            }else {
+                if(filter.filterContent !== "") {
+                    newFilter.filterFolders = filter.filterContent.split(",");
+                }
+            }
+            newFilter.read = true;
+            newFilter.unread = true;
+            config.filtered = config.filtered.filter((item: any) => item.name !== filter.name);
+            config.filtered.push(newFilter);
+        }
+
+        await this.app.vault.adapter.write(configPath, JSON.stringify(config));
+        await this.loadSettings();
+
+        new Notice("RSS Reader: data has been migrated");
+
+
+        //migrate from old settings pre 0.6.0
         if (config.read === undefined) return;
 
         new Notice("RSS Reader: migrating data");
@@ -326,6 +405,7 @@ export default class RssReaderPlugin extends Plugin {
 
         const data = await this.loadData();
         this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
+        this.settings.hotkeys = Object.assign({}, DEFAULT_SETTINGS.hotkeys, data.hotkeys);
         settingsStore.set(this.settings);
         configuredFeedsStore.set(this.settings.feeds);
         feedsStore.set(this.settings.items);

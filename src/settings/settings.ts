@@ -4,7 +4,7 @@ import {RssFeedContent} from "../parser/rssParser";
 export interface RssFeed {
     name: string,
     url: string,
-    folder: string,
+    folder: string
 }
 
 export interface RssReaderSettings {
@@ -28,7 +28,9 @@ export interface RssReaderSettings {
         read: string,
         tags: string,
         open: string,
-        tts: string
+        tts: string,
+        next: string,
+        previous: string,
     },
     folded: string[]
 }
@@ -38,14 +40,18 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
     updateTime: 60,
     filtered: [{
         name: "Favorites",
-        filterType: "FAVORITES",
-        filterContent: "",
+        read: true,
+        unread: true,
+        filterTags: [],
+        filterFolders: [],
+        filterFeeds: [],
+        favorites: true,
         sortOrder: "ALPHABET_NORMAL"
     }],
     saveLocation: 'default',
     saveLocationFolder: '',
     items: [],
-    dateFormat: "YYYY-MM-DDTHH:MM:SS",
+    dateFormat: "YYYY-MM-DDTHH:mm:SS",
     template: "---\n" +
         "link: {{link}}\n" +
         "author: {{author}}\n" +
@@ -67,7 +73,9 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         read: "r",
         tags: "t",
         open: "o",
-        tts: "s"
+        tts: "s",
+        previous: "ArrowLeft",
+        next: "ArrowRight"
     },
     folded: []
 });

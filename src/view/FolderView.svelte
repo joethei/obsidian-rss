@@ -17,7 +17,6 @@
     });
 
     function toggleFold(folder: string) {
-        console.log("toggling fold for " + folder);
         if (!folded) {
             folded = [];
         }
@@ -101,7 +100,11 @@
                 <div class="{folded.contains('rss-filters') ? 'is-collapsed' : ''} tree-item is-clickable"
                      on:click={() => toggleFold('rss-filters')}>
                     <span class="tree-item-self is-clickable">
-                        <IconComponent iconName="feather-chevron-down"/>
+                        {#if folded.contains('rss-filters')}
+                            <IconComponent iconName="right-chevron-glyph"/>
+                        {:else}
+                            <IconComponent iconName="down-chevron-glyph"/>
+                        {/if}
                         <div>{t("filtered_folders")}</div>
                     </span>
                 </div>
@@ -111,19 +114,23 @@
                         {#each buildTreeStructure($filteredItemsStore) as folder}
                             <div class="tree-item-children">
                                 <div class="{folded.contains('rss-filters-' + folder.name) ? 'is-collapsed' : ''} tree-item is-clickable"
-                                     on:click={() => toggleFold('rss-filter-' + folder.name)}>
+                                     on:click={() => toggleFold('rss-filters-' + folder.name)}>
                                     <span class="tree-item-self is-clickable">
-                                        <IconComponent iconName="feather-chevron-down"/>
+                                        {#if folded.contains('rss-filters-' + folder.name)}
+                                            <IconComponent iconName="right-chevron-glyph"/>
+                                        {:else}
+                                            <IconComponent iconName="down-chevron-glyph"/>
+                                        {/if}
                                         <span>{ folder.name }</span>
                                     </span>
                                     </div>
                                 {#if folder.filter !== undefined}
-                                    {#if (folded.contains('rss-filter-' + folder.filter.filter.name))}
+                                    {#if (!folded.contains('rss-filters-' + folder.name))}
                                         <div class="tree-item-children">
                                             {#each folder.filter.items.items as item}
                                                 <div class="tree-item">
                                                     <div class="tree-item-self">
-                                                        <ItemView item={item} plugin={plugin}/>
+                                                        <ItemView item={item} plugin={plugin} items={folder.filter.items.items}/>
                                                     </div>
                                                 </div>
                                             {/each}
@@ -131,28 +138,34 @@
                                     {/if}
                                 {/if}
                                 {#if folder.children}
-                                    {#each folder.children as child}
-                                        <div class="tree-item-children">
-                                            <div class="{folded.contains('rss-filters-' + child.name) ? 'is-collapsed' : ''} tree-item-self is-clickable"
-                                                 on:click={() => toggleFold('rss-filter-' + child.filter.filter.name)}>
-                                                    <IconComponent iconName="feather-chevron-down"/>
+                                    {#if (!folded.contains('rss-filters-' + folder.name))}
+                                        {#each folder.children as child}
+                                            <div class="tree-item-children">
+                                                <div class="{folded.contains('rss-filters-' + child.filter.filter.name) ? 'is-collapsed' : ''} tree-item-self is-clickable"
+                                                     on:click={() => toggleFold('rss-filters-' + child.filter.filter.name)}>
+                                                         {#if folded.contains('rss-filters-' + child.filter.filter.name)}
+                                                            <IconComponent iconName="right-chevron-glyph"/>
+                                                        {:else}
+                                                            <IconComponent iconName="down-chevron-glyph"/>
+                                                        {/if}
                                                     <span>{ child.name }</span>
-                                                </div>
-                                            {#if child.filter !== undefined}
-                                                {#if (folded.contains('rss-filter-' + child.filter.filter.name))}
-                                                    <div class="tree-item-children">
-                                                        {#each child.filter.items.items as item}
-                                                            <div class="tree-item">
-                                                                <div class="tree-item-self">
-                                                                    <ItemView item={item} plugin={plugin}/>
-                                                                </div>
-                                                            </div>
-                                                        {/each}
                                                     </div>
+                                                {#if child.filter !== undefined}
+                                                    {#if (!folded.contains('rss-filters-' + child.filter.filter.name))}
+                                                        <div class="tree-item-children">
+                                                            {#each child.filter.items.items as item}
+                                                                <div class="tree-item">
+                                                                    <div class="tree-item-self">
+                                                                        <ItemView item={item} plugin={plugin} items={child.filter.items.items}/>
+                                                                    </div>
+                                                                </div>
+                                                            {/each}
+                                                        </div>
+                                                    {/if}
                                                 {/if}
-                                            {/if}
-                                        </div>
-                                    {/each}
+                                            </div>
+                                        {/each}
+                                    {/if}
                                 {/if}
                             </div>
                         {/each}
@@ -171,7 +184,11 @@
                 <div class="{folded.contains('rss-folders') ? 'is-collapsed' : ''} tree-item is-clickable"
                      on:click={() => toggleFold('rss-folders')}>
                     <span class="tree-item-self is-clickable">
-                        <IconComponent iconName="feather-chevron-down"/>
+                         {#if folded.contains('rss-folders')}
+                            <IconComponent iconName="right-chevron-glyph"/>
+                        {:else}
+                            <IconComponent iconName="down-chevron-glyph"/>
+                        {/if}
                         <span>{t("folders")}</span>
                     </span>
                 </div>
@@ -184,7 +201,11 @@
                             <span class="{folded.contains(folder) ? 'is-collapsed' : ''} tree-item-self is-clickable"
                                   on:click={() => toggleFold(folder)}
                                   on:contextmenu={(e) => openMenuForFolder(e, folder)}>
-                                <IconComponent iconName="feather-chevron-down"/>
+                                 {#if folded.contains(folder)}
+                                    <IconComponent iconName="right-chevron-glyph"/>
+                                {:else}
+                                    <IconComponent iconName="down-chevron-glyph"/>
+                                {/if}
                                 <span>{(folder) ? folder : t("no_folder")}</span>
                             </span>
 

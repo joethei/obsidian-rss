@@ -9,6 +9,7 @@ export default {
 
     //folder actions
     mark_all_as_read: "Mark all as read",
+    add_tags_to_all: "Add tags to all entries",
 
     filtered_folders: "Filtered Folders",
     folders: "Folders",
@@ -26,6 +27,8 @@ export default {
     mark_as_favorite: "mark as favorite",
     remove_from_favorites: "remove from favorites",
     read_article_tts: "read article with TTS",
+    next: "next",
+    previous: "previous",
 
     mark_as_read_unread: "mark as read/unread",
     mark_as_favorite_remove: "mark as favorite/remove from favorites",
@@ -87,6 +90,16 @@ export default {
     filter_type_help: 'Type of filter',
     filter: 'Filter',
     filter_help: 'Folders/Tags to filter on, split by ,',
+    only_favorites: 'Show only favorites',
+    show_read: "Show read",
+    show_unread: "Show unread",
+    filter_folder_help: "Only show articles from the following folders",
+    filter_feed_help: "Only show articles from the following feeds",
+    filter_tags_help: "Only show articles with the following tags",
+
+    from_folders: "from folders: ",
+    from_feeds: "from feeds: ",
+    with_tags: "with tags: ",
 
     invalid_tag: "This is not a valid tag",
 
@@ -131,6 +144,8 @@ export default {
     filter_exists: "you already have a filter configured with that name",
     hotkeys: "Hotkeys",
     hotkeys_reading: "when reading a article",
+    press_key: "press a key",
+    customize_hotkey: "customize this hotkey",
 
     refreshed_feeds: "Feeds refreshed",
 
@@ -159,5 +174,11 @@ export default {
     remove_wrong_feed_help: "This might have happened due to a bug in versions pre 0.8",
     scanning_items: "Scanning Articles (%1 / %2)",
 
-    created_export: "Created OPML file in your Vaults root folder"
+    created_export: "Created OPML file in your Vaults root folder",
+    add: "Add",
+    from_archive: "Get old articles from archive.org",
+    reading_archive: "Reading data from archive",
+    scanning_duplicates: "Scanning for duplicates",
+    do_not_close: "Please do not close this window"
+
 }

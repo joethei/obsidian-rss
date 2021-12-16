@@ -9,6 +9,7 @@ export default {
 
     //folder actions
     mark_all_as_read: "Alle als gelesen markieren",
+    add_tags_to_all: "Tags zu allen hinzufügen",
 
     filtered_folders: "Gefilterte Ordner",
     folders: "Ordner",
@@ -26,6 +27,8 @@ export default {
     mark_as_favorite: "As Favorit markieren",
     remove_from_favorites: "Aus den Favoriten entfernen",
     read_article_tts: "Vorlesen",
+    next: "nächster",
+    previous: "vorheriger",
 
     mark_as_read_unread: "Als gelesen/ungelesen markieren",
     mark_as_favorite_remove: "Als Favorit markieren/Aus den Favoriten entfernen",
@@ -87,6 +90,17 @@ export default {
     filter_type_help: 'Typ des Filters',
     filter: 'Filter',
     filter_help: 'Order/Tags die gefiltert werden sollen, getrennt durch ,',
+    only_favorites: 'Zeige nur Favoriten',
+    show_read: "Zeige gelesene",
+    show_unread: "Zeige ungelesene",
+    filter_folder_help: "Zeige nur Artikel aus den folgenden Ordnern",
+    filter_feed_help: "Zeige nur Artikel aus den folgenden Feeds",
+    filter_tags_help: "Zeige nur Artikel mit den folgenden Tags",
+
+    from_folders: "Aus Ordnern: ",
+    from_feeds: "Aus Feeds: ",
+    with_tags: "Mit Tags: ",
+
 
     invalid_tag: "Dieser Tag ist nicht gültig",
 
@@ -131,6 +145,8 @@ export default {
     filter_exists: "Es exisitiert bereits ein Feed mit diesem Namen",
     hotkeys: "Tastenkürzel",
     hotkeys_reading: "in der Leseansicht",
+    press_key: "drücke eine Taste",
+    customize_hotkey: "dieses Tastenkürzel anpassen",
 
     refreshed_feeds: "Feeds aktualisiert",
 
@@ -159,5 +175,10 @@ export default {
     remove_wrong_feed_help: "Aufgrund eines Fehlers in Versionen vor 0.8 könnte dies passiert sein",
     scanning_items: "Verarbeite Artikel (%1 / %2)",
 
-    created_export: "OPML Export in Vault erstellt"
+    created_export: "OPML Export in Vault erstellt",
+    add: "Hinzufügen",
+    from_archive: "Alte Artikel von archive.org lesen",
+    reading_archive: "Daten werden aus Archiv geladen",
+    scanning_duplicates: "Entferne Duplikate",
+    do_not_close: "Bitte dieses Fenster nicht schliesen"
 }

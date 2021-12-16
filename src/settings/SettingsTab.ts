@@ -4,7 +4,7 @@ import {
     DropdownComponent,
     MomentFormatComponent,
     Notice,
-    PluginSettingTab,
+    PluginSettingTab, Scope,
     SearchComponent,
     Setting,
     TextAreaComponent,
@@ -17,6 +17,7 @@ import {FolderSuggest} from "./FolderSuggestor";
 import {FilteredFolderModal} from "../modals/FilteredFolderModal";
 import {displayFeedSettings} from "./FeedSettings";
 import {DEFAULT_SETTINGS} from "./settings";
+import {displayHotkeys} from "./HotkeySettings";
 
 export class RSSReaderSettingsTab extends PluginSettingTab {
     plugin: RssReaderPlugin;
@@ -35,10 +36,24 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         containerEl.createEl('h3', {text: t("file_creation")});
 
+        const templateDesc = new DocumentFragment();
+        templateDesc.createDiv().innerHTML = t("template_new_help") + "<br>" + t("available_variables") + `<br>` +
+            `<strong>{{title}}</strong> → Title <br>` +
+            `<strong>{{link}}</strong> → Link to article<br>` +
+            `<strong>{{author}}</strong> → Author of article<br>` +
+            `<strong>{{published}}</strong> → Date published<br>` +
+            `<strong>{{created}}</strong> → Note creation date<br>` +
+            `<strong>{{description}}</strong> → Short article description<br>` +
+            `<strong>{{content}}</strong> → article content<br>` +
+            `<strong>{{folder}}</strong> → Folder of feed<br>` +
+            `<strong>{{feed}}</strong> → Title of feed<br>` +
+            `<strong>{{filename}}</strong> → Filename<br>` +
+            `<strong>{{tags}}</strong> → Tags split by comma<br>` +
+            `<strong>{{media}}</strong> → Link to video/audio file`;
+
         new Setting(containerEl)
             .setName(t("template_new"))
-            .setDesc(t("template_new_help") + ' ' +
-                t("available_variables") + ' {{title}}, {{link}}, {{author}}, {{published}}, {{created}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{filename}, {{tags}}, {{#tags}}, {{media}}')
+            .setDesc(templateDesc)
             .addTextArea((textArea: TextAreaComponent) => {
                 textArea
                     .setValue(this.plugin.settings.template)
@@ -48,13 +63,27 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                             template: value
                         }));
                     });
-                textArea.inputEl.setAttr("rows", 8);
+                textArea.inputEl.setAttr("rows", 15);
+                textArea.inputEl.setAttr("cols", 50);
             });
+
+        const pasteTemplateDesc = new DocumentFragment();
+        pasteTemplateDesc.createDiv().innerHTML = t("template_new_help") + "<br>" + t("available_variables") + `<br>` +
+            `<strong>{{title}}</strong> → Title <br>` +
+            `<strong>{{link}}</strong> → Link to article<br>` +
+            `<strong>{{author}}</strong> → Author of article<br>` +
+            `<strong>{{published}}</strong> → Date published<br>` +
+            `<strong>{{created}}</strong> → Note creation date<br>` +
+            `<strong>{{description}}</strong> → Short article description<br>` +
+            `<strong>{{content}}</strong> → article content<br>` +
+            `<strong>{{folder}}</strong> → Folder of feed<br>` +
+            `<strong>{{feed}}</strong> → Title of feed<br>` +
+            `<strong>{{tags}}</strong> → Tags split by comma<br>` +
+            `<strong>{{media}}</strong> → Link to video/audio file`;
 
         new Setting(containerEl)
             .setName(t("template_paste"))
-            .setDesc(t("template_paste_help") + ' ' +
-                t("available_variables") + '{{title}}, {{link}}, {{author}}, {{published}}, {{content}}, {{description}}, {{folder}}, {{feed}}, {{tags}}, {{#tags}}, {{media}}')
+            .setDesc(pasteTemplateDesc)
             .addTextArea((textArea: TextAreaComponent) => {
                 textArea
                     .setValue(this.plugin.settings.pasteTemplate)
@@ -64,7 +93,8 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                             pasteTemplate: value
                         }));
                     });
-                textArea.inputEl.setAttr("rows", 8);
+                textArea.inputEl.setAttr("rows", 15);
+                textArea.inputEl.setAttr("cols", 50);
             });
 
         new Setting(containerEl)
@@ -153,18 +183,18 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                 text
                     .setPlaceholder(DEFAULT_SETTINGS.defaultFilename)
                     .setValue(this.plugin.settings.defaultFilename)
-                    .onChange(async(value) => {
-                       if(value.length > 0) {
-                           await this.plugin.writeSettings(() => ({
-                               defaultFilename: value
-                           }));
-                       } else {
-                           new Notice(t("fix_errors"));
-                       }
+                    .onChange(async (value) => {
+                        if (value.length > 0) {
+                            await this.plugin.writeSettings(() => ({
+                                defaultFilename: value
+                            }));
+                        } else {
+                            new Notice(t("fix_errors"));
+                        }
                     });
             });
 
-
+        containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
         containerEl.createEl("h3", {text: "Misc"});
 
         const refresh = new Setting(containerEl)
@@ -218,6 +248,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                     });
             });
 
+        containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
         containerEl.createEl("h3", {text: t("filtered_folders")});
 
         new Setting(containerEl)
@@ -226,7 +257,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             .addButton((button: ButtonComponent): ButtonComponent => {
                 return button
                     .setTooltip(t("add_new_filter"))
-                    .setIcon("create-new")
+                    .setIcon("feather-plus")
                     .onClick(async () => {
                         const modal = new FilteredFolderModal(this.plugin);
 
@@ -239,9 +270,13 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                                 await this.plugin.writeFiltered(() => (
                                     this.plugin.settings.filtered.concat({
                                             name: modal.name,
-                                            filterType: modal.filterType,
-                                            filterContent: modal.filterContent,
-                                            sortOrder: modal.sortOrder
+                                            sortOrder: modal.sortOrder,
+                                            filterFeeds: modal.filterFeeds,
+                                            filterFolders: modal.filterFolders,
+                                            filterTags: modal.filterTags,
+                                            favorites: modal.favorites,
+                                            read: modal.read,
+                                            unread: modal.unread,
                                         }
                                     )));
                                 this.display();
@@ -261,11 +296,35 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             const setting = new Setting(filtersDiv);
 
             setting.setName(filter.name);
-            setting.setDesc(filter.filterType + (filter.filterContent.length > 0) ? filter.filterContent : "");
+
+            const description: string[] = [];
+            if (filter.read)
+                description.push(t("read"));
+            if (filter.unread)
+                description.push(t("unread"));
+            if (filter.favorites)
+                description.push(t("favorites"));
+
+            let message = "";
+            if (filter.filterFolders.length > 0) {
+                const folders = filter.filterFolders.join(",");
+                message += "; " + t("from_folders") + folders;
+            }
+            if (filter.filterFeeds.length > 0) {
+                const feeds = filter.filterFeeds.join(",");
+                message += "; " + t("from_feeds") + feeds;
+            }
+            if (filter.filterTags.length > 0) {
+                const tags = filter.filterTags.join(",");
+                message += "; " + t("with_tags") + tags;
+            }
+
+            setting.setDesc(description.join(",") + message);
+
 
             setting
                 .addExtraButton((b) => {
-                    b.setIcon("pencil")
+                    b.setIcon("feather-edit")
                         .setTooltip(t("edit"))
                         .onClick(() => {
                             const modal = new FilteredFolderModal(this.plugin, filter);
@@ -277,9 +336,13 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                                     filters.remove(oldFilter);
                                     filters.push({
                                         name: modal.name,
-                                        filterType: modal.filterType,
-                                        filterContent: modal.filterContent,
-                                        sortOrder: modal.sortOrder
+                                        sortOrder: modal.sortOrder,
+                                        filterFeeds: modal.filterFeeds,
+                                        filterFolders: modal.filterFolders,
+                                        filterTags: modal.filterTags,
+                                        favorites: modal.favorites,
+                                        read: modal.read,
+                                        unread: modal.unread,
                                     });
                                     await this.plugin.writeFiltered(() => (filters));
                                     this.display();
@@ -290,7 +353,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                         });
                 })
                 .addExtraButton((b) => {
-                    b.setIcon("trash")
+                    b.setIcon("feather-trash")
                         .setTooltip(t("delete"))
                         .onClick(async () => {
                             const filters = this.plugin.settings.filtered;
@@ -302,168 +365,16 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         }
 
+        containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
+
         const feedsContainer = containerEl.createDiv(
             "feed-container"
         );
         displayFeedSettings(this.plugin, feedsContainer);
 
-        containerEl.createEl("h2", {text: t("hotkeys")});
-        containerEl.createEl("h3", {text: t("hotkeys_reading")});
+        containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
 
-
-        new Setting(containerEl)
-            .setName(t("create_note"))
-            .addText((text) => {
-                text
-                    .setValue(this.plugin.settings.hotkeys.create)
-                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.create)
-                    .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => ({
-                            hotkeys: {
-                                ...this.plugin.settings.hotkeys,
-                                create: value
-
-                            }
-                        }));
-                    });
-                text.inputEl.setAttr("maxlength", 1);
-                text.inputEl.style.width = "20%";
-            });
-
-        new Setting(containerEl)
-            .setName(t("paste_to_note"))
-            .addText((text) => {
-                text
-                    .setValue(this.plugin.settings.hotkeys.paste)
-                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.paste)
-                    .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => ({
-                            hotkeys: {
-                                ...this.plugin.settings.hotkeys,
-                                paste: value
-
-                            }
-                        }));
-                    });
-                text.inputEl.setAttr("maxlength", 1);
-                text.inputEl.style.width = "20%";
-            });
-
-        new Setting(containerEl)
-            .setName(t("open_browser"))
-            .addText((text) => {
-                text
-                    .setValue(this.plugin.settings.hotkeys.open)
-                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.open)
-                    .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => ({
-                            hotkeys: {
-                                ...this.plugin.settings.hotkeys,
-                                open: value
-
-                            }
-                        }));
-                    });
-                text.inputEl.setAttr("maxlength", 1);
-                text.inputEl.style.width = "20%";
-            });
-
-        new Setting(containerEl)
-            .setName(t("copy_to_clipboard"))
-            .addText((text) => {
-                text
-                    .setValue(this.plugin.settings.hotkeys.copy)
-                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.copy)
-                    .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => ({
-                            hotkeys: {
-                                ...this.plugin.settings.hotkeys,
-                                copy: value
-
-                            }
-                        }));
-                    });
-                text.inputEl.setAttr("maxlength", 1);
-                text.inputEl.style.width = "20%";
-            });
-
-        new Setting(containerEl)
-            .setName(t("mark_as_favorite_remove"))
-            .addText((text) => {
-                text
-                    .setValue(this.plugin.settings.hotkeys.favorite)
-                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.favorite)
-                    .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => ({
-                            hotkeys: {
-                                ...this.plugin.settings.hotkeys,
-                                favorite: value
-
-                            }
-                        }));
-                    });
-                text.inputEl.setAttr("maxlength", 1);
-                text.inputEl.style.width = "20%";
-            });
-
-        new Setting(containerEl)
-            .setName(t("mark_as_read_unread"))
-            .addText((text) => {
-                text
-                    .setValue(this.plugin.settings.hotkeys.read)
-                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.read)
-                    .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => ({
-                            hotkeys: {
-                                ...this.plugin.settings.hotkeys,
-                                read: value
-
-                            }
-                        }));
-                    });
-                text.inputEl.setAttr("maxlength", 1);
-                text.inputEl.style.width = "20%";
-            });
-
-        new Setting(containerEl)
-            .setName(t("edit_tags"))
-            .addText((text) => {
-                text
-                    .setValue(this.plugin.settings.hotkeys.tags)
-                    .setPlaceholder(DEFAULT_SETTINGS.hotkeys.tags)
-                    .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => ({
-                            hotkeys: {
-                                ...this.plugin.settings.hotkeys,
-                                tags: value
-
-                            }
-                        }));
-                    });
-                text.inputEl.setAttr("maxlength", 1);
-                text.inputEl.style.width = "20%";
-            });
-
-        //@ts-ignore
-        if (this.app.plugins.plugins["obsidian-tts"]) {
-            new Setting(containerEl)
-                .setName(t("read_article_tts"))
-                .addText((text) => {
-                    text
-                        .setValue(this.plugin.settings.hotkeys.tts)
-                        .setPlaceholder(DEFAULT_SETTINGS.hotkeys.tts)
-                        .onChange(async (value) => {
-                            await this.plugin.writeSettings(() => ({
-                                hotkeys: {
-                                    ...this.plugin.settings.hotkeys,
-                                    tts: value
-
-                                }
-                            }));
-                        });
-                    text.inputEl.setAttr("maxlength", 1);
-                    text.inputEl.style.width = "20%";
-                });
-        }
+        const hotkeyContainer = containerEl.createDiv("hotkey-container");
+        displayHotkeys(this.plugin, hotkeyContainer);
     }
 }

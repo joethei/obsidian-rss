@@ -6,9 +6,11 @@ import t from "../l10n/locale";
 export class TextInputPrompt extends BaseModal {
     private resolve: (value: TextComponent) => void;
     private textComponent: TextComponent;
+    private buttonText: string;
 
-    constructor(app: App, private promptText: string, private hint: string, private defaultValue: string, private placeholder: string) {
+    constructor(app: App, private promptText: string, private hint: string, private defaultValue: string, private placeholder: string, buttonText: string = t("save")) {
         super(app);
+        this.buttonText = buttonText;
     }
 
     onOpen(): void {
@@ -37,7 +39,7 @@ export class TextInputPrompt extends BaseModal {
 
         new Setting(div).addButton((b) => {
             b
-                .setButtonText(t("save"))
+                .setButtonText(this.buttonText)
                 .onClick(async () => {
                     this.resolve(this.textComponent);
                 });

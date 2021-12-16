@@ -32,6 +32,7 @@ export class TagModal extends BaseModal {
                     search
                         .setValue(this.tags[tag])
                         .onChange(async (value: string) => {
+                            this.removeValidationError(search);
                             if (!value.match(TAG_REGEX) || value.match(NUMBER_REGEX) || value.contains(" ") || value.contains('#')) {
                                 this.setValidationError(search, t("invalid_tag"));
                                 return;
@@ -43,7 +44,7 @@ export class TagModal extends BaseModal {
                 .addExtraButton((button) => {
                     button
                         .setTooltip(t("delete"))
-                        .setIcon("trash")
+                        .setIcon("feather-trash")
                         .onClick(() => {
                             this.tags = this.tags.filter(e => e !== this.tags[tag]);
                             this.display();
@@ -68,8 +69,8 @@ export class TagModal extends BaseModal {
                     });
             }).addExtraButton(button => {
                 button
-                    .setTooltip("Create")
-                    .setIcon("create-new")
+                    .setTooltip(t("add"))
+                    .setIcon("feather-plus")
                     .onClick(() => {
                         if (!tagValue.match(TAG_REGEX) || tagValue.match(NUMBER_REGEX) || tagValue.contains(" ") || tagValue.contains('#')) {
                             this.setValidationError(tagComponent, t("invalid_tag"));

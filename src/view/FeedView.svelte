@@ -7,6 +7,7 @@
     import Action from "../actions/Action";
     import {foldedState} from "../stores";
     import t from "../l10n/locale";
+    import {TagModal} from "../modals/TagModal";
 
     export let feed: RssFeedContent = null;
     export let plugin: RssReaderPlugin;
@@ -53,6 +54,24 @@
                     });
                 });
         });
+        menu.addItem((menuItem) => {
+            menuItem
+                .setIcon("tag-glyph")
+                .setTitle(t("add_tags_to_all"))
+                .onClick(async () => {
+                    const tagModal = new TagModal(plugin, []);
+                    tagModal.onClose = async () => {
+                        for (let item of feed.items) {
+                            item.tags.push(...tagModal.tags);
+                        }
+                        const items = plugin.settings.items;
+                        await plugin.writeFeedContent(() => {
+                            return items;
+                        });
+                    };
+                    tagModal.open();
+                });
+        });
 
         menu.showAtPosition({x: e.x, y: e.y});
     }
@@ -67,7 +86,11 @@
         <div class="{folded.contains(feed.name) ?  'is-collapsed' : ''} tree-item-self is-clickable" on:click={() => toggleFold(feed.name)}
              on:contextmenu={openMenu}>
             <div class="rss-feed-title" style="overflow: hidden">
-                <IconComponent iconName="feather-chevron-down"/>
+                {#if folded.contains(feed.name)}
+                    <IconComponent iconName="right-chevron-glyph"/>
+                {:else}
+                    <IconComponent iconName="down-chevron-glyph"/>
+                {/if}
                 <span>
                     {feed.name}
                     {#if (feed.image)}
@@ -83,7 +106,7 @@
                     {#each feed.items as item}
                         <div class="tree-item">
                             <div class="tree-item-self">
-                                <ItemView item={item} plugin={plugin}/>
+                                <ItemView item={item} plugin={plugin} items={feed.items}/>
                             </div>
                         </div>
                     {/each}
