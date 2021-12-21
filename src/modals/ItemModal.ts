@@ -144,6 +144,7 @@ export class ItemModal extends Modal {
     }
 
     async display(): Promise<void> {
+        this.modalEl.addClass("rss-modal");
         const {contentEl} = this;
         contentEl.empty();
 
@@ -235,7 +236,7 @@ export class ItemModal extends Modal {
         });
 
         const content = contentEl.createDiv('rss-content');
-        content.addClass("scrollable-content");
+        content.addClass("rss-scrollable-content", "rss-selectable");
 
         if (this.item.enclosure) {
             if (this.item.enclosureType.toLowerCase().contains("audio")) {
@@ -247,16 +248,15 @@ export class ItemModal extends Modal {
                 video.createEl("source", {attr: {src: this.item.enclosure, type: this.item.enclosureType}});
             }
 
-            //embeded yt player
+            //embedded yt player
             if (this.item.enclosure && this.item.id.startsWith("yt:")) {
                 content.createEl("iframe", {
                     attr: {
                         type: "text/html",
-                        src: "http://www.youtube.com/embed/" + this.item.enclosure,
+                        src: "https://www.youtube.com/embed/" + this.item.enclosure,
                         width: "100%",
                         height: "100%",
                         allowFullscreen: "true"
-
                     }
                 });
             }

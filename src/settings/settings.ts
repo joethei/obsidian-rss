@@ -20,6 +20,7 @@ export interface RssReaderSettings {
     askForFilename: boolean,
     defaultFilename: string,
     autoSync: boolean,
+    displayStyle: string,
     hotkeys: {
         create: string,
         paste: string,
@@ -49,6 +50,7 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         sortOrder: "ALPHABET_NORMAL"
     }],
     saveLocation: 'default',
+    displayStyle: 'list',
     saveLocationFolder: '',
     items: [],
     dateFormat: "YYYY-MM-DDTHH:mm:SS",

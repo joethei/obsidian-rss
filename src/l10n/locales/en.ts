@@ -179,6 +179,9 @@ export default {
     from_archive: "Get old articles from archive.org",
     reading_archive: "Reading data from archive",
     scanning_duplicates: "Scanning for duplicates",
-    do_not_close: "Please do not close this window"
+    do_not_close: "Please do not close this window",
+
+    display_style: "Display Style",
+    list: "List"
 
 }

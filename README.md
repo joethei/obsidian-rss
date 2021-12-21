@@ -34,7 +34,7 @@ Plugin for [Obsidian](https://obsidian.md)
 ## Tips
 - get fulltext content for some truncated RSS feeds with [morss.it](https://morss.it/)
 - get feeds from some social media sites with [RSS Box](https://rssbox.herokuapp.com/)
-- Filter content from feeds [SiftRSS](https://siftrss.com/)
+- Filter content from feeds with [SiftRSS](https://siftrss.com/)
 
 ## Template variables
 - `{{title}}` title of article
@@ -65,6 +65,7 @@ If you want to style the plugin differently you can use the following css classe
 - rss-feed-item
 - rss-tag
 - rss-tooltip
+- rss-modal
 - rss-title
 - rss-subtitle
 - rss-content

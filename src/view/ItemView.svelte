@@ -1,12 +1,8 @@
 <script lang="ts">
-    import {ItemModal} from "../modals/ItemModal";
     import {RssFeedItem} from "../parser/rssParser";
     import RssReaderPlugin from "../main";
-    import IconComponent from "./IconComponent.svelte";
-    import {Menu} from "obsidian";
-    import {createNewNote, openInBrowser, pasteToNote} from "../functions";
-    import Action from "../actions/Action";
     import HtmlTooltip from "./HtmlTooltip.svelte";
+    import ItemTitle from "./ItemTitle.svelte";
 
     export let plugin: RssReaderPlugin = null;
     export let item: RssFeedItem = null;
@@ -18,60 +14,14 @@
         hover = !hover;
     }
 
-
-    async function openMenu(e: MouseEvent): Promise<void> {
-        if (e.ctrlKey && e.altKey) {
-            openInBrowser(item);
-            return;
-        }
-
-        if (e.ctrlKey) {
-            await createNewNote(plugin, item);
-            return;
-        }
-        if (e.altKey) {
-            await pasteToNote(plugin, item);
-            return;
-        }
-
-        const menu = new Menu(plugin.app);
-
-
-        Action.actions.forEach((action) => {
-            menu.addItem((menuItem) => {
-                menuItem
-                    .setIcon(action.icon)
-                    .setTitle(action.name)
-                    .onClick(async () => {
-                        await action.processor(plugin, item);
-                    });
-            });
-        });
-
-        menu.showAtPosition({x: e.x, y: e.y});
-    }
-
 </script>
 
 {#if item}
     <div class="is-clickable rss-tooltip rss-feed-item {(item.read) ? 'rss-read' : 'rss-not-read'}">
-        {#if (item.favorite)}
-            <IconComponent iconName="star"/>
-        {/if}
-        {#if (item.created)}
-            <IconComponent iconName="document"/>
-        {/if}
-        <a on:click={() => {
-                new ItemModal(plugin, item, items).open();
-                    }}
-           on:contextmenu={openMenu}
-           on:mouseover={toggleHover}
-           on:mouseleave={toggleHover}
-           on:focus={toggleHover}
-           href="/"
-        >
-            {item.title}
-        </a>
+        <ItemTitle plugin={plugin} item={item} items={items}
+                on:mouseover={toggleHover}
+                on:mouseleave={toggleHover}
+                on:focus={toggleHover}/>
 
         {#if item.tags.length > 0}
             <span>
@@ -86,5 +36,4 @@
             {/if}
         {/if}
     </div>
-
 {/if}

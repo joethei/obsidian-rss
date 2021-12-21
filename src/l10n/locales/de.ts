@@ -180,5 +180,7 @@ export default {
     from_archive: "Alte Artikel von archive.org lesen",
     reading_archive: "Daten werden aus Archiv geladen",
     scanning_duplicates: "Entferne Duplikate",
-    do_not_close: "Bitte dieses Fenster nicht schliesen"
+    do_not_close: "Bitte dieses Fenster nicht schliesen",
+
+    display_style: "Anzeige"
 }

@@ -34,7 +34,6 @@ export default class RssReaderPlugin extends Plugin {
 
     async onload(): Promise<void> {
         console.log('loading plugin rss reader');
-        new Notice(t("RSS_Reader") + ": Please check your settings, the default value for the date format had an error, the correct format for minutes is mm not MM",100000);
 
         addFeatherIcon("rss");
         addFeatherIcon("eye");
@@ -137,47 +136,49 @@ export default class RssReaderPlugin extends Plugin {
             this.saveSettings();
         });
 
-        feedsStore.subscribe((feeds: RssFeedContent[]) => {
-            //keep sorted store sorted when the items change.
-            const sorted = groupBy(feeds, "folder");
-            sortedFeedsStore.update(() => sorted);
-
-            let items: RssFeedItem[] = [];
-            for (const feed in Object.keys(feeds)) {
-                //@ts-ignore
-                const feedItems = feeds[feed].items;
-                items = items.concat(feedItems);
-            }
-
-            //collect all tags for auto completion
-            const tags: string[] = [];
-            for (const item of items) {
-                if(item !== undefined)
-                    tags.push(...item.tags);
-            }
-
-            //@ts-ignore
-            const fileTags = this.app.metadataCache.getTags();
-            for(const tag of Object.keys(fileTags)) {
-                tags.push(tag.replace('#', ''));
-            }
-            tagsStore.update(() => new Set<string>(tags.filter(tag => tag.length > 0)));
-
-            //collect all folders for auto-completion
-            const folders: string[] = [];
-            for (const item of items) {
-                if(item !== undefined)
-                    folders.push(item.folder);
-            }
-            folderStore.update(() => new Set<string>(folders.filter(folder => folder.length > 0)));
-
-            this.filterItems(items);
-        });
-
         this.app.workspace.onLayoutReady(async () => {
-            await this.updateFeeds();
             await this.migrateData();
             await this.initLeaf();
+            await this.updateFeeds();
+
+
+
+            feedsStore.subscribe((feeds: RssFeedContent[]) => {
+                //keep sorted store sorted when the items change.
+                const sorted = groupBy(feeds, "folder");
+                sortedFeedsStore.update(() => sorted);
+
+                let items: RssFeedItem[] = [];
+                for (const feed in Object.keys(feeds)) {
+                    //@ts-ignore
+                    const feedItems = feeds[feed].items;
+                    items = items.concat(feedItems);
+                }
+
+                //collect all tags for auto completion
+                const tags: string[] = [];
+                for (const item of items) {
+                    if(item !== undefined)
+                        tags.push(...item.tags);
+                }
+
+                //@ts-ignore
+                const fileTags = this.app.metadataCache.getTags();
+                for(const tag of Object.keys(fileTags)) {
+                    tags.push(tag.replace('#', ''));
+                }
+                tagsStore.update(() => new Set<string>(tags.filter(tag => tag.length > 0)));
+
+                //collect all folders for auto-completion
+                const folders: string[] = [];
+                for (const item of items) {
+                    if(item !== undefined)
+                        folders.push(item.folder);
+                }
+                folderStore.update(() => new Set<string>(folders.filter(folder => folder.length > 0)));
+
+                this.filterItems(items);
+            });
         });
     }
 
@@ -394,18 +395,29 @@ export default class RssReaderPlugin extends Plugin {
 
     async loadSettings(): Promise<void> {
         const configPath = this.app.vault.configDir + "/plugins/rss-reader/data.json";
+        let file: string;
         try {
-            JSON.parse(await this.app.vault.adapter.read(configPath));
+            file = await this.app.vault.adapter.read(configPath);
         } catch (e) {
-            console.log("RSS Reader: could not parse json, check if the plugins data.json is valid.");
             console.error(e);
-            new Notice(t("RSS_Reader") + " could not parse plugin data. If this message keeps showing up, check the console");
-            return Promise.resolve();
+        }
+
+        if(file !== undefined) {
+            try {
+                JSON.parse(file);
+            } catch (e) {
+                console.log("RSS Reader: could not parse json, check if the plugins data.json is valid.");
+                console.error(e);
+                new Notice(t("RSS_Reader") + " could not parse plugin data. If this message keeps showing up, check the console");
+                return Promise.resolve();
+            }
         }
 
         const data = await this.loadData();
         this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
-        this.settings.hotkeys = Object.assign({}, DEFAULT_SETTINGS.hotkeys, data.hotkeys);
+        if(data !== undefined && data !== null) {
+            this.settings.hotkeys = Object.assign({}, DEFAULT_SETTINGS.hotkeys, data.hotkeys);
+        }
         settingsStore.set(this.settings);
         configuredFeedsStore.set(this.settings.feeds);
         feedsStore.set(this.settings.items);
