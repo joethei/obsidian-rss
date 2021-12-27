@@ -33,7 +33,12 @@ export interface RssReaderSettings {
         next: string,
         previous: string,
     },
-    folded: string[]
+    folded: string[],
+    renamedText: {
+        filtered_folders: string,
+        folders: string,
+        no_folder: string,
+    }
 }
 
 export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
@@ -79,6 +84,11 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         previous: "ArrowLeft",
         next: "ArrowRight"
     },
-    folded: []
+    folded: [],
+    renamedText: {
+        filtered_folders: "",
+        folders: "",
+        no_folder: ""
+    }
 });
 

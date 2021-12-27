@@ -40,6 +40,7 @@ export interface RssFeedItem {
     tags: string[],
     hash: string,
     id: string,
+    highlights: string[],
 }
 
 /**
@@ -102,26 +103,26 @@ function getContent(element: Element | Document, names: string[]): string {
                 if (data.nodeName === elementName) {
                     //@ts-ignore
                     const tmp = data.getAttr(attr);
+                    console.log(tmp);
                     if (tmp.length > 0) {
                         value = tmp;
                     }
                 }
             }
-        }
-
-        const data = getElementByName(element, name);
-        if (data) {
-            //@ts-ignore
-            if (data.nodeValue && data.nodeValue.length > 0) {
-                value = data.nodeValue;
-            }
-            //@ts-ignore
-            if (data.innerHTML && data.innerHTML.length > 0) {
+        }else {
+            const data = getElementByName(element, name);
+            if (data) {
                 //@ts-ignore
-                value = data.innerHTML;
+                if (data.nodeValue && data.nodeValue.length > 0) {
+                    value = data.nodeValue;
+                }
+                //@ts-ignore
+                if (data.innerHTML && data.innerHTML.length > 0) {
+                    //@ts-ignore
+                    value = data.innerHTML;
+                }
             }
         }
-
     });
     if (value === undefined) {
         return "";
@@ -132,7 +133,7 @@ function getContent(element: Element | Document, names: string[]): string {
 function buildItem(element: Element): RssFeedItem {
     return {
         title: getContent(element, ["title"]),
-        description: getContent(element, ["description"]),
+        description: getContent(element, ["content", "content:encoded", "itunes:summary", "description", "summary", "media:description"]),
         content: getContent(element, ["itunes:summary", "description", "summary", "media:description", "content", "content:encoded"]),
         category: getContent(element, ["category"]),
         link: getContent(element, ["link", "link#href"]),
@@ -140,7 +141,7 @@ function buildItem(element: Element): RssFeedItem {
         pubDate: getContent(element, ["pubDate", "published", "updated", "dc:date"]),
         enclosure: getContent(element, ["enclosure#url", "yt:videoId"]),
         enclosureType: getContent(element, ["enclosure#type"]),
-        image: getContent(element, ["itunes:image#href"]),
+        image: getContent(element, ["enclosure#url", "media:content#url", "itunes:image#href", "media:thumbnail#url"]),
         id: getContent(element, ["id"]),
         language: null,
         folder: null,
@@ -150,6 +151,7 @@ function buildItem(element: Element): RssFeedItem {
         created: null,
         tags: [],
         hash: null,
+        highlights: []
     }
 }
 
@@ -173,8 +175,15 @@ function getAllItems(doc: Document): Element[] {
 }
 
 export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
-    const rawData = await request({url: feed.url});
-    const data = new window.DOMParser().parseFromString(rawData, "text/xml");
+    let data;
+    try {
+        const rawData = await request({url: feed.url});
+        data = new window.DOMParser().parseFromString(rawData, "text/xml");
+    }catch (e) {
+        console.error(e);
+        return Promise.resolve(undefined);
+    }
+
 
     const items: RssFeedItem[] = [];
     const rawItems = getAllItems(data);

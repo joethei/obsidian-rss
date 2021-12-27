@@ -131,6 +131,15 @@ function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderS
 
     result = result.replace(/{{tags}}/, item.tags.join(", "));
     result = result.replace(/{{#tags}}/, item.tags.map(i => '#' + i).join(", "));
+
+    result = result.replace(/{{highlights}}/, item.highlights.map(value => "- " + htmlToMarkdown(value)).join("\n"));
+    result = result.replace(/({{highlights:).*(}})/g, function (k) {
+        const value = k.split(":")[1];
+        const separator = value.substring(0, value.indexOf("}"));
+        return item.highlights.map(i => '' + i).join(separator);
+    });
+
+
     if(filename) {
         result = result.replace(/{{filename}}/g, filename);
     }

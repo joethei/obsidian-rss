@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {FilteredFolderContent, filteredItemsStore, foldedState, sortedFeedsStore} from "../stores";
+    import {FilteredFolderContent, filteredItemsStore, foldedState, settingsStore, sortedFeedsStore} from "../stores";
     import RssReaderPlugin from "../main";
     import IconComponent from "./IconComponent.svelte";
     import ItemView from "./ItemView.svelte";
@@ -94,7 +94,7 @@
 {#if !folded}
     <p>Loading</p>
 {:else}
-    <div>
+    <div class="rss-view">
         {#if $filteredItemsStore}
             <div class="rss-filtered-folders">
                 <div class="{folded.contains('rss-filters') ? 'is-collapsed' : ''} tree-item is-clickable"
@@ -105,7 +105,11 @@
                         {:else}
                             <IconComponent iconName="down-chevron-glyph"/>
                         {/if}
-                        <div>{t("filtered_folders")}</div>
+                        {#if ($settingsStore.renamedText.filtered_folders !== "")}
+                            <span>{$settingsStore.renamedText.filtered_folders}</span>
+                        {:else}
+                            <span>{t("filtered_folders")}</span>
+                        {/if}
                     </span>
                 </div>
 
@@ -189,7 +193,11 @@
                         {:else}
                             <IconComponent iconName="down-chevron-glyph"/>
                         {/if}
-                        <span>{t("folders")}</span>
+                        {#if ($settingsStore.renamedText.folders !== "")}
+                            <span>{$settingsStore.renamedText.folders}</span>
+                        {:else}
+                            <span>{t("folders")}</span>
+                        {/if}
                     </span>
                 </div>
 
@@ -206,7 +214,11 @@
                                 {:else}
                                     <IconComponent iconName="down-chevron-glyph"/>
                                 {/if}
-                                <span>{(folder) ? folder : t("no_folder")}</span>
+                                {#if folder}
+                                    <span>{folder}</span>
+                                {:else}
+                                    <span>{($settingsStore.renamedText.no_folder !== "") ? $settingsStore.renamedText.no_folder : t("no_folder")}</span>
+                                {/if}
                             </span>
 
                                 <div class="tree-item-children">

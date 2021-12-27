@@ -39,7 +39,6 @@ export default class RssReaderPlugin extends Plugin {
         addFeatherIcon("eye");
         addFeatherIcon("eye-off");
         addFeatherIcon("star");
-        addFeatherIcon("clipboard");
         addFeatherIcon("headphones");
         addFeatherIcon("upload");
         addFeatherIcon("trash");
@@ -276,7 +275,8 @@ export default class RssReaderPlugin extends Plugin {
         let result: RssFeedContent[] = [];
         for (const feed of this.settings.feeds) {
             const items = await getFeedItems(feed);
-            result.push(items);
+            if(items)
+                result.push(items);
         }
 
         const items = this.settings.items;

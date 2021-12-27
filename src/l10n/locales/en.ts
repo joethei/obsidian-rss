@@ -133,7 +133,7 @@ export default {
     syntax_looks: "Your current syntax looks like this: ",
 
     ask_filename: "Ask for filename",
-    ask_filename_help: "Disable to use title as filename(with invalid symbols removed)",
+    ask_filename_help: "Disable to apply the template below automatically(with invalid symbols removed)",
     refresh_time: "Refresh time",
     refresh_time_help: "How often should the feeds be refreshed, in minutes, use 0 to disable",
     specify_positive_number: "please specify a positive number",
@@ -182,6 +182,10 @@ export default {
     do_not_close: "Please do not close this window",
 
     display_style: "Display Style",
-    list: "List"
+    list: "List",
+    cards: "Cards",
+
+    customize_terms: "Customize Terms",
+    content: "Content"
 
 }

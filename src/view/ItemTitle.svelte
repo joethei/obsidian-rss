@@ -54,7 +54,6 @@
                 new ItemModal(plugin, item, items).open();
                     }}
    on:contextmenu={openMenu}
-   href="/"
 >
     {item.title}
 </a>

@@ -1,6 +1,5 @@
 import {RssFeed} from "../settings/settings";
 
-//not used currently, parser not fully implemented.
 export async function loadFeedsFromString(importData: string): Promise<RssFeed[]> {
     const rawData = new window.DOMParser().parseFromString(importData, "text/xml");
     const feeds: RssFeed[] = [];

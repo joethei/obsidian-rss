@@ -134,7 +134,7 @@ export default {
     syntax_looks: "So wird es aussehen: ",
 
     ask_filename: "Nach Dateiname fragen",
-    ask_filename_help: "Deaktivieren um Titel als Dateinamen zu verwenden(ohne ungültige Zeichen)",
+    ask_filename_help: "Deaktivieren um die Vorlage automatisch anzuwenden(ohne ungültige Zeichen)",
     refresh_time: "Aktualisierungsintervall",
     refresh_time_help: "Wie häufig soll auf neue Einträge überprüft werden(in Minuten), 0 zu deaktivieren",
     specify_positive_number: "Bitte eine positive Zahl angeben",

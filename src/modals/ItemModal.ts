@@ -1,11 +1,15 @@
 import {
-    ButtonComponent, htmlToMarkdown, MarkdownRenderer,
+    ButtonComponent,
+    htmlToMarkdown,
+    MarkdownRenderer,
+    Menu,
     Modal,
 } from "obsidian";
 import {RssFeedItem} from "../parser/rssParser";
 import RssReaderPlugin from "../main";
 import Action from "../actions/Action";
 import t from "../l10n/locale";
+import {copy} from "obsidian-community-lib";
 
 export class ItemModal extends Modal {
 
@@ -25,6 +29,7 @@ export class ItemModal extends Modal {
         this.item = item;
         this.save = save;
 
+
         if(this.save) {
             this.item.read = true;
 
@@ -32,6 +37,10 @@ export class ItemModal extends Modal {
             this.plugin.writeFeedContent(() => {
                 return feedContents;
             });
+
+            if(!this.plugin.settings) {
+                return;
+            }
 
             if (this.plugin.settings.hotkeys.read) {
                 this.scope.register([], this.plugin.settings.hotkeys.read, () => {
@@ -219,9 +228,11 @@ export class ItemModal extends Modal {
         nextButton.buttonEl.addClass("rss-button");
 
         const title = contentEl.createEl('h1', 'rss-title');
+        title.addClass("rss-selectable");
         title.setText(this.item.title);
 
         const subtitle = contentEl.createEl("h3", "rss-subtitle");
+        subtitle.addClass("rss-selectable");
         if (this.item.creator) {
             subtitle.appendText(this.item.creator);
         }
@@ -264,12 +275,108 @@ export class ItemModal extends Modal {
 
         if (this.item.content) {
             await MarkdownRenderer.renderMarkdown(htmlToMarkdown(this.item.content), content, "", this.plugin);
+
+            /*this.item.highlights.forEach(highlight => {
+                if (content.innerHTML.includes(highlight)) {
+                    const newNode = contentEl.createEl("mark");
+                    newNode.innerHTML = highlight;
+                    content.innerHTML = content.innerHTML.replace(highlight, newNode.outerHTML);
+                    newNode.remove();
+                }
+            });
+
+            content.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                const menu = new Menu(this.app);
+                menu
+                    .addItem(item => {
+                   item
+                       .setIcon("documents")
+                       .setTitle(t("copy_to_clipboard"))
+                       .onClick(async () => {
+                          await copy(document.getSelection().toString());
+                       });
+                }).addItem(item => {
+                        item
+                            .setIcon("highlight-glyph")
+                            .setTitle("Highlight")
+                            .onClick(async () => {
+                                const selection = document.getSelection();
+                                const range = selection.getRangeAt(0);
+
+                               if(selection.getRangeAt) {
+                                   const div = contentEl.createDiv();
+                                   const htmlContent = range.cloneContents();
+                                   const html = htmlContent.cloneNode(true);
+                                   html.childNodes.forEach(item => {
+                                       if(item.hasChildNodes()) {
+                                           item.childNodes.forEach(child => {
+                                               if(child.nodeType !== 3) {//if not text node
+
+                                                   //get text content
+                                                   const tmpEl = contentEl.createDiv();
+                                                   tmpEl.style.display = "hidden";
+                                                   const childCopy = child.cloneNode(true);
+                                                   tmpEl.appendChild(childCopy);
+                                                   const tmp = tmpEl.innerHTML;
+                                                   if(tmp.startsWith("<object")) {
+                                                       item.removeChild(child);
+                                                   }
+                                                   tmpEl.remove();
+                                               }
+                                           });
+                                       }
+                                   });
+                                   div.appendChild(html);
+                                   const selected = div.innerHTML;
+                                   div.remove();
+
+                                   const parent = range.startContainer.parentElement;
+
+                                   if(this.item.highlights.includes(selected)) {
+                                       const replacement = contentEl.createSpan();
+                                       replacement.innerHTML = parent.innerHTML;
+                                       parent.replaceWith(replacement);
+                                       this.item.highlights.remove(selected);
+                                   }else {
+                                       const newNode = contentEl.createEl("mark");
+                                       newNode.innerHTML = selected;
+                                       range.deleteContents();
+                                       range.insertNode(newNode);
+                                       this.item.highlights.push(selected);
+                                   }
+                               }
+                            });
+                    });
+
+                //@ts-ignore
+                if (this.app.plugins.plugins["obsidian-tts"]) {
+                    menu.addItem(item => {
+                       item
+                           .setIcon("feather-headphones")
+                           .setTitle(t("read_article_tts"))
+                           .onClick(() => {
+                               //@ts-ignore
+                               const tts = this.app.plugins.plugins["obsidian-tts"].ttsService;
+                               tts.say("", document.getSelection().toString());
+                           });
+                    });
+                }
+
+
+                menu.showAtMouseEvent(event);
+            });*/
         }
     }
 
-    onClose(): void {
+    async onClose() : Promise<void> {
         const {contentEl} = this;
         contentEl.empty();
+
+        const feedContents = this.plugin.settings.items;
+        await this.plugin.writeFeedContent(() => {
+            return feedContents;
+        });
     }
 
     async onOpen(): Promise<void> {

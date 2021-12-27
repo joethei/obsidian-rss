@@ -16,7 +16,7 @@ export default class Action {
         return pasteToNote(plugin, item);
     });
 
-    static COPY = new Action(t("copy_to_clipboard"), "feather-clipboard", ((_, item) : Promise<void> => {
+    static COPY = new Action(t("copy_to_clipboard"), "documents", ((_, item) : Promise<void> => {
         return copy(htmlToMarkdown(item.content));
     }));
 

@@ -48,8 +48,9 @@ Plugin for [Obsidian](https://obsidian.md)
 - `{{feed}}` the name of the feed
 - `{{filename}}` the filename, only available in the new file template
 - `{{tags}}` - tags, seperated by comma, you can also specify a seperator like this: `{{tags:;}}`
-- `{{#tags}}` - tags with, seperated by comma, with #, you can also specify a seperator like this: `{{#tags:;}}`
+- `{{#tags}}` - tags with #, seperated by comma, with #, you can also specify a seperator like this: `{{#tags:;}}`
 - `{{media}}` link to media
+- `{{highlights}}` - list of highlights, specify a style with the following syntax `{{hightlights:-$\n}}`
 
 ## Styling
 If you want to style the plugin differently you can use the following css classes

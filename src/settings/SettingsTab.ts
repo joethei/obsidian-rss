@@ -50,7 +50,8 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             `<strong>{{feed}}</strong> → Title of feed<br>` +
             `<strong>{{filename}}</strong> → Filename<br>` +
             `<strong>{{tags}}</strong> → Tags split by comma<br>` +
-            `<strong>{{media}}</strong> → Link to video/audio file`;
+            `<strong>{{media}}</strong> → Link to video/audio file<br>` +
+            `<strong>{{highlights}}</strong> → Highlights`;
 
         new Setting(containerEl)
             .setName(t("template_new"))
@@ -80,7 +81,8 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
             `<strong>{{folder}}</strong> → Folder of feed<br>` +
             `<strong>{{feed}}</strong> → Title of feed<br>` +
             `<strong>{{tags}}</strong> → Tags split by comma<br>` +
-            `<strong>{{media}}</strong> → Link to video/audio file`;
+            `<strong>{{media}}</strong> → Link to video/audio file<br>` +
+            `<strong>{{highlights}}</strong> → Highlights`
 
         new Setting(containerEl)
             .setName(t("template_paste"))
@@ -249,23 +251,24 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                     });
             });
 
-        new Setting(containerEl)
+        /*new Setting(containerEl)
             .setName(t("display_style"))
             .addDropdown(dropdown => {
                 return dropdown
-                    .setValue(this.plugin.settings.displayStyle)
                     .addOption("list", t("list"))
+                    .addOption("cards", t("cards"))
+                    .setValue(this.plugin.settings.displayStyle)
                     .onChange(async (value) => {
                         await this.plugin.writeSettings(() => ({
                             displayStyle: value
                         }));
                     });
-            });
+            });*/
+
+        containerEl.createEl("h2", {text: t("content")});
 
         const filterContainer = containerEl.createDiv("filter-container");
         displayFilterSettings(this.plugin, filterContainer);
-
-        containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
 
         const feedsContainer = containerEl.createDiv(
             "feed-container"
@@ -276,5 +279,65 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         const hotkeyContainer = containerEl.createDiv("hotkey-container");
         displayHotkeys(this.plugin, hotkeyContainer);
+
+        containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
+
+        const details = containerEl.createEl("details");
+        const summary = details.createEl("summary");
+        summary.setText(t("advanced"));
+        const advanced = details.createDiv("advanced");
+
+        advanced.createEl("h3", {text: t("customize_terms")});
+        advanced.createSpan({text: "Change a few selected terms here. You can help translating the plugin "});
+        advanced.createEl("a", {text: "here", href: "https://github.com/joethei/obsidian-rss/tree/master/src/l10n"});
+
+        new Setting(advanced)
+            .setName(t("folders"))
+            .addText(text => {
+                text
+                    .setPlaceholder(t("folders"))
+                    .setValue(this.plugin.settings.renamedText.folders)
+                    .onChange(async value => {
+                        await this.plugin.writeSettings(() => ({
+                            renamedText: {
+                                ...this.plugin.settings.renamedText,
+                                folders: value
+                            }
+                        }));
+                    });
+            });
+
+        new Setting(advanced)
+            .setName(t("filtered_folders"))
+            .addText(text => {
+                text
+                    .setPlaceholder(t("filtered_folders"))
+                    .setValue(this.plugin.settings.renamedText.filtered_folders)
+                    .onChange(async value => {
+                        await this.plugin.writeSettings(() => ({
+                            renamedText: {
+                                ...this.plugin.settings.renamedText,
+                                filtered_folders: value
+                            }
+                        }));
+                    });
+            });
+
+        new Setting(advanced)
+            .setName(t("no_folder"))
+            .addText(text => {
+                text
+                    .setPlaceholder(t("no_folder"))
+                    .setValue(this.plugin.settings.renamedText.no_folder)
+                    .onChange(async value => {
+                        await this.plugin.writeSettings(() => ({
+                            renamedText: {
+                                ...this.plugin.settings.renamedText,
+                                no_folder: value
+                            }
+                        }));
+                    });
+            });
+
     }
 }

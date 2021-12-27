@@ -118,13 +118,14 @@ function displayFeedList(plugin: RssReaderPlugin, container: HTMLElement, disabl
                                     feeds.remove(oldFeed);
                                     feeds.push({name: modal.name, url: modal.url, folder: modal.folder});
 
-                                    const items = plugin.settings.items;
+                                    let items = plugin.settings.items;
 
                                     //make sure this data is transferred to the new entry, or this will cause a lot
                                     //of chaos when renaming, like putting entries into the wrong feed.
-                                    items.filter((content) => {
+                                    items = items.filter((content) => {
                                         return content.name === oldFeed.name && content.folder === oldFeed.folder;
-                                    }).forEach((content) => {
+                                    });
+                                    items.forEach((content) => {
                                         content.name = modal.name;
                                         content.folder = modal.folder;
                                         content.hash = <string>new Md5().appendStr(modal.name).appendStr(modal.folder).end();
