@@ -8,6 +8,7 @@
     import Action from "../actions/Action";
     import {RssFeedItem} from "../parser/rssParser";
     import t from "../l10n/locale";
+    import TopRowButtons from "./TopRowButtons.svelte";
 
     export let plugin: RssReaderPlugin;
 
@@ -90,6 +91,8 @@
     }
 
 </script>
+
+<TopRowButtons plugin={plugin}/>
 
 {#if !folded}
     <p>Loading</p>

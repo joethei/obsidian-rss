@@ -103,7 +103,6 @@ function getContent(element: Element | Document, names: string[]): string {
                 if (data.nodeName === elementName) {
                     //@ts-ignore
                     const tmp = data.getAttr(attr);
-                    console.log(tmp);
                     if (tmp.length > 0) {
                         value = tmp;
                     }
@@ -200,6 +199,10 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
             item.created = false;
             item.language = language;
             item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
+
+            if(!item.image && feed.url.contains("youtube.com/feeds")) {
+                item.image = "https://i3.ytimg.com/vi/" + item.id.split(":")[2] + "/hqdefault.jpg";
+            }
 
             items.push(item);
         }

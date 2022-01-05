@@ -3,7 +3,7 @@ import {ButtonComponent, Notice, Setting} from "obsidian";
 import {FilteredFolderModal} from "../modals/FilteredFolderModal";
 import RssReaderPlugin from "../main";
 
-export function displayFilterSettings(plugin: RssReaderPlugin, containerEl: HTMLElement) {
+export function displayFilterSettings(plugin: RssReaderPlugin, containerEl: HTMLElement) : void {
 
     containerEl.empty();
 
@@ -34,6 +34,9 @@ export function displayFilterSettings(plugin: RssReaderPlugin, containerEl: HTML
                                         filterFolders: modal.filterFolders,
                                         filterTags: modal.filterTags,
                                         favorites: modal.favorites,
+                                        ignoreFolders: modal.ignoreFolders,
+                                        ignoreFeeds: modal.ignoreFeeds,
+                                        ignoreTags: modal.ignoreTags,
                                         read: modal.read,
                                         unread: modal.unread,
                                     }
@@ -102,6 +105,9 @@ export function displayFilterSettings(plugin: RssReaderPlugin, containerEl: HTML
                                     filterFeeds: modal.filterFeeds,
                                     filterFolders: modal.filterFolders,
                                     filterTags: modal.filterTags,
+                                    ignoreFolders: modal.ignoreFolders,
+                                    ignoreFeeds: modal.ignoreFeeds,
+                                    ignoreTags: modal.ignoreTags,
                                     favorites: modal.favorites,
                                     read: modal.read,
                                     unread: modal.unread,

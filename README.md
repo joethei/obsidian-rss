@@ -50,7 +50,8 @@ Plugin for [Obsidian](https://obsidian.md)
 - `{{tags}}` - tags, seperated by comma, you can also specify a seperator like this: `{{tags:;}}`
 - `{{#tags}}` - tags with #, seperated by comma, with #, you can also specify a seperator like this: `{{#tags:;}}`
 - `{{media}}` link to media
-- `{{highlights}}` - list of highlights, specify a style with the following syntax `{{hightlights:-$\n}}`
+- `{{highlights}}` - list of highlights, you can also specify a custom style, this example creates a [admonition](https://github.com/valentine195/obsidian-admonition) for each highlight:
+    ![](https://i.joethei.space/obsidian-rss-highlight-syntax.png)
 
 ## Styling
 If you want to style the plugin differently you can use the following css classes

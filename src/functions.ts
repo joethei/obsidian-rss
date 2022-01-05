@@ -129,22 +129,37 @@ function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderS
         return item.tags.map(i => '#' + i).join(separator);
     });
 
-    result = result.replace(/{{tags}}/, item.tags.join(", "));
-    result = result.replace(/{{#tags}}/, item.tags.map(i => '#' + i).join(", "));
+    result = result.replace(/{{tags}}/g, item.tags.join(", "));
+    result = result.replace(/{{#tags}}/g, item.tags.map(i => '#' + i).join(", "));
 
-    result = result.replace(/{{highlights}}/, item.highlights.map(value => "- " + htmlToMarkdown(value)).join("\n"));
-    result = result.replace(/({{highlights:).*(}})/g, function (k) {
-        const value = k.split(":")[1];
-        const separator = value.substring(0, value.indexOf("}"));
-        return item.highlights.map(i => '' + i).join(separator);
+
+
+    result = result.replace(/{{highlights}}/g, item.highlights.map(value => {
+        //remove all - from the start of a highlight
+        return "- " + htmlToMarkdown(removeFormatting(value).replace(/^(-+)/, ""))
+    }).join("\n"));
+
+    result = result.replace(/({{highlights:)[\s\S][^}]*(}})/g, function (k) {
+        const value = k.split(/(:[\s\S]?)/);
+        const tmp = value.slice(1).join("");
+        const template = tmp.substring(1, tmp.indexOf("}"));
+        return item.highlights.map(i => {
+            return template.replace(/%%highlight%%/g, htmlToMarkdown(removeFormatting(i)).replace(/^(-+)/, ""));
+        }).join("");
     });
-
 
     if(filename) {
         result = result.replace(/{{filename}}/g, filename);
     }
 
     let content = htmlToMarkdown(item.content);
+
+
+    item.highlights.forEach(highlight => {
+       const mdHighlight = htmlToMarkdown(highlight);
+       content = content.replace(mdHighlight, "==" + mdHighlight + "==");
+    });
+
 
     /*
     fixes #48
@@ -154,9 +169,31 @@ function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderS
     */
     content = content.replace(/\$/g, "$$$");
 
+
     result = result.replace(/{{content}}/g, content);
 
     return result;
+}
+
+function removeFormatting(html: string) : string {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const elements = doc.querySelectorAll("html body a");
+    for (let i = 0; i < elements.length; i++) {
+        const el = elements.item(i) as HTMLAnchorElement;
+        if(el.dataset) {
+            Object.keys(el.dataset).forEach(key => {
+                delete el.dataset[key];
+            });
+        }
+    }
+
+    const objects = doc.querySelectorAll("object");
+    for (let i = 0; i <objects.length; i++) {
+        const object = objects.item(i) as HTMLObjectElement;
+        object.remove();
+    }
+
+    return doc.documentElement.innerHTML;
 }
 
 export function openInBrowser(item: RssFeedItem) : void {

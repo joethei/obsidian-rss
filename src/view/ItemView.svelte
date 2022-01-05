@@ -4,7 +4,6 @@
     import HtmlTooltip from "./HtmlTooltip.svelte";
     import ItemTitle from "./ItemTitle.svelte";
     import {settingsStore} from "../stores";
-    import {htmlToMarkdown, MarkdownRenderer} from "obsidian";
     import MarkdownContent from "./MarkdownContent.svelte";
 
     export let plugin: RssReaderPlugin = null;
@@ -47,6 +46,13 @@
                                on:mouseover={toggleHover}
                                on:mouseleave={toggleHover}
                                on:focus={toggleHover}/>
+                    {#if item.tags.length > 0}
+            <span>
+                {#each item.tags as tag}
+                    &nbsp;<a class="tag rss-tag" href="#{tag}">{tag}</a>
+                {/each}
+            </span>
+            {/if}
                 </span>
 
 

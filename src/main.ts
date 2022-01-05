@@ -85,20 +85,20 @@ export default class RssReaderPlugin extends Plugin {
         });
 
         this.addCommand({
-           id: 'rss-open-feed',
+            id: 'rss-open-feed',
             name: "Open Feed from URL",
             callback: async () => {
-              const input = new TextInputPrompt(this.app, "URL", "URL", "", "", t("open"));
-              await input.openAndGetValue(async (text) => {
-                  const items = await getFeedItems({name: "", folder: "", url: text.getValue()});
-                  if(!items || items.items.length === 0) {
-                      input.setValidationError(text, t("invalid_feed"));
-                      return;
-                  }
+                const input = new TextInputPrompt(this.app, "URL", "URL", "", "", t("open"));
+                await input.openAndGetValue(async (text) => {
+                    const items = await getFeedItems({name: "", folder: "", url: text.getValue()});
+                    if (!items || items.items.length === 0) {
+                        input.setValidationError(text, t("invalid_feed"));
+                        return;
+                    }
 
-                  input.close();
-                  new ArticleSuggestModal(this, items.items).open();
-              });
+                    input.close();
+                    new ArticleSuggestModal(this, items.items).open();
+                });
             }
         });
 
@@ -141,7 +141,6 @@ export default class RssReaderPlugin extends Plugin {
             await this.updateFeeds();
 
 
-
             feedsStore.subscribe((feeds: RssFeedContent[]) => {
                 //keep sorted store sorted when the items change.
                 const sorted = groupBy(feeds, "folder");
@@ -157,13 +156,13 @@ export default class RssReaderPlugin extends Plugin {
                 //collect all tags for auto completion
                 const tags: string[] = [];
                 for (const item of items) {
-                    if(item !== undefined)
+                    if (item !== undefined)
                         tags.push(...item.tags);
                 }
 
                 //@ts-ignore
                 const fileTags = this.app.metadataCache.getTags();
-                for(const tag of Object.keys(fileTags)) {
+                for (const tag of Object.keys(fileTags)) {
                     tags.push(tag.replace('#', ''));
                 }
                 tagsStore.update(() => new Set<string>(tags.filter(tag => tag.length > 0)));
@@ -171,7 +170,7 @@ export default class RssReaderPlugin extends Plugin {
                 //collect all folders for auto-completion
                 const folders: string[] = [];
                 for (const item of items) {
-                    if(item !== undefined)
+                    if (item !== undefined)
                         folders.push(item.folder);
                 }
                 folderStore.update(() => new Set<string>(folders.filter(folder => folder.length > 0)));
@@ -187,28 +186,62 @@ export default class RssReaderPlugin extends Plugin {
             // @ts-ignore
             const sortOrder = SortOrder[filter.sortOrder];
             let filteredItems: RssFeedItem[];
-            filteredItems = items.filter((item) => {
-                return item.read === filter.read || item.read !== filter.unread;
-            });
-            if(filter.favorites) {
-            filteredItems = filteredItems.filter((item) => {
+
+            if (filter.read && filter.unread) {
+                filteredItems = items.filter((item) => {
+                    return item.read === filter.read || item.read !== filter.unread;
+                });
+            } else if (filter.read) {
+                filteredItems = items.filter((item) => {
+                    return item.read;
+                });
+            } else if (filter.unread) {
+                filteredItems = items.filter((item) => {
+                    return !item.read;
+                });
+            }
+
+
+            if (filter.favorites) {
+                filteredItems = filteredItems.filter((item) => {
                     return item.favorite === filter.favorites;
                 });
             }
-            if(filter.filterFolders.length > 0) {
+
+            if (filter.filterFolders.length > 0) {
                 filteredItems = filteredItems.filter((item) => {
-                   filter.filterFolders.includes(item.folder);
+                    return filter.filterFolders.includes(item.folder);
                 });
             }
-            if(filter.filterFeeds.length > 0) {
+            if (filter.ignoreFolders.length > 0) {
                 filteredItems = filteredItems.filter((item) => {
-                    filter.filterFeeds.includes(item.feed);
+                    return !filter.ignoreFolders.includes(item.folder);
                 });
             }
-            if(filter.filterTags.length > 0) {
+
+            if (filter.filterFeeds.length > 0) {
+                filteredItems = filteredItems.filter((item) => {
+                    return filter.filterFeeds.includes(item.feed);
+                });
+            }
+            if (filter.ignoreFeeds.length > 0) {
+                filteredItems = filteredItems.filter((item) => {
+                    return !filter.ignoreFeeds.includes(item.feed);
+                });
+            }
+
+            if (filter.filterTags.length > 0) {
                 filteredItems = filteredItems.filter((item) => {
                     for (const tag of filter.filterTags) {
-                        if(!item.tags.contains(tag)) return false;
+                        if (!item.tags.contains(tag)) return false;
+                    }
+                    return true;
+                });
+            }
+            if (filter.ignoreTags.length > 0) {
+                filteredItems = filteredItems.filter((item) => {
+                    for (const tag of filter.ignoreTags) {
+                        if (item.tags.contains(tag)) return false;
                     }
                     return true;
                 });
@@ -221,7 +254,7 @@ export default class RssReaderPlugin extends Plugin {
     }
 
     sortItems(items: RssFeedItem[], sortOrder: SortOrder): RssFeedItem[] {
-        if(!items) return items;
+        if (!items) return items;
         if (sortOrder === SortOrder.ALPHABET_NORMAL) {
             return items.sort((a, b) => a.title.localeCompare(b.title));
         }
@@ -275,27 +308,27 @@ export default class RssReaderPlugin extends Plugin {
         let result: RssFeedContent[] = [];
         for (const feed of this.settings.feeds) {
             const items = await getFeedItems(feed);
-            if(items)
+            if (items)
                 result.push(items);
         }
 
         const items = this.settings.items;
         for (const feed of items) {
-            if(feed.hash === undefined || feed.hash === "") {
+            if (feed.hash === undefined || feed.hash === "") {
                 feed.hash = <string>new Md5().appendStr(feed.name).appendStr(feed.folder).end();
             }
             for (const item of feed.items) {
-                if(item.folder !== feed.folder || item.feed !== feed.name) {
+                if (item.folder !== feed.folder || item.feed !== feed.name) {
                     feed.items.remove(item);
                 }
-                if(item.hash === undefined) {
+                if (item.hash === undefined) {
                     item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
                 }
             }
         }
 
         result = mergeWith(result, items, customizer);
-        new  Notice(t("refreshed_feeds"));
+        new Notice(t("refreshed_feeds"));
         await this.writeFeedContent(() => result);
     }
 
@@ -319,8 +352,25 @@ export default class RssReaderPlugin extends Plugin {
         const configPath = this.app.vault.configDir + "/plugins/rss-reader/data.json";
         const config = JSON.parse(await this.app.vault.adapter.read(configPath));
 
-        if(config.filtered.length === 0) return;
-        if(config.filtered[0].filterType === undefined) return;
+        if (config.filtered.length === 0) return;
+
+        if (config.filtered[0].ignoreFolders === undefined) {
+            new Notice("RSS Reader: migrating data");
+            console.log("RSS Reader: adding ignored fields to filters");
+
+            for (const filter of config.filtered) {
+                filter.ignoreTags = [];
+                filter.ignoreFolders = [];
+                filter.ignoreFeeds = [];
+
+            }
+            await this.app.vault.adapter.write(configPath, JSON.stringify(config));
+            await this.loadSettings();
+            new Notice("RSS Reader: data has been migrated");
+        }
+
+        if (config.filtered[0].filterType === undefined) return;
+
 
         new Notice("RSS Reader: migrating data");
 
@@ -333,18 +383,21 @@ export default class RssReaderPlugin extends Plugin {
                 read: false,
                 unread: false,
                 sortOrder: filter.sortOrder,
-                name: filter.name
+                name: filter.name,
+                ignoreFolders: [],
+                ignoreFeeds: [],
+                ignoreTags: [],
             };
 
-            if(filter.filterType === "FAVORITES") newFilter.favorites = true;
-            if(filter.filterType === "READ") newFilter.read = true;
-            if(filter.filterType === "UNREAD") newFilter.unread = true;
-            if(filter.filterType === "TAGS") {
-                if(filter.filterContent !== "") {
+            if (filter.filterType === "FAVORITES") newFilter.favorites = true;
+            if (filter.filterType === "READ") newFilter.read = true;
+            if (filter.filterType === "UNREAD") newFilter.unread = true;
+            if (filter.filterType === "TAGS") {
+                if (filter.filterContent !== "") {
                     newFilter.filterTags = filter.filterContent.split(",");
                 }
-            }else {
-                if(filter.filterContent !== "") {
+            } else {
+                if (filter.filterContent !== "") {
                     newFilter.filterFolders = filter.filterContent.split(",");
                 }
             }
@@ -402,7 +455,7 @@ export default class RssReaderPlugin extends Plugin {
             console.error(e);
         }
 
-        if(file !== undefined) {
+        if (file !== undefined) {
             try {
                 JSON.parse(file);
             } catch (e) {
@@ -415,7 +468,7 @@ export default class RssReaderPlugin extends Plugin {
 
         const data = await this.loadData();
         this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
-        if(data !== undefined && data !== null) {
+        if (data !== undefined && data !== null) {
             this.settings.hotkeys = Object.assign({}, DEFAULT_SETTINGS.hotkeys, data.hotkeys);
         }
         settingsStore.set(this.settings);

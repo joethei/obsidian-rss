@@ -1,6 +1,5 @@
 import {
     App,
-    ButtonComponent,
     DropdownComponent,
     MomentFormatComponent,
     Notice,
@@ -14,7 +13,6 @@ import {
 import RssReaderPlugin from "../main";
 import t from "../l10n/locale";
 import {FolderSuggest} from "./FolderSuggestor";
-import {FilteredFolderModal} from "../modals/FilteredFolderModal";
 import {displayFeedSettings} from "./FeedSettings";
 import {DEFAULT_SETTINGS} from "./settings";
 import {displayHotkeys} from "./HotkeySettings";
@@ -251,7 +249,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                     });
             });
 
-        /*new Setting(containerEl)
+        new Setting(containerEl)
             .setName(t("display_style"))
             .addDropdown(dropdown => {
                 return dropdown
@@ -263,7 +261,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                             displayStyle: value
                         }));
                     });
-            });*/
+            });
 
         containerEl.createEl("h2", {text: t("content")});
 

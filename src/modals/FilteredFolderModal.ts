@@ -23,8 +23,11 @@ export enum SortOrder {
 export interface FilteredFolder{
     name: string;
     filterTags: string[];
+    ignoreTags: string[];
     filterFolders: string[];
+    ignoreFolders: string[];
     filterFeeds: string[];
+    ignoreFeeds: string[];
     sortOrder: string;
     read: boolean;
     unread: boolean;
@@ -35,9 +38,12 @@ export class FilteredFolderModal extends BaseModal {
     plugin: RssReaderPlugin;
 
     name: string;
-    filterFolders: string[] = [];
     filterTags: string[] = [];
+    ignoreTags: string[] = [];
+    filterFolders: string[] = [];
+    ignoreFolders: string[] = [];
     filterFeeds: string[] = [];
+    ignoreFeeds: string[] = [];
     sortOrder: string;
     read: boolean;
     unread: boolean;
@@ -53,8 +59,11 @@ export class FilteredFolderModal extends BaseModal {
             this.name = folder.name;
             this.sortOrder = folder.sortOrder;
             this.filterTags = folder.filterTags;
+            this.ignoreTags = folder.ignoreTags;
             this.filterFolders = folder.filterFolders;
+            this.ignoreFolders = folder.ignoreFolders;
             this.filterFeeds = folder.filterFeeds;
+            this.ignoreFeeds = folder.ignoreFeeds;
             this.read = folder.read;
             this.unread = folder.unread;
             this.favorites = folder.favorites;
@@ -176,6 +185,52 @@ export class FilteredFolderModal extends BaseModal {
             });
         newFolder.controlEl.addClass("rss-setting-input");
 
+        foldersDiv.createEl("p", {text: t("filter_folder_ignore_help")});
+
+        //ignore folders
+        for (const folder in this.ignoreFolders) {
+            new Setting(foldersDiv)
+                .addSearch(async (search: SearchComponent) => {
+                    new ArraySuggest(this.app, search.inputEl, get(folderStore));
+                    search
+                        .setValue(this.ignoreFolders[folder])
+                        .onChange(async (value: string) => {
+                            this.removeValidationError(search);
+                            this.ignoreFolders = this.ignoreFolders.filter(e => e !== this.ignoreFolders[folder]);
+                            this.ignoreFolders.push(value);
+                        });
+                })
+                .addExtraButton((button) => {
+                    button
+                        .setTooltip(t("delete"))
+                        .setIcon("feather-trash")
+                        .onClick(() => {
+                            this.ignoreFolders = this.ignoreFolders.filter(e => e !== this.ignoreFolders[folder]);
+                            this.display();
+                        });
+
+                });
+        }
+
+        let folderIgnoreValue = "";
+        const newIgnoreFolder = new Setting(foldersDiv)
+            .addSearch(async (search: SearchComponent) => {
+                new ArraySuggest(this.app, search.inputEl, get(folderStore));
+                search
+                    .onChange(async (value: string) => {
+                        folderIgnoreValue = value;
+                    });
+            }).addExtraButton(button => {
+                button
+                    .setTooltip(t("add"))
+                    .setIcon("feather-plus")
+                    .onClick(() => {
+                        this.ignoreFolders.push(folderIgnoreValue);
+                        this.display();
+                    });
+            });
+        newIgnoreFolder.controlEl.addClass("rss-setting-input");
+
 
         //feeds
         const feedsDiv = contentEl.createDiv("feeds");
@@ -230,6 +285,52 @@ export class FilteredFolderModal extends BaseModal {
                     });
             });
         newFeed.controlEl.addClass("rss-setting-input");
+
+        feedsDiv.createEl("p", {text: t("filter_feed_ignore_help")});
+
+        //ignore feeds
+        for (const folder in this.ignoreFeeds) {
+            new Setting(feedsDiv)
+                .addSearch(async (search: SearchComponent) => {
+                    new ArraySuggest(this.app, search.inputEl, new Set(feeds));
+                    search
+                        .setValue(this.ignoreFeeds[folder])
+                        .onChange(async (value: string) => {
+                            this.removeValidationError(search);
+                            this.ignoreFeeds = this.ignoreFeeds.filter(e => e !== this.ignoreFeeds[folder]);
+                            this.ignoreFeeds.push(value);
+                        });
+                })
+                .addExtraButton((button) => {
+                    button
+                        .setTooltip(t("delete"))
+                        .setIcon("feather-trash")
+                        .onClick(() => {
+                            this.ignoreFeeds = this.ignoreFeeds.filter(e => e !== this.ignoreFeeds[folder]);
+                            this.display();
+                        });
+
+                });
+        }
+
+        let feedIgnoreValue = "";
+        const newIgnoreFeed = new Setting(feedsDiv)
+            .addSearch(async (search: SearchComponent) => {
+                new ArraySuggest(this.app, search.inputEl, new Set(feeds));
+                search
+                    .onChange(async (value: string) => {
+                        feedIgnoreValue = value;
+                    });
+            }).addExtraButton(button => {
+                button
+                    .setTooltip(t("add"))
+                    .setIcon("feather-plus")
+                    .onClick(() => {
+                        this.ignoreFeeds.push(feedIgnoreValue);
+                        this.display();
+                    });
+            });
+        newIgnoreFeed.controlEl.addClass("rss-setting-input");
 
         //tags
         const tagDiv = contentEl.createDiv("tags");
@@ -293,6 +394,68 @@ export class FilteredFolderModal extends BaseModal {
             });
         newTag.controlEl.addClass("rss-setting-input");
 
+        tagDiv.createEl("p", {text: t("filter_tags_ignore_help")});
+
+        for (const tag in this.ignoreTags) {
+            new Setting(tagDiv)
+                .addSearch(async (search: SearchComponent) => {
+                    new ArraySuggest(this.app, search.inputEl, get(tagsStore));
+                    search
+                        .setValue(this.ignoreTags[tag])
+                        .onChange(async (value: string) => {
+                            this.removeValidationError(search);
+                            if (!value.match(TAG_REGEX) || value.match(NUMBER_REGEX) || value.contains(" ") || value.contains('#')) {
+                                this.setValidationError(search, t("invalid_tag"));
+                                return;
+                            }
+                            this.ignoreTags = this.ignoreTags.filter(e => e !== this.ignoreTags[tag]);
+                            this.ignoreTags.push(value);
+                        });
+                })
+                .addExtraButton((button) => {
+                    button
+                        .setTooltip(t("delete"))
+                        .setIcon("feather-trash")
+                        .onClick(() => {
+                            this.ignoreTags = this.ignoreTags.filter(e => e !== this.ignoreTags[tag]);
+                            this.display();
+                        });
+
+                });
+        }
+
+        let ignoreTagValue = "";
+        let ignoreTagComponent: SearchComponent;
+        const newTagIgnore = new Setting(tagDiv)
+            .addSearch(async (search: SearchComponent) => {
+                ignoreTagComponent = search;
+                new ArraySuggest(this.app, search.inputEl, get(tagsStore));
+                search
+                    .onChange(async (value: string) => {
+                        if (!value.match(TAG_REGEX) || value.match(NUMBER_REGEX) || value.contains(" ") || value.contains('#')) {
+                            this.setValidationError(search, t("invalid_tag"));
+                            return;
+                        }
+                        ignoreTagValue = value;
+                    });
+            }).addExtraButton(button => {
+                button
+                    .setTooltip(t("add"))
+                    .setIcon("feather-plus")
+                    .onClick(() => {
+                        if (!ignoreTagValue.match(TAG_REGEX) || ignoreTagValue.match(NUMBER_REGEX) || ignoreTagValue.contains(" ") || ignoreTagValue.contains('#')) {
+                            this.setValidationError(ignoreTagComponent, t("invalid_tag"));
+                            return;
+                        }
+                        this.ignoreTags.push(ignoreTagValue);
+                        this.display();
+                    });
+            });
+        newTagIgnore.controlEl.addClass("rss-setting-input");
+
+
+        //save & cancel
+
         const footerEl = contentEl.createDiv();
         const footerButtons = new Setting(footerEl);
         footerButtons.addButton((b) => {
@@ -324,6 +487,8 @@ export class FilteredFolderModal extends BaseModal {
             return b;
         });
     }
+
+
 
     async onOpen() : Promise<void> {
         await this.display();

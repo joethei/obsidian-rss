@@ -22,7 +22,7 @@ export class ItemModal extends Modal {
     private readButton: ButtonComponent;
     private favoriteButton: ButtonComponent;
 
-    constructor(plugin: RssReaderPlugin, item: RssFeedItem, items: RssFeedItem[], save= true) {
+    constructor(plugin: RssReaderPlugin, item: RssFeedItem, items: RssFeedItem[], save = true) {
         super(plugin.app);
         this.plugin = plugin;
         this.items = items;
@@ -30,7 +30,7 @@ export class ItemModal extends Modal {
         this.save = save;
 
 
-        if(this.save) {
+        if (this.save) {
             this.item.read = true;
 
             const feedContents = this.plugin.settings.items;
@@ -38,7 +38,7 @@ export class ItemModal extends Modal {
                 return feedContents;
             });
 
-            if(!this.plugin.settings) {
+            if (!this.plugin.settings) {
                 return;
             }
 
@@ -85,12 +85,12 @@ export class ItemModal extends Modal {
             });
         }
 
-        if(this.plugin.settings.hotkeys.next) {
+        if (this.plugin.settings.hotkeys.next) {
             this.scope.register([], this.plugin.settings.hotkeys.next, () => {
                 this.next();
             });
         }
-        if(this.plugin.settings.hotkeys.previous) {
+        if (this.plugin.settings.hotkeys.previous) {
             this.scope.register([], this.plugin.settings.hotkeys.previous, () => {
                 this.previous();
             });
@@ -116,25 +116,25 @@ export class ItemModal extends Modal {
         }
     }
 
-    previous() : void {
+    previous(): void {
         let index = this.items.findIndex((item) => {
             return item === this.item;
         });
         index++;
         const item = this.items[index];
-        if(item !== undefined) {
+        if (item !== undefined) {
             this.close();
             new ItemModal(this.plugin, item, this.items, this.save).open();
         }
     }
 
-    next() : void {
+    next(): void {
         let index = this.items.findIndex((item) => {
             return item === this.item;
         });
         index--;
         const item = this.items[index];
-        if(item !== undefined) {
+        if (item !== undefined) {
             this.close();
             new ItemModal(this.plugin, item, this.items, this.save).open();
         }
@@ -165,7 +165,7 @@ export class ItemModal extends Modal {
 
         let actions = Array.of(Action.CREATE_NOTE, Action.PASTE, Action.COPY, Action.OPEN);
 
-        if(this.save) {
+        if (this.save) {
             this.readButton = new ButtonComponent(topButtons)
                 .setIcon(this.item.read ? 'feather-eye-off' : 'feather-eye')
                 .setTooltip(this.item.read ? t("mark_as_unread") : t("mark_as_read"))
@@ -215,7 +215,7 @@ export class ItemModal extends Modal {
             .setIcon("left-arrow-with-tail")
             .setTooltip(t("previous"))
             .onClick(() => {
-               this.previous();
+                this.previous();
             });
         prevButton.buttonEl.addClass("rss-button");
 
@@ -276,100 +276,113 @@ export class ItemModal extends Modal {
         if (this.item.content) {
             await MarkdownRenderer.renderMarkdown(htmlToMarkdown(this.item.content), content, "", this.plugin);
 
-            /*this.item.highlights.forEach(highlight => {
+            this.item.highlights.forEach(highlight => {
                 if (content.innerHTML.includes(highlight)) {
                     const newNode = contentEl.createEl("mark");
                     newNode.innerHTML = highlight;
                     content.innerHTML = content.innerHTML.replace(highlight, newNode.outerHTML);
                     newNode.remove();
+                } else {
+                    console.log("Highlight not included");
+                    console.log(highlight);
                 }
             });
 
             content.addEventListener('contextmenu', (event) => {
                 event.preventDefault();
+
+                const selection = document.getSelection();
+                const range = selection.getRangeAt(0);
+
+                const div = contentEl.createDiv();
+                const htmlContent = range.cloneContents();
+                const html = htmlContent.cloneNode(true);
+                div.appendChild(html);
+                const selected = div.innerHTML;
+                div.remove();
+
                 const menu = new Menu(this.app);
-                menu
-                    .addItem(item => {
-                   item
-                       .setIcon("documents")
-                       .setTitle(t("copy_to_clipboard"))
-                       .onClick(async () => {
-                          await copy(document.getSelection().toString());
-                       });
-                }).addItem(item => {
+
+                let previousHighlight: HTMLElement;
+                if (this.item.highlights.includes(range.startContainer.parentElement.innerHTML)) {
+                    previousHighlight = range.startContainer.parentElement;
+                }
+                if (this.item.highlights.includes(range.startContainer.parentElement.parentElement.innerHTML)) {
+                    previousHighlight = range.startContainer.parentElement.parentElement;
+                }
+
+                if(previousHighlight) {
+                    menu.addItem(item => {
                         item
                             .setIcon("highlight-glyph")
-                            .setTitle("Highlight")
+                            .setTitle(t("highlight_remove"))
                             .onClick(async () => {
-                                const selection = document.getSelection();
-                                const range = selection.getRangeAt(0);
+                                const replacement = contentEl.createSpan();
+                                replacement.innerHTML = previousHighlight.innerHTML;
+                                previousHighlight.replaceWith(replacement);
+                                this.item.highlights.remove(previousHighlight.innerHTML);
 
-                               if(selection.getRangeAt) {
-                                   const div = contentEl.createDiv();
-                                   const htmlContent = range.cloneContents();
-                                   const html = htmlContent.cloneNode(true);
-                                   html.childNodes.forEach(item => {
-                                       if(item.hasChildNodes()) {
-                                           item.childNodes.forEach(child => {
-                                               if(child.nodeType !== 3) {//if not text node
-
-                                                   //get text content
-                                                   const tmpEl = contentEl.createDiv();
-                                                   tmpEl.style.display = "hidden";
-                                                   const childCopy = child.cloneNode(true);
-                                                   tmpEl.appendChild(childCopy);
-                                                   const tmp = tmpEl.innerHTML;
-                                                   if(tmp.startsWith("<object")) {
-                                                       item.removeChild(child);
-                                                   }
-                                                   tmpEl.remove();
-                                               }
-                                           });
-                                       }
-                                   });
-                                   div.appendChild(html);
-                                   const selected = div.innerHTML;
-                                   div.remove();
-
-                                   const parent = range.startContainer.parentElement;
-
-                                   if(this.item.highlights.includes(selected)) {
-                                       const replacement = contentEl.createSpan();
-                                       replacement.innerHTML = parent.innerHTML;
-                                       parent.replaceWith(replacement);
-                                       this.item.highlights.remove(selected);
-                                   }else {
-                                       const newNode = contentEl.createEl("mark");
-                                       newNode.innerHTML = selected;
-                                       range.deleteContents();
-                                       range.insertNode(newNode);
-                                       this.item.highlights.push(selected);
-                                   }
-                               }
+                                const feedContents = this.plugin.settings.items;
+                                await this.plugin.writeFeedContent(() => {
+                                    return feedContents;
+                                });
                             });
                     });
-
-                //@ts-ignore
-                if (this.app.plugins.plugins["obsidian-tts"]) {
+                }else if(!this.item.highlights.includes(selected) && selected.length > 0) {
                     menu.addItem(item => {
-                       item
-                           .setIcon("feather-headphones")
-                           .setTitle(t("read_article_tts"))
-                           .onClick(() => {
-                               //@ts-ignore
-                               const tts = this.app.plugins.plugins["obsidian-tts"].ttsService;
-                               tts.say("", document.getSelection().toString());
-                           });
+                        item
+                            .setIcon("highlight-glyph")
+                            .setTitle(t("highlight"))
+                            .onClick(async () => {
+                                const newNode = contentEl.createEl("mark");
+                                newNode.innerHTML = selected;
+                                range.deleteContents();
+                                range.insertNode(newNode);
+                                this.item.highlights.push(selected);
+
+                                const feedContents = this.plugin.settings.items;
+                                await this.plugin.writeFeedContent(() => {
+                                    return feedContents;
+                                });
+
+                                //cleaning up twice to remove nested elements
+                                this.removeDanglingElements(contentEl);
+                                this.removeDanglingElements(contentEl);
+                            });
                     });
                 }
 
+                if(selected.length > 0) {
+                    menu
+                        .addItem(item => {
+                            item
+                                .setIcon("documents")
+                                .setTitle(t("copy_to_clipboard"))
+                                .onClick(async () => {
+                                    await copy(selection.toString());
+                                });
+                        });
+                    //@ts-ignore
+                    if (this.app.plugins.plugins["obsidian-tts"]) {
+                        menu.addItem(item => {
+                            item
+                                .setIcon("feather-headphones")
+                                .setTitle(t("read_article_tts"))
+                                .onClick(() => {
+                                    //@ts-ignore
+                                    const tts = this.app.plugins.plugins["obsidian-tts"].ttsService;
+                                    tts.say("", selection.toString());
+                                });
+                        });
+                    }
+                }
 
                 menu.showAtMouseEvent(event);
-            });*/
+            });
         }
     }
 
-    async onClose() : Promise<void> {
+    async onClose(): Promise<void> {
         const {contentEl} = this;
         contentEl.empty();
 
@@ -382,4 +395,16 @@ export class ItemModal extends Modal {
     async onOpen(): Promise<void> {
         await this.display();
     }
+
+    removeDanglingElements(el: HTMLElement) : void {
+        //remove all dangling elements
+        const lists = el.querySelectorAll('li, a, div, p, span');
+        for (let i = 0; i < lists.length; i++) {
+            const listEL = lists.item(i);
+            if(listEL.innerHTML === '') {
+                listEL.remove();
+            }
+        }
+    }
+
 }

@@ -186,6 +186,11 @@ export default {
     cards: "Cards",
 
     customize_terms: "Customize Terms",
-    content: "Content"
+    content: "Content",
+    highlight: "Highlight",
+    highlight_remove: "remove highlight",
 
+    filter_folder_ignore_help: "ignore the following folders",
+    filter_feed_ignore_help: "ignore the following feeds",
+    filter_tags_ignore_help: "ignore the following tags"
 }

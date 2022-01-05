@@ -5,6 +5,7 @@
     export let iconName: String = "";
 
     const icon = (node: HTMLElement, icon: string) => {
+
         setIcon(node, icon);
     }
 

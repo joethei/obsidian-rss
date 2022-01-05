@@ -51,11 +51,14 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         filterTags: [],
         filterFolders: [],
         filterFeeds: [],
+        ignoreTags: [],
+        ignoreFeeds: [],
+        ignoreFolders: [],
         favorites: true,
         sortOrder: "ALPHABET_NORMAL"
     }],
     saveLocation: 'default',
-    displayStyle: 'list',
+    displayStyle: 'cards',
     saveLocationFolder: '',
     items: [],
     dateFormat: "YYYY-MM-DDTHH:mm:SS",
@@ -65,7 +68,10 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         "published: {{published}}\n" +
         "tags: [{{tags:,}}]\n" +
         "---\n" +
-        "{{title}}\n" +
+        "# Highlights\n" +
+        "{{highlights}}\n\n" +
+        "---\n" +
+        "# {{title}}\n" +
         "{{content}}",
     pasteTemplate: "## {{title}}\n" +
         "{{content}}",

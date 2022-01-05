@@ -112,6 +112,16 @@ input.is-invalid {
     background: var(--background-secondary);
 }
 
-mark li {
-    background: var(--text-highlight-bg);
+/*making sure both highlight styles look consistent*/
+.rss-modal li mark {
+    background-color: var(--text-highlight-bg);
+}
+
+
+.rss-modal mark li {
+    background-color: var(--text-highlight-bg);
+}
+
+.rss-modal mark {
+    background-color: var(--text-highlight-bg);
 }

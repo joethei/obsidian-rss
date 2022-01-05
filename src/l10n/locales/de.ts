@@ -182,5 +182,16 @@ export default {
     scanning_duplicates: "Entferne Duplikate",
     do_not_close: "Bitte dieses Fenster nicht schliesen",
 
-    display_style: "Anzeige"
+    display_style: "Anzeige",
+    list: "List",
+    cards: "Karten",
+
+    customize_terms: "Begriffe anpassen",
+    content: "Inhalt",
+    highlight: "Markieren",
+    highlight_remove: "Markierung entfernen",
+
+    filter_folder_ignore_help: "diese Ordner ignorieren",
+    filter_feed_ignore_help: "diese Feeds ignorieren",
+    filter_tags_ignore_help: "diese Tags ignorieren"
 }
