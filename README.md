@@ -24,6 +24,12 @@ Plugin for [Obsidian](https://obsidian.md)
 
 ![Demo GIF](https://i.joethei.space/QQATWu36eC.gif)
 
+## Getting Started
+
+After installing the plugin:
+
+- Go to the plugin configuration and add a feed (under the *Content* section).
+- In Obsidian, expand the right hand pane and click the RSS tab.
 
 ## Finding the RSS feed for a website
 
