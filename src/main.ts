@@ -173,7 +173,7 @@ export default class RssReaderPlugin extends Plugin {
                     if (item !== undefined)
                         folders.push(item.folder);
                 }
-                folderStore.update(() => new Set<string>(folders.filter(folder => folder.length > 0)));
+                folderStore.update(() => new Set<string>(folders.filter(folder => folder !== undefined && folder.length > 0)));
 
                 this.filterItems(items);
             });
@@ -315,7 +315,7 @@ export default class RssReaderPlugin extends Plugin {
         const items = this.settings.items;
         for (const feed of items) {
             if (feed.hash === undefined || feed.hash === "") {
-                feed.hash = <string>new Md5().appendStr(feed.name).appendStr(feed.folder).end();
+                feed.hash = <string>new Md5().appendStr(feed.name).appendStr(feed.folder ? feed.folder : "no-folder").end();
             }
             for (const item of feed.items) {
                 if (item.folder !== feed.folder || item.feed !== feed.name) {
@@ -351,6 +351,18 @@ export default class RssReaderPlugin extends Plugin {
     async migrateData(): Promise<void> {
         const configPath = this.app.vault.configDir + "/plugins/rss-reader/data.json";
         const config = JSON.parse(await this.app.vault.adapter.read(configPath));
+
+        for(const feed of config.feeds) {
+            if(feed.folder === undefined) {
+                feed.folder = "";
+            }
+        }
+        for(const feed of config.items) {
+            if(feed.folder === undefined) {
+                feed.folder = "";
+            }
+        }
+        await this.app.vault.adapter.write(configPath, JSON.stringify(config));
 
         if (config.filtered.length === 0) return;
 

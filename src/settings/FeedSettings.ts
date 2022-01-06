@@ -39,7 +39,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
                                 plugin.settings.feeds.concat({
                                         name: modal.name,
                                         url: modal.url,
-                                        folder: modal.folder
+                                        folder: modal.folder ? modal.folder : ""
                                     }
                                 )));
                             displayFeedSettings(plugin, container);
@@ -116,7 +116,11 @@ function displayFeedList(plugin: RssReaderPlugin, container: HTMLElement, disabl
                                 if (modal.saved) {
                                     const feeds = plugin.settings.feeds;
                                     feeds.remove(oldFeed);
-                                    feeds.push({name: modal.name, url: modal.url, folder: modal.folder});
+                                    feeds.push({
+                                        name: modal.name,
+                                        url: modal.url,
+                                        folder: modal.folder ? modal.folder : ""
+                                    });
 
                                     let items = plugin.settings.items;
 
@@ -131,7 +135,7 @@ function displayFeedList(plugin: RssReaderPlugin, container: HTMLElement, disabl
                                         content.hash = <string>new Md5().appendStr(modal.name).appendStr(modal.folder).end();
                                         content.items.forEach(item => {
                                             item.feed = modal.name;
-                                            item.folder = modal.folder;
+                                            item.folder = modal.folder ? modal.folder : "";
                                             item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
                                         });
                                     });
