@@ -55,14 +55,13 @@
             {/if}
                 </span>
 
-
                 <div class="rss-card-items">
-                    <div class="rss-item">
+                    <div class="rss-item-image">
                         {#if item.image && !item.image.includes(".mp3")}
                             <img src={item.image} width="250em" alt="Article">
                         {/if}
                     </div>
-                    <div class="rss-item">
+                    <div class="rss-item-text">
                         {#if item.description}
                             <MarkdownContent content={item.description}/>
                         {/if}

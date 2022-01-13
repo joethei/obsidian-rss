@@ -4,7 +4,10 @@ import {Md5} from "ts-md5";
 
 /**
  * parser for .rss files, build from scratch
- * because I could not find a parser that works on mobile and is up to date.
+ * because I could not find a parser that
+ * - works on mobile
+ * - is up-to-date
+ * - works for multiple different interpretations of the rss spec
  */
 
 export interface RssFeedContent {
@@ -44,6 +47,7 @@ export interface RssFeedItem {
 }
 
 /**
+ * return the node with the specified name
  * : to get namespaced element
  * . to get nested element
  * @param element
@@ -51,22 +55,36 @@ export interface RssFeedItem {
  */
 function getElementByName(element: Element | Document, name: string): ChildNode {
     let value: ChildNode;
-    if (typeof element.getElementsByTagName !== 'function') {
+    if (typeof element.getElementsByTagName !== 'function' && typeof element.getElementsByTagNameNS !== 'function') {
+        //the required methods do not exist on element, aborting
         return;
     }
 
     if (name.contains(":")) {
         const [namespace, tag] = name.split(":");
         const namespaceUri = element.lookupNamespaceURI(namespace);
-        if (element.getElementsByTagNameNS(namespaceUri, tag).length > 0) {
-            value = element.getElementsByTagNameNS(namespaceUri, tag)[0].childNodes[0];
+        const byNamespace = element.getElementsByTagNameNS(namespaceUri, tag);
+        if (byNamespace.length > 0) {
+            value = byNamespace[0].childNodes[0];
+        } else {
+            //there is no element in that namespace, probably because no namespace has been defined
+            const tmp = element.getElementsByTagName(name);
+            if (tmp.length > 0) {
+                if (tmp[0].childNodes.length === 0) {
+                    value = tmp[0];
+                } else {
+                    const node = tmp[0].childNodes[0];
+                    if (node !== undefined) {
+                        value = node;
+                    }
+                }
+            }
         }
 
     } else if (name.contains(".")) {
         const [prefix, tag] = name.split(".");
         if (element.getElementsByTagName(prefix).length > 0) {
             const nodes = Array.from(element.getElementsByTagName(prefix)[0].childNodes);
-
             nodes.forEach((node) => {
                 if (node.nodeName == tag) {
                     value = node;
@@ -74,15 +92,13 @@ function getElementByName(element: Element | Document, name: string): ChildNode 
             });
         }
 
-    } else {
-        if (element.getElementsByTagName(name).length > 0) {
-            if (element.getElementsByTagName(name)[0].childNodes.length == 0) {
-                value = element.getElementsByTagName(name)[0];
-            } else {
-                const node = element.getElementsByTagName(name)[0].childNodes[0];
-                if (node !== undefined)
-                    value = node;
-            }
+    } else if (element.getElementsByTagName(name).length > 0) {
+        if (element.getElementsByTagName(name)[0].childNodes.length == 0) {
+            value = element.getElementsByTagName(name)[0];
+        } else {
+            const node = element.getElementsByTagName(name)[0].childNodes[0];
+            if (node !== undefined)
+                value = node;
         }
     }
     return value;
@@ -90,12 +106,13 @@ function getElementByName(element: Element | Document, name: string): ChildNode 
 
 /**
  * # to get attribute
+ * Always returns the last found value for names
  * @param element
  * @param names possible names
  */
 function getContent(element: Element | Document, names: string[]): string {
     let value: string;
-    names.forEach((name) => {
+    for (let name of names) {
         if (name.contains("#")) {
             const [elementName, attr] = name.split("#");
             const data = getElementByName(element, elementName);
@@ -108,7 +125,7 @@ function getContent(element: Element | Document, names: string[]): string {
                     }
                 }
             }
-        }else {
+        } else {
             const data = getElementByName(element, name);
             if (data) {
                 //@ts-ignore
@@ -116,13 +133,13 @@ function getContent(element: Element | Document, names: string[]): string {
                     value = data.nodeValue;
                 }
                 //@ts-ignore
-                if (data.innerHTML && data.innerHTML.length > 0) {
+                else if (data.innerHTML && data.innerHTML.length > 0) {
                     //@ts-ignore
                     value = data.innerHTML;
                 }
             }
         }
-    });
+    }
     if (value === undefined) {
         return "";
     }
@@ -133,7 +150,7 @@ function buildItem(element: Element): RssFeedItem {
     return {
         title: getContent(element, ["title"]),
         description: getContent(element, ["content", "content:encoded", "itunes:summary", "description", "summary", "media:description"]),
-        content: getContent(element, ["itunes:summary", "description", "summary", "media:description", "content", "content:encoded"]),
+        content: getContent(element, ["itunes:summary", "description", "summary", "media:description", "content", "content:encoded", "ns0:encoded"]),
         category: getContent(element, ["category"]),
         link: getContent(element, ["link", "link#href"]),
         creator: getContent(element, ["creator", "dc:creator", "author", "author.name"]),
@@ -178,7 +195,7 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
     try {
         const rawData = await request({url: feed.url});
         data = new window.DOMParser().parseFromString(rawData, "text/xml");
-    }catch (e) {
+    } catch (e) {
         console.error(e);
         return Promise.resolve(undefined);
     }
@@ -200,14 +217,13 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
             item.language = language;
             item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
 
-            if(!item.image && feed.url.contains("youtube.com/feeds")) {
+            if (!item.image && feed.url.contains("youtube.com/feeds")) {
                 item.image = "https://i3.ytimg.com/vi/" + item.id.split(":")[2] + "/hqdefault.jpg";
             }
 
             items.push(item);
         }
     })
-
     const image = getContent(data, ["image", "image.url", "icon"]);
 
     const content: RssFeedContent = {

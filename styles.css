@@ -95,9 +95,11 @@ input.is-invalid {
     padding-top: 10px;
 }
 
-.rss-card-items .rss-item {
+.rss-card-items .rss-item-text {
     padding-left: 5px;
     text-overflow: ellipsis;
+    overflow: hidden;
+    max-height: 10em;
 }
 
 .rss-item-title {
