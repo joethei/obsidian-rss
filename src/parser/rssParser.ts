@@ -112,7 +112,7 @@ function getElementByName(element: Element | Document, name: string): ChildNode 
  */
 function getContent(element: Element | Document, names: string[]): string {
     let value: string;
-    for (let name of names) {
+    for (const name of names) {
         if (name.contains("#")) {
             const [elementName, attr] = name.split("#");
             const data = getElementByName(element, elementName);
