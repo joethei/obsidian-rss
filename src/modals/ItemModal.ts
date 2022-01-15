@@ -10,6 +10,7 @@ import RssReaderPlugin from "../main";
 import Action from "../actions/Action";
 import t from "../l10n/locale";
 import {copy} from "obsidian-community-lib";
+import {rssToMd} from "../functions";
 
 export class ItemModal extends Modal {
 
@@ -274,7 +275,10 @@ export class ItemModal extends Modal {
         }
 
         if (this.item.content) {
-            await MarkdownRenderer.renderMarkdown(htmlToMarkdown(this.item.content), content, "", this.plugin);
+            //prepend empty yaml to fix rendering errors
+            const markdown = "---\n----" + rssToMd(this.plugin, this.item.content);
+
+            await MarkdownRenderer.renderMarkdown(markdown, content, "", this.plugin);
 
             this.item.highlights.forEach(highlight => {
                 if (content.innerHTML.includes(highlight)) {

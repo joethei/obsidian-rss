@@ -15,7 +15,7 @@ export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) 
         dir = plugin.settings.saveLocationFolder;
     }
 
-    let filename = applyTemplate(item, plugin.settings.defaultFilename, plugin.settings);
+    let filename = applyTemplate(plugin, item, plugin.settings.defaultFilename);
     //make sure there are no slashes in the title.
     filename = filename.replace(/[\/\\:]/g, ' ');
 
@@ -52,7 +52,7 @@ async function createNewFile(plugin: RssReaderPlugin, item: RssFeedItem, path: s
         return;
     }
 
-    const appliedTemplate = applyTemplate(item, plugin.settings.template, plugin.settings, title);
+    const appliedTemplate = applyTemplate(plugin, item, plugin.settings.template, title);
 
     const file = await plugin.app.vault.create(path, appliedTemplate);
 
@@ -78,7 +78,7 @@ export async function pasteToNote(plugin: RssReaderPlugin, item: RssFeedItem) : 
 
     const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
     if (view) {
-        const appliedTemplate = applyTemplate(item, plugin.settings.pasteTemplate, plugin.settings);
+        const appliedTemplate = applyTemplate(plugin, item, plugin.settings.pasteTemplate);
 
         const editor = view.editor;
         editor.replaceRange(appliedTemplate, editor.getCursor());
@@ -93,13 +93,13 @@ export async function pasteToNote(plugin: RssReaderPlugin, item: RssFeedItem) : 
     }
 }
 
-function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderSettings, filename?: string) : string {
+function applyTemplate(plugin: RssReaderPlugin, item: RssFeedItem, template: string, filename?: string) : string {
     let result = template.replace(/{{title}}/g, item.title);
     result = result.replace(/{{link}}/g, item.link);
     result = result.replace(/{{author}}/g, item.creator);
-    result = result.replace(/{{published}}/g, moment(item.pubDate).format(settings.dateFormat));
-    result = result.replace(/{{created}}/g, moment().format(settings.dateFormat));
-    result = result.replace(/{{date}}/g, moment().format(settings.dateFormat));
+    result = result.replace(/{{published}}/g, moment(item.pubDate).format(plugin.settings.dateFormat));
+    result = result.replace(/{{created}}/g, moment().format(plugin.settings.dateFormat));
+    result = result.replace(/{{date}}/g, moment().format(plugin.settings.dateFormat));
     result = result.replace(/{{feed}}/g, item.feed);
     result = result.replace(/{{folder}}/g, item.folder);
     result = result.replace(/{{description}}/g, item.description);
@@ -136,7 +136,7 @@ function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderS
 
     result = result.replace(/{{highlights}}/g, item.highlights.map(value => {
         //remove all - from the start of a highlight
-        return "- " + htmlToMarkdown(removeFormatting(value).replace(/^(-+)/, ""))
+        return "- " + rssToMd(plugin, removeFormatting(value).replace(/^(-+)/, ""))
     }).join("\n"));
 
     result = result.replace(/({{highlights:)[\s\S][^}]*(}})/g, function (k) {
@@ -144,7 +144,7 @@ function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderS
         const tmp = value.slice(1).join("");
         const template = tmp.substring(1, tmp.indexOf("}"));
         return item.highlights.map(i => {
-            return template.replace(/%%highlight%%/g, htmlToMarkdown(removeFormatting(i)).replace(/^(-+)/, ""));
+            return template.replace(/%%highlight%%/g, rssToMd(plugin, removeFormatting(i)).replace(/^(-+)/, ""));
         }).join("");
     });
 
@@ -152,7 +152,7 @@ function applyTemplate(item: RssFeedItem, template: string, settings: RssReaderS
         result = result.replace(/{{filename}}/g, filename);
     }
 
-    let content = htmlToMarkdown(item.content);
+    let content = rssToMd(plugin, item.content);
 
 
     item.highlights.forEach(highlight => {
@@ -200,4 +200,20 @@ export function openInBrowser(item: RssFeedItem) : void {
     if (typeof item.link === "string") {
         window.open(item.link, '_blank');
     }
+}
+
+export function rssToMd(plugin: RssReaderPlugin, content: string) {
+    let markdown = htmlToMarkdown(content);
+
+    //wrap dataview codeblocks to mitigate possible XSS
+    markdown = markdown.replace(/^```(?:dataview|dataviewjs)\n([\s\S]*?)```$/gm, "<pre>$&</pre>");
+
+    //wrap dataview inline code(only the default settings)
+    markdown = markdown.replace(/`=.*`/g, "<pre>$&</pre>")
+    markdown = markdown.replace(/`\$=.*`/g, "<pre>$&</pre>")
+
+    //wrap templater commands
+    markdown = markdown.replace(/<%([\s\S]*?)%>/g, "```javascript\n$&\n```");
+
+    return markdown;
 }
