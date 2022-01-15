@@ -225,5 +225,5 @@ export function rssToMd(plugin: RssReaderPlugin, content: string): string {
 }
 
 function escapeRegExp(string: string) {
-    return string.replace(/\$/g, '$$$$');
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
