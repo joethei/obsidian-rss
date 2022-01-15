@@ -1,17 +1,16 @@
-import {RssFeedItem} from "./parser/rssParser";
-import {htmlToMarkdown, MarkdownView, normalizePath, Notice, TextComponent, moment} from "obsidian";
-import {TextInputPrompt} from "./modals/TextInputPrompt";
-import {FILE_NAME_REGEX} from "./consts";
-import {isInVault} from "obsidian-community-lib";
+import { RssFeedItem } from "./parser/rssParser";
+import { htmlToMarkdown, MarkdownView, normalizePath, Notice, TextComponent, moment } from "obsidian";
+import { TextInputPrompt } from "./modals/TextInputPrompt";
+import { FILE_NAME_REGEX } from "./consts";
+import { isInVault } from "obsidian-community-lib";
 import RssReaderPlugin from "./main";
-import {RssReaderSettings} from "./settings/settings";
 import t from "./l10n/locale";
 
-export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) : Promise<void> {
+export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem): Promise<void> {
     const activeFile = plugin.app.workspace.getActiveFile();
     let dir = plugin.app.fileManager.getNewFileParent(activeFile ? activeFile.path : "").path;
 
-    if(plugin.settings.saveLocation === "custom") {
+    if (plugin.settings.saveLocation === "custom") {
         dir = plugin.settings.saveLocationFolder;
     }
 
@@ -19,12 +18,12 @@ export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) 
     //make sure there are no slashes in the title.
     filename = filename.replace(/[\/\\:]/g, ' ');
 
-    if(plugin.settings.askForFilename) {
+    if (plugin.settings.askForFilename) {
         const inputPrompt = new TextInputPrompt(plugin.app, t("specify_name"), t("cannot_contain") + " * \" \\ / < > : | ?", filename, filename);
         await inputPrompt
             .openAndGetValue(async (text: TextComponent) => {
                 const value = text.getValue();
-                if(value.match(FILE_NAME_REGEX)) {
+                if (value.match(FILE_NAME_REGEX)) {
                     inputPrompt.setValidationError(text, t("invalid_filename"));
                     return;
                 }
@@ -37,7 +36,7 @@ export async function createNewNote(plugin: RssReaderPlugin, item: RssFeedItem) 
                 inputPrompt.close();
                 await createNewFile(plugin, item, filePath, value);
             });
-    }else {
+    } else {
         const replacedTitle = filename.replace(FILE_NAME_REGEX, '');
         const filePath = normalizePath([dir, `${replacedTitle}.md`].join('/'));
         await createNewFile(plugin, item, filePath, item.title);
@@ -57,7 +56,7 @@ async function createNewFile(plugin: RssReaderPlugin, item: RssFeedItem, path: s
     const file = await plugin.app.vault.create(path, appliedTemplate);
 
     await plugin.app.workspace.activeLeaf.openFile(file, {
-        state: {mode: 'edit'},
+        state: { mode: 'edit' },
     });
 
     item.created = true;
@@ -69,7 +68,7 @@ async function createNewFile(plugin: RssReaderPlugin, item: RssFeedItem, path: s
     new Notice(t("created_note"));
 }
 
-export async function pasteToNote(plugin: RssReaderPlugin, item: RssFeedItem) : Promise<void> {
+export async function pasteToNote(plugin: RssReaderPlugin, item: RssFeedItem): Promise<void> {
     const file = plugin.app.workspace.getActiveFile();
     if (file === null) {
         new Notice(t("no_file_active"));
@@ -93,7 +92,7 @@ export async function pasteToNote(plugin: RssReaderPlugin, item: RssFeedItem) : 
     }
 }
 
-function applyTemplate(plugin: RssReaderPlugin, item: RssFeedItem, template: string, filename?: string) : string {
+function applyTemplate(plugin: RssReaderPlugin, item: RssFeedItem, template: string, filename?: string): string {
     let result = template.replace(/{{title}}/g, item.title);
     result = result.replace(/{{link}}/g, item.link);
     result = result.replace(/{{author}}/g, item.creator);
@@ -148,7 +147,7 @@ function applyTemplate(plugin: RssReaderPlugin, item: RssFeedItem, template: str
         }).join("");
     });
 
-    if(filename) {
+    if (filename) {
         result = result.replace(/{{filename}}/g, filename);
     }
 
@@ -156,8 +155,8 @@ function applyTemplate(plugin: RssReaderPlugin, item: RssFeedItem, template: str
 
 
     item.highlights.forEach(highlight => {
-       const mdHighlight = htmlToMarkdown(highlight);
-       content = content.replace(mdHighlight, "==" + mdHighlight + "==");
+        const mdHighlight = htmlToMarkdown(highlight);
+        content = content.replace(mdHighlight, "==" + mdHighlight + "==");
     });
 
 
@@ -175,12 +174,12 @@ function applyTemplate(plugin: RssReaderPlugin, item: RssFeedItem, template: str
     return result;
 }
 
-function removeFormatting(html: string) : string {
+function removeFormatting(html: string): string {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const elements = doc.querySelectorAll("html body a");
     for (let i = 0; i < elements.length; i++) {
         const el = elements.item(i) as HTMLAnchorElement;
-        if(el.dataset) {
+        if (el.dataset) {
             Object.keys(el.dataset).forEach(key => {
                 delete el.dataset[key];
             });
@@ -188,7 +187,7 @@ function removeFormatting(html: string) : string {
     }
 
     const objects = doc.querySelectorAll("object");
-    for (let i = 0; i <objects.length; i++) {
+    for (let i = 0; i < objects.length; i++) {
         const object = objects.item(i) as HTMLObjectElement;
         object.remove();
     }
@@ -196,24 +195,35 @@ function removeFormatting(html: string) : string {
     return doc.documentElement.innerHTML;
 }
 
-export function openInBrowser(item: RssFeedItem) : void {
+export function openInBrowser(item: RssFeedItem): void {
     if (typeof item.link === "string") {
         window.open(item.link, '_blank');
     }
 }
 
-export function rssToMd(plugin: RssReaderPlugin, content: string) {
+export function rssToMd(plugin: RssReaderPlugin, content: string): string {
+
     let markdown = htmlToMarkdown(content);
 
-    //wrap dataview codeblocks to mitigate possible XSS
-    markdown = markdown.replace(/^```(?:dataview|dataviewjs)\n([\s\S]*?)```$/gm, "<pre>$&</pre>");
-
-    //wrap dataview inline code(only the default settings)
-    markdown = markdown.replace(/`=.*`/g, "<pre>$&</pre>")
-    markdown = markdown.replace(/`\$=.*`/g, "<pre>$&</pre>")
-
-    //wrap templater commands
-    markdown = markdown.replace(/<%([\s\S]*?)%>/g, "```javascript\n$&\n```");
+    //If dataview is installed
+    if ((plugin.app as any).plugins.plugins.dataview) {
+        //wrap dataview codeblocks to mitigate possible XSS
+        markdown = markdown.replace(/^```(?:dataview|dataviewjs)\n([\s\S]*?)```$/gm, "<pre>$&</pre>");
+        
+        //wrap dataview inline code
+        const { inlineQueryPrefix, inlineJsQueryPrefix } = (plugin.app as any).plugins.plugins.dataview.api as { [key: string]: string };
+        markdown = markdown.replace(RegExp(`\`${escapeRegExp(inlineQueryPrefix)}.*\``, 'g'), "<pre>$&</pre>");
+        markdown = markdown.replace(RegExp(`\`${escapeRegExp(inlineJsQueryPrefix)}.*\``, 'g'), "<pre>$&</pre>");
+    }
+    //If templater is installed
+    if ((plugin.app as any).plugins.plugins["templater-obsidian"]) {
+        //wrap templater commands
+        markdown = markdown.replace(/<%([\s\S]*?)%>/g, "```javascript\n$&\n```");
+    }
 
     return markdown;
+}
+
+function escapeRegExp(string: string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
