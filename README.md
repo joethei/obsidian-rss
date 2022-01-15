@@ -59,6 +59,13 @@ After installing the plugin:
 - `{{highlights}}` - list of highlights, you can also specify a custom style, this example creates a [admonition](https://github.com/valentine195/obsidian-admonition) for each highlight:
     ![](https://i.joethei.space/obsidian-rss-highlight-syntax.png)
 
+## ⚠ Security
+- This plugin contacts the servers that host the RSS feeds you have specified.
+- RSS feeds can contain arbitrary data, this data will get sanitized before being displayed.
+- Many Obsidian plugins use codeblocks to add some functionality. This plugin sanitizes these codeblocks at read/note creation time. This is to block rss feeds from executing arbitrary plugin code.
+- Some plugins allow for different kinds of inline syntax's, these are treated individually (Currently only _Dataview_ and _Templater_).
+
+
 ## Styling
 If you want to style the plugin differently you can use the following css classes
 

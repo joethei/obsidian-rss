@@ -1,6 +1,6 @@
 {
   "name": "rss-reader",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Read RSS Feeds from inside obsidian",
   "main": "main.js",
   "scripts": {
@@ -47,6 +47,7 @@
     "ts-md5": "^1.2.10",
     "ts-node": "^10.4.0",
     "tslint": "^6.1.3",
-    "typescript": "^4.2.4"
+    "typescript": "^4.2.4",
+    "tslib": "^2.3.1"
   }
 }

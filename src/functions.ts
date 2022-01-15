@@ -1,5 +1,13 @@
 import { RssFeedItem } from "./parser/rssParser";
-import { htmlToMarkdown, MarkdownView, normalizePath, Notice, TextComponent, moment } from "obsidian";
+import {
+    htmlToMarkdown,
+    MarkdownView,
+    normalizePath,
+    Notice,
+    TextComponent,
+    moment,
+    MarkdownPreviewRenderer
+} from "obsidian";
 import { TextInputPrompt } from "./modals/TextInputPrompt";
 import { FILE_NAME_REGEX } from "./consts";
 import { isInVault } from "obsidian-community-lib";
@@ -206,19 +214,28 @@ export function rssToMd(plugin: RssReaderPlugin, content: string): string {
     let markdown = htmlToMarkdown(content);
 
     //If dataview is installed
-    if ((plugin.app as any).plugins.plugins.dataview) {
-        //wrap dataview codeblocks to mitigate possible XSS
-        markdown = markdown.replace(/^```(?:dataview|dataviewjs)\n([\s\S]*?)```$/gm, "<pre>$&</pre>");
-        
+    if ((plugin.app as any).plugins.plugins["dataview"]) {
         //wrap dataview inline code
-        const { inlineQueryPrefix, inlineJsQueryPrefix } = (plugin.app as any).plugins.plugins.dataview.api as { [key: string]: string };
-        markdown = markdown.replace(RegExp(`\`${escapeRegExp(inlineQueryPrefix)}.*\``, 'g'), "<pre>$&</pre>");
-        markdown = markdown.replace(RegExp(`\`${escapeRegExp(inlineJsQueryPrefix)}.*\``, 'g'), "<pre>$&</pre>");
+        const {
+            inlineQueryPrefix,
+            inlineJsQueryPrefix
+        } = (plugin.app as any).plugins.plugins.dataview.api.settings as { [key: string]: string };
+            markdown = markdown.replace(RegExp(`\`${escapeRegExp(inlineQueryPrefix)}.*\``, 'g'), "<pre>$&</pre>");
+            markdown = markdown.replace(RegExp(`\`${escapeRegExp(inlineJsQueryPrefix)}.*\``, 'g'), "<pre>$&</pre>");
     }
+
     //If templater is installed
     if ((plugin.app as any).plugins.plugins["templater-obsidian"]) {
         //wrap templater commands
         markdown = markdown.replace(/<%([\s\S]*?)%>/g, "```javascript\n$&\n```");
+    }
+
+    //wrap all codeblocks where there is a processor registered.
+    //@ts-ignore
+    const codeblockProcessors: string[] = Object.keys(MarkdownPreviewRenderer.codeBlockPostProcessors);
+    for (const codeblockProcessor of codeblockProcessors) {
+        const regex = RegExp("^```" + codeblockProcessor +"\[\\s\\S\]+```$", "gm");
+        markdown = markdown.replace(regex, "<pre>$&</pre>");
     }
 
     return markdown;
