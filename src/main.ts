@@ -273,6 +273,7 @@ export default class RssReaderPlugin extends Plugin {
     }
 
     async updateFeeds(): Promise<void> {
+        console.log("updating feeds");
         interface IStringTMap<T> {
             [key: string]: T;
         }

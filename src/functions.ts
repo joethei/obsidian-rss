@@ -231,11 +231,18 @@ export function rssToMd(plugin: RssReaderPlugin, content: string): string {
     }
 
     //wrap all codeblocks where there is a processor registered.
+    //as codeblockProcessors is not exposed publicly(and seems to be only existent after v.13) do a check first
     //@ts-ignore
-    const codeblockProcessors: string[] = Object.keys(MarkdownPreviewRenderer.codeBlockPostProcessors);
-    for (const codeblockProcessor of codeblockProcessors) {
-        const regex = RegExp("^```" + codeblockProcessor +"\[\\s\\S\]+```$", "gm");
-        markdown = markdown.replace(regex, "<pre>$&</pre>");
+    if(MarkdownPreviewRenderer.codeBlockPostProcessors) {
+        //@ts-ignore
+        const codeblockProcessors: string[] = Object.keys(MarkdownPreviewRenderer.codeBlockPostProcessors);
+        for (const codeblockProcessor of codeblockProcessors) {
+            const regex = RegExp("^```" + codeblockProcessor +"\[\\s\\S\]*?```$", "gm");
+            markdown = markdown.replace(regex, "<pre>$&</pre>");
+        }
+    }else {
+        //just remove all codeblocks instead
+        markdown = markdown.replace(/^```.*\n([\s\S]*?)```$/gm, "<pre>$&</pre>");
     }
 
     return markdown;

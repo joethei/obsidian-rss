@@ -95,7 +95,7 @@
 <TopRowButtons plugin={plugin}/>
 
 {#if !folded}
-    <p>Loading</p>
+    <h1>{ t('loading') }</h1>
 {:else}
     <div class="rss-view">
         {#if $filteredItemsStore}
@@ -182,7 +182,7 @@
         {/if}
 
         {#if !$sortedFeedsStore}
-            <h1>No feeds configured</h1>
+            <h1>{ t('loading') }</h1>
         {/if}
 
         {#if $sortedFeedsStore}

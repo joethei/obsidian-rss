@@ -192,5 +192,7 @@ export default {
 
     filter_folder_ignore_help: "忽略以下分类",
     filter_feed_ignore_help: "忽略以下订阅源",
-    filter_tags_ignore_help: "忽略以下标签"
+    filter_tags_ignore_help: "忽略以下标签",
+
+    loading: "正在加载"
 }

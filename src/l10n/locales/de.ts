@@ -193,5 +193,7 @@ export default {
 
     filter_folder_ignore_help: "diese Ordner ignorieren",
     filter_feed_ignore_help: "diese Feeds ignorieren",
-    filter_tags_ignore_help: "diese Tags ignorieren"
+    filter_tags_ignore_help: "diese Tags ignorieren",
+
+    loading: "Lädt"
 }
