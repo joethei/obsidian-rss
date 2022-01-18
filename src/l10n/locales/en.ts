@@ -194,5 +194,20 @@ export default {
     filter_feed_ignore_help: "ignore the following feeds",
     filter_tags_ignore_help: "ignore the following tags",
 
-    loading: "Loading"
+    loading: "Loading",
+
+    //template settings
+    article_title: "Title",
+    article_link: "Link to article",
+    article_author: "Author of article",
+    article_published: "Date published",
+    article_description: "Short article description",
+    article_content: "article content",
+    article_tags: "Tags split by comma",
+    article_media: "Link to video/audio file",
+    feed_folder: "Folder of feed",
+    feed_title: "Title of feed",
+    highlights: "Highlights",
+    note_created: "Note creation date",
+    filename: "Filename"
 }

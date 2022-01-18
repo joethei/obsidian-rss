@@ -74,7 +74,7 @@
         let level = {result};
 
         filteredContent.forEach(filter => {
-            filter.filter.name.split('/').reduce((r, name, i, a) => {
+            filter.filter.name.split('/').reduce((r, name) => {
                 if (!r[name]) {
                     r[name] = {result: []};
                     if (filter.filter.name.endsWith(name)) {
@@ -122,7 +122,9 @@
                             <div class="tree-item-children">
                                 <div class="{folded.contains('rss-filters-' + folder.name) ? 'is-collapsed' : ''} tree-item is-clickable"
                                      on:click={() => toggleFold('rss-filters-' + folder.name)}>
-                                    <span class="tree-item-self is-clickable">
+                                    <span class="tree-item-self is-clickable"
+                                          on:contextmenu={(e) => openMenu(e, folder.filter.items.items)}
+                                    >
                                         {#if folded.contains('rss-filters-' + folder.name)}
                                             <IconComponent iconName="right-chevron-glyph"/>
                                         {:else}

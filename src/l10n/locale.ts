@@ -3,15 +3,15 @@ import en from "./locales/en";
 import de from "./locales/de";
 import zh from "./locales/zh";
 
-const locale = window.moment.locale;
+const locale = window.moment.locale();
 
 const localeMap: { [k: string]: Partial<typeof en> } = {
     en,
     de,
-    zh
+    "zh-cn": zh
 };
 
-const userLocale = localeMap[locale()];
+const userLocale = localeMap[locale];
 
 export default function t(str: keyof typeof en, ...inserts: string[]): string {
     let localeStr = (userLocale && userLocale[str]) ?? en[str];

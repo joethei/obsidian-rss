@@ -37,19 +37,19 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         const templateDesc = new DocumentFragment();
         templateDesc.createDiv().innerHTML = t("template_new_help") + "<br>" + t("available_variables") + `<br>` +
-            `<strong>{{title}}</strong> → Title <br>` +
-            `<strong>{{link}}</strong> → Link to article<br>` +
-            `<strong>{{author}}</strong> → Author of article<br>` +
-            `<strong>{{published}}</strong> → Date published<br>` +
-            `<strong>{{created}}</strong> → Note creation date<br>` +
-            `<strong>{{description}}</strong> → Short article description<br>` +
-            `<strong>{{content}}</strong> → article content<br>` +
-            `<strong>{{folder}}</strong> → Folder of feed<br>` +
-            `<strong>{{feed}}</strong> → Title of feed<br>` +
-            `<strong>{{filename}}</strong> → Filename<br>` +
-            `<strong>{{tags}}</strong> → Tags split by comma<br>` +
-            `<strong>{{media}}</strong> → Link to video/audio file<br>` +
-            `<strong>{{highlights}}</strong> → Highlights`;
+            `<strong>{{title}}</strong> → ${t("article_title")}<br>` +
+            `<strong>{{link}}</strong> → ${t("article_link")}<br>` +
+            `<strong>{{author}}</strong> → ${t("article_author")}<br>` +
+            `<strong>{{published}}</strong> → ${t("article_published")}<br>` +
+            `<strong>{{created}}</strong> → ${t("note_created")}<br>` +
+            `<strong>{{description}}</strong> → ${t("article_description")}<br>` +
+            `<strong>{{content}}</strong> → ${t("article_content")}<br>` +
+            `<strong>{{folder}}</strong> → ${t("feed_folder")}<br>` +
+            `<strong>{{feed}}</strong> → ${t("feed_title")}<br>` +
+            `<strong>{{filename}}</strong> → ${t("filename")}<br>` +
+            `<strong>{{tags}}</strong> → ${t("article_tags")}<br>` +
+            `<strong>{{media}}</strong> → ${t("article_media")}<br>` +
+            `<strong>{{highlights}}</strong> → ${t("highlights")}`;
 
         new Setting(containerEl)
             .setName(t("template_new"))
@@ -69,18 +69,18 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         const pasteTemplateDesc = new DocumentFragment();
         pasteTemplateDesc.createDiv().innerHTML = t("template_new_help") + "<br>" + t("available_variables") + `<br>` +
-            `<strong>{{title}}</strong> → Title <br>` +
-            `<strong>{{link}}</strong> → Link to article<br>` +
-            `<strong>{{author}}</strong> → Author of article<br>` +
-            `<strong>{{published}}</strong> → Date published<br>` +
-            `<strong>{{created}}</strong> → Note creation date<br>` +
-            `<strong>{{description}}</strong> → Short article description<br>` +
-            `<strong>{{content}}</strong> → article content<br>` +
-            `<strong>{{folder}}</strong> → Folder of feed<br>` +
-            `<strong>{{feed}}</strong> → Title of feed<br>` +
-            `<strong>{{tags}}</strong> → Tags split by comma<br>` +
-            `<strong>{{media}}</strong> → Link to video/audio file<br>` +
-            `<strong>{{highlights}}</strong> → Highlights`
+            `<strong>{{title}}</strong> → ${t("article_title")}<br>` +
+            `<strong>{{link}}</strong> → ${t("article_link")}<br>` +
+            `<strong>{{author}}</strong> → ${t("article_author")}<br>` +
+            `<strong>{{published}}</strong> → ${t("article_published")}<br>` +
+            `<strong>{{created}}</strong> → ${t("note_created")}<br>` +
+            `<strong>{{description}}</strong> → ${t("article_description")}<br>` +
+            `<strong>{{content}}</strong> → ${t("article_content")}<br>` +
+            `<strong>{{folder}}</strong> → ${t("feed_folder")}<br>` +
+            `<strong>{{feed}}</strong> → ${t("feed_title")}<br>` +
+            `<strong>{{tags}}</strong> → ${t("article_tags")}<br>` +
+            `<strong>{{media}}</strong> → ${t("article_media")}<br>` +
+            `<strong>{{highlights}}</strong> → ${t("highlights")}`;
 
         new Setting(containerEl)
             .setName(t("template_paste"))

@@ -195,5 +195,20 @@ export default {
     filter_feed_ignore_help: "diese Feeds ignorieren",
     filter_tags_ignore_help: "diese Tags ignorieren",
 
-    loading: "Lädt"
+    loading: "Lädt",
+
+    //template settings
+    article_title: "Titel",
+    article_link: "Link zum Artikel",
+    article_author: "Autor",
+    article_published: "Veröffentlichungsdatum",
+    article_description: "Kurze Beschreibung des Artikels",
+    article_content: "Inhalt des Artikels",
+    article_tags: "Tags getrennt durch Komma",
+    article_media: "Link zu Video/Audio Datei",
+    feed_folder: "Ordner des Feeds",
+    feed_title: "Feed Titel",
+    highlights: "Highlights",
+    note_created: "Erstelldatum der Notiz",
+    filename: "Dateiname"
 }
