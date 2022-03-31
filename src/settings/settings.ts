@@ -38,7 +38,8 @@ export interface RssReaderSettings {
         filtered_folders: string,
         folders: string,
         no_folder: string,
-    }
+    },
+    displayMedia: boolean
 }
 
 export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
@@ -95,6 +96,7 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         filtered_folders: "",
         folders: "",
         no_folder: ""
-    }
+    },
+    displayMedia: true,
 });
 

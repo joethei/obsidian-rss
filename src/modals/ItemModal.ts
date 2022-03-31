@@ -149,7 +149,7 @@ export class ItemModal extends Modal {
 
     async markAsRead(): Promise<void> {
         await Action.READ.processor(this.plugin, this.item);
-        this.readButton.setIcon((this.item.read) ? 'feather-eye-off' : 'feather-eye');
+        this.readButton.setIcon((this.item.read) ? 'eye-off' : 'eye');
         this.readButton.setTooltip((this.item.read) ? t("mark_as_unread") : t("mark_as_unread"));
     }
 
@@ -168,7 +168,7 @@ export class ItemModal extends Modal {
 
         if (this.save) {
             this.readButton = new ButtonComponent(topButtons)
-                .setIcon(this.item.read ? 'feather-eye-off' : 'feather-eye')
+                .setIcon(this.item.read ? 'eye-off' : 'eye')
                 .setTooltip(this.item.read ? t("mark_as_unread") : t("mark_as_read"))
                 .onClick(async () => {
                     await this.markAsRead();
@@ -202,7 +202,7 @@ export class ItemModal extends Modal {
         //@ts-ignore
         if (this.app.plugins.plugins["obsidian-tts"]) {
             const ttsButton = new ButtonComponent(topButtons)
-                .setIcon("feather-headphones")
+                .setIcon("headphones")
                 .setTooltip(t("read_article_tts"))
                 .onClick(async () => {
                     const content = htmlToMarkdown(this.item.content);
@@ -250,7 +250,7 @@ export class ItemModal extends Modal {
         const content = contentEl.createDiv('rss-content');
         content.addClass("rss-scrollable-content", "rss-selectable");
 
-        if (this.item.enclosure) {
+        if (this.item.enclosure && this.plugin.settings.displayMedia) {
             if (this.item.enclosureType.toLowerCase().contains("audio")) {
                 const audio = content.createEl("audio", {attr: {controls: "controls"}});
                 audio.createEl("source", {attr: {src: this.item.enclosure, type: this.item.enclosureType}});
@@ -276,7 +276,7 @@ export class ItemModal extends Modal {
 
         if (this.item.content) {
             //prepend empty yaml to fix rendering errors
-            const markdown = "---\n----" + rssToMd(this.plugin, this.item.content);
+            const markdown = "---\n---" + rssToMd(this.plugin, this.item.content);
 
             await MarkdownRenderer.renderMarkdown(markdown, content, "", this.plugin);
 
@@ -370,7 +370,7 @@ export class ItemModal extends Modal {
                     if (this.app.plugins.plugins["obsidian-tts"]) {
                         menu.addItem(item => {
                             item
-                                .setIcon("feather-headphones")
+                                .setIcon("headphones")
                                 .setTitle(t("read_article_tts"))
                                 .onClick(() => {
                                     //@ts-ignore

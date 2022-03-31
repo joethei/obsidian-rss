@@ -8,7 +8,7 @@
     const buttons = (node: HTMLElement, plugin: RssReaderPlugin) => {
         new Setting(node).addExtraButton(button => {
            button
-               .setIcon("sync")
+               .setIcon("refresh-cw")
                .setTooltip(t("refresh_feeds"))
                .onClick(async () => {
                    await plugin.updateFeeds();

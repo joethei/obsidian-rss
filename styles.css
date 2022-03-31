@@ -127,3 +127,16 @@ input.is-invalid {
 .rss-modal mark {
     background-color: var(--text-highlight-bg);
 }
+
+.rss-content .frontmatter {
+    display: none;
+}
+
+.rss-content .frontmatter-container {
+    display: none;
+}
+
+.rss-item-count {
+    margin-left: auto;
+    margin-right: 0;
+}

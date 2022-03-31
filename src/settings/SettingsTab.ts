@@ -337,5 +337,18 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                     });
             });
 
+        advanced.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
+
+        new Setting(advanced)
+            .setName(t("display_media"))
+            .addToggle(toggle => {
+               toggle
+                   .setValue(this.plugin.settings.displayMedia)
+                   .onChange(async value => {
+                       await this.plugin.writeSettings(() => ({
+                           displayMedia: value
+                       }));
+                   });
+            });
     }
 }

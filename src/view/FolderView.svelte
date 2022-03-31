@@ -131,6 +131,7 @@
                                             <IconComponent iconName="down-chevron-glyph"/>
                                         {/if}
                                         <span>{ folder.name }</span>
+                                        <span class="rss-item-count">{ folder.filter?.items.items.length }</span>
                                     </span>
                                     </div>
                                 {#if folder.filter !== undefined}
@@ -158,6 +159,7 @@
                                                             <IconComponent iconName="down-chevron-glyph"/>
                                                         {/if}
                                                     <span>{ child.name }</span>
+                                                    <span class="rss-item-count">{ child.filter?.items.items.length }</span>
                                                     </div>
                                                 {#if child.filter !== undefined}
                                                     {#if (!folded.contains('rss-filters-' + child.filter.filter.name))}

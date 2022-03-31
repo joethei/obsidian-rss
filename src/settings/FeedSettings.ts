@@ -25,7 +25,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
         .addButton((button: ButtonComponent) => {
             return button
                 .setTooltip(t("add_new_feed"))
-                .setIcon("feather-plus")
+                .setIcon("plus")
                 .onClick(async () => {
                     const modal = new FeedModal(plugin);
 
@@ -52,7 +52,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
         .addExtraButton(async (button) => {
             button
                 .setTooltip(t("import_opml"))
-                .setIcon("feather-download")
+                .setIcon("download")
                 .onClick(() => {
                     const modal = new ImportModal(plugin);
                     modal.onClose = () => {
@@ -64,7 +64,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
         .addExtraButton(async (button) => {
             button
                 .setTooltip(t("export_opml"))
-                .setIcon("feather-upload")
+                .setIcon("upload")
                 .onClick(() => {
                     if (plugin.app.vault.adapter.exists("rss-feeds-export.opml")) {
                         plugin.app.vault.adapter.remove("rss-feeds-export.opml");
@@ -77,7 +77,7 @@ export function displayFeedSettings(plugin: RssReaderPlugin, container: HTMLElem
         .addExtraButton(async (button) => {
             button
                 .setTooltip(t("perform_cleanup"))
-                .setIcon("feather-trash")
+                .setIcon("lucide-trash")
                 .onClick(() => {
                     new CleanupModal(plugin).open();
                 });
@@ -106,7 +106,7 @@ function displayFeedList(plugin: RssReaderPlugin, container: HTMLElement, disabl
                 .addExtraButton((b) => {
                     b
                         .setDisabled(disabled)
-                        .setIcon("feather-edit")
+                        .setIcon("edit")
                         .setTooltip(t("edit"))
                         .onClick(() => {
                             const modal = new FeedModal(plugin, feed);
@@ -155,7 +155,7 @@ function displayFeedList(plugin: RssReaderPlugin, container: HTMLElement, disabl
                     button
                         .setDisabled(disabled)
                         .setTooltip(t("from_archive"))
-                        .setIcon("feather-archive")
+                        .setIcon("archive")
                         .onClick(async () => {
                             const modal = new MessageModal(plugin, t("reading_archive"));
                             modal.open();
@@ -211,7 +211,7 @@ function displayFeedList(plugin: RssReaderPlugin, container: HTMLElement, disabl
                 .addExtraButton((b) => {
                     b
                         .setDisabled(disabled)
-                        .setIcon("feather-trash")
+                        .setIcon("lucide-trash")
                         .setTooltip(t("delete"))
                         .onClick(async () => {
                             const feeds = plugin.settings.feeds;

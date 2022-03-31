@@ -40,7 +40,7 @@ export default class Action {
         return Promise.resolve();
     })));
 
-    static READ = new Action(t("mark_as_read_unread"), "feather-eye", ((async (plugin, item) : Promise<void> => {
+    static READ = new Action(t("mark_as_read_unread"), "eye", ((async (plugin, item) : Promise<void> => {
         if (item.read) {
             item.read = false;
             new Notice(t("marked_as_unread"));

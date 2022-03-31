@@ -60,7 +60,7 @@ function getElementByName(element: Element | Document, name: string): ChildNode 
         return;
     }
 
-    if (name.contains(":")) {
+    if (name.includes(":")) {
         const [namespace, tag] = name.split(":");
         const namespaceUri = element.lookupNamespaceURI(namespace);
         const byNamespace = element.getElementsByTagNameNS(namespaceUri, tag);
@@ -81,7 +81,7 @@ function getElementByName(element: Element | Document, name: string): ChildNode 
             }
         }
 
-    } else if (name.contains(".")) {
+    } else if (name.includes(".")) {
         const [prefix, tag] = name.split(".");
         if (element.getElementsByTagName(prefix).length > 0) {
             const nodes = Array.from(element.getElementsByTagName(prefix)[0].childNodes);
@@ -101,6 +101,8 @@ function getElementByName(element: Element | Document, name: string): ChildNode 
                 value = node;
         }
     }
+    //if(name === "content") console.log(value);
+
     return value;
 }
 
@@ -113,7 +115,7 @@ function getElementByName(element: Element | Document, name: string): ChildNode 
 function getContent(element: Element | Document, names: string[]): string {
     let value: string;
     for (const name of names) {
-        if (name.contains("#")) {
+        if (name.includes("#")) {
             const [elementName, attr] = name.split("#");
             const data = getElementByName(element, elementName);
             if (data) {
@@ -129,11 +131,17 @@ function getContent(element: Element | Document, names: string[]): string {
             const data = getElementByName(element, name);
             if (data) {
                 //@ts-ignore
-                if (data.nodeValue && data.nodeValue.length > 0) {
+                if(data.wholeText && data.wholeText.length > 0) {
+                    //@ts-ignore
+                    value = data.wholeText;
+                }
+
+                //@ts-ignore
+                if (!value && data.nodeValue && data.nodeValue.length > 0) {
                     value = data.nodeValue;
                 }
                 //@ts-ignore
-                else if (data.innerHTML && data.innerHTML.length > 0) {
+                if (!value && data.innerHTML && data.innerHTML.length > 0) {
                     //@ts-ignore
                     value = data.innerHTML;
                 }
@@ -190,10 +198,14 @@ function getAllItems(doc: Document): Element[] {
     return items;
 }
 
+async function requestFeed(feed: RssFeed) : Promise<string> {
+    return await request({url: feed.url});
+}
+
 export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
     let data;
     try {
-        const rawData = await request({url: feed.url});
+        const rawData = await requestFeed(feed);
         data = new window.DOMParser().parseFromString(rawData, "text/xml");
     } catch (e) {
         console.error(e);

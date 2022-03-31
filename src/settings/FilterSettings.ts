@@ -16,7 +16,7 @@ export function displayFilterSettings(plugin: RssReaderPlugin, containerEl: HTML
         .addButton((button: ButtonComponent): ButtonComponent => {
             return button
                 .setTooltip(t("add_new_filter"))
-                .setIcon("feather-plus")
+                .setIcon("plus")
                 .onClick(async () => {
                     const modal = new FilteredFolderModal(plugin);
 
@@ -89,7 +89,7 @@ export function displayFilterSettings(plugin: RssReaderPlugin, containerEl: HTML
 
         setting
             .addExtraButton((b) => {
-                b.setIcon("feather-edit")
+                b.setIcon("edit")
                     .setTooltip(t("edit"))
                     .onClick(() => {
                         const modal = new FilteredFolderModal(plugin, filter);
@@ -121,7 +121,7 @@ export function displayFilterSettings(plugin: RssReaderPlugin, containerEl: HTML
                     });
             })
             .addExtraButton((b) => {
-                b.setIcon("feather-trash")
+                b.setIcon("lucide-trash")
                     .setTooltip(t("delete"))
                     .onClick(async () => {
                         const filters = plugin.settings.filtered;

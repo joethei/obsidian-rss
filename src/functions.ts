@@ -245,6 +245,10 @@ export function rssToMd(plugin: RssReaderPlugin, content: string): string {
         markdown = markdown.replace(/^```.*\n([\s\S]*?)```$/gm, "<pre>$&</pre>");
     }
 
+    if(!plugin.settings.displayMedia) {
+        //remove any embeds, but keep alias
+        markdown = markdown.replace(/!?\[(.*)\]\(.+\)/gm, "$1");
+    }
     return markdown;
 }
 

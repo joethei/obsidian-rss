@@ -1,6 +1,6 @@
 import {RssFeed} from "../settings/settings";
 
-export async function loadFeedsFromString(importData: string): Promise<RssFeed[]> {
+export async function loadFeedsFromString(importData: string, defaultFolder: string): Promise<RssFeed[]> {
     const rawData = new window.DOMParser().parseFromString(importData, "text/xml");
     const feeds: RssFeed[] = [];
 
@@ -19,13 +19,13 @@ export async function loadFeedsFromString(importData: string): Promise<RssFeed[]
                 feeds.push({
                     name: title,
                     url: xmlUrl,
-                    folder: current.parentElement.getAttribute("title"),
+                    folder: defaultFolder + ((defaultFolder) ? "/" : "") + current.parentElement.getAttribute("title"),
                 });
             }else {
                 feeds.push({
                     name: title,
                     url: xmlUrl,
-                    folder: ""
+                    folder: defaultFolder + ""
                 });
             }
         }

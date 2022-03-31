@@ -98,6 +98,7 @@
                     {/if}
                 </span>
             </div>
+            <span class="rss-item-count">{ feed.items.filter(item => !item.read).length }</span>
         </div>
 
         <div class="rss-feed-items">

@@ -15,7 +15,6 @@ import {
 } from "./stores";
 import {VIEW_ID} from "./consts";
 import {getFeedItems, RssFeedContent, RssFeedItem} from "./parser/rssParser";
-import {addFeatherIcon} from "obsidian-community-lib";
 import groupBy from "lodash.groupby";
 import mergeWith from "lodash.mergewith";
 import keyBy from "lodash.keyby";
@@ -35,19 +34,7 @@ export default class RssReaderPlugin extends Plugin {
     async onload(): Promise<void> {
         console.log('loading plugin rss reader');
 
-        addFeatherIcon("rss");
-        addFeatherIcon("eye");
-        addFeatherIcon("eye-off");
-        addFeatherIcon("star");
-        addFeatherIcon("headphones");
-        addFeatherIcon("upload");
-        addFeatherIcon("trash");
-        addFeatherIcon("plus");
-        addFeatherIcon("edit");
-        addFeatherIcon("download");
-        addFeatherIcon("archive");
-
-        //update settings whenever store contents change.
+        //update settings object whenever store contents change.
         this.register(
             settingsStore.subscribe((value: RssReaderSettings) => {
                 this.settings = value;
@@ -472,7 +459,7 @@ export default class RssReaderPlugin extends Plugin {
             try {
                 JSON.parse(file);
             } catch (e) {
-                console.log("RSS Reader: could not parse json, check if the plugins data.json is valid.");
+                console.log(t("RSS_Reader") + "  could not parse json, check if the plugins data.json is valid.");
                 console.error(e);
                 new Notice(t("RSS_Reader") + " could not parse plugin data. If this message keeps showing up, check the console");
                 return Promise.resolve();

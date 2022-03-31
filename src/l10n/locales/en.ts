@@ -209,5 +209,8 @@ export default {
     feed_title: "Title of feed",
     highlights: "Highlights",
     note_created: "Note creation date",
-    filename: "Filename"
+    filename: "Filename",
+
+    display_media: "Include Media",
+    base_folder: "Base folder"
 }

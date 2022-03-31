@@ -41,6 +41,7 @@ After installing the plugin:
 - get fulltext content for some truncated RSS feeds with [morss.it](https://morss.it/)
 - get feeds from some social media sites with [RSS Box](https://rssbox.herokuapp.com/)
 - Filter content from feeds with [SiftRSS](https://siftrss.com/)
+- Get an RSS feed for a site that does not support RSS with [RSS-proxy](https://github.com/damoeb/rss-proxy/) or [RSS Hub](https://github.com/DIYgod/RSSHub)
 
 ## Template variables
 - `{{title}}` title of article

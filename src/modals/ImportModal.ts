@@ -2,6 +2,7 @@ import {Modal, Notice, Setting} from "obsidian";
 import {loadFeedsFromString} from "../parser/opmlParser";
 import RssReaderPlugin from "../main";
 import t from "../l10n/locale";
+import {FeedFolderSuggest} from "../view/FeedFolderSuggest";
 
 //adapted from javalent's code here: https://discord.com/channels/686053708261228577/840286264964022302/918146537220112455
 export class ImportModal extends Modal {
@@ -14,6 +15,7 @@ export class ImportModal extends Modal {
     }
 
     importData = "";
+    defaultFolder = "";
 
     async onOpen() : Promise<void> {
         const setting = new Setting(this.contentEl).setName(t("choose_file")).setDesc(t("choose_file_help"));
@@ -37,13 +39,23 @@ export class ImportModal extends Modal {
             }
         }
 
+        new Setting(this.contentEl)
+            .setName(t("base_folder"))
+            .addSearch(search => {
+                new FeedFolderSuggest(this.app, search.inputEl);
+                search.setValue(this.defaultFolder)
+                   .onChange(value => {
+                       this.defaultFolder = value;
+                   })
+            });
+
         new Setting(this.contentEl).addButton((button) => {
             button
                 .setIcon("import-glyph")
                 .setTooltip(t("import"))
                 .onClick(async () => {
                     if (this.importData) {
-                        const feeds = await loadFeedsFromString(this.importData);
+                        const feeds = await loadFeedsFromString(this.importData, this.defaultFolder);
                         await this.plugin.writeFeeds(() => (this.plugin.settings.feeds.concat(feeds)));
                         new Notice(t("imported_x_feeds", String(feeds.length)));
                         this.close();

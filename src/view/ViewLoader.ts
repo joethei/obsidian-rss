@@ -23,7 +23,7 @@ export default class ViewLoader extends ItemView {
     }
 
     getIcon(): string {
-        return "feather-rss";
+        return "rss";
     }
 
     protected async onOpen(): Promise<void> {
