@@ -218,7 +218,7 @@ function displayFeedList(plugin: RssReaderPlugin, container: HTMLElement, disabl
                             feeds.remove(feed);
                             await plugin.writeFeeds(() => feeds);
 
-                            //delete all items from feed
+                            //delete wallabag.xml items from feed
                             let content = plugin.settings.items;
                             content = content.filter((content) => {
                                 return content.name !== feed.name;

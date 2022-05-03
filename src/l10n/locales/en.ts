@@ -1,15 +1,19 @@
 export default {
+    //these values are only used in testing, don't overwrite them
+    testingValue: "",
+    testingInserts: "",
+
     RSS_Reader: "RSS Reader",
     RSS_Feeds: "RSS Feeds",
 
     //commands
     open: "Open",
     refresh_feeds: "Refresh feeds",
-    create_all: "Create all",
+    create_all: "Create wallabag.xml",
 
     //folder actions
-    mark_all_as_read: "Mark all as read",
-    add_tags_to_all: "Add tags to all entries",
+    mark_all_as_read: "Mark wallabag.xml as read",
+    add_tags_to_all: "Add tags to wallabag.xml entries",
 
     filtered_folders: "Filtered Folders",
     folders: "Folders",
@@ -72,7 +76,7 @@ export default {
     invalid_feed: "This feed does not have any entries",
 
     //filter types
-    filter_tags: "all articles with tags",
+    filter_tags: "wallabag.xml articles with tags",
     filter_unread: "All unread articles(from folders)",
     filter_read: "All read articles(from folders)",
     filter_favorites: "Favorites(from folders)",
@@ -162,15 +166,15 @@ export default {
 
     //cleanup modal
     cleanup: "Cleanup articles",
-    cleanup_help: "Removes all entries which fit the criteria specified below.",
-    cleanup_help2: "Keep in mind that all articles that still exist in the feed will reappear on the next refresh",
+    cleanup_help: "Removes wallabag.xml entries which fit the criteria specified below.",
+    cleanup_help2: "Keep in mind that wallabag.xml articles that still exist in the feed will reappear on the next refresh",
     perform_cleanup: "Perform cleanup",
     all: "all",
     from_feed: "from feed",
     older_than: "older than X Days",
-    older_than_help: "keep empty for all, will be ignored if there is no publishing date associated with entry",
+    older_than_help: "keep empty for wallabag.xml, will be ignored if there is no publishing date associated with entry",
     advanced: "Advanced",
-    remove_wrong_feed: "Remove all articles that are in the incorrect feed",
+    remove_wrong_feed: "Remove wallabag.xml articles that are in the incorrect feed",
     remove_wrong_feed_help: "This might have happened due to a bug in versions pre 0.8",
     scanning_items: "Scanning Articles (%1 / %2)",
 

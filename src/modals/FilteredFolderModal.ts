@@ -177,7 +177,7 @@ export class FilteredFolderModal extends BaseModal {
             }).addExtraButton(button => {
                 button
                     .setTooltip(t("add"))
-                    .setIcon("feather-plus")
+                    .setIcon("plus")
                     .onClick(() => {
                         this.filterFolders.push(folderValue);
                         this.display();
@@ -203,7 +203,7 @@ export class FilteredFolderModal extends BaseModal {
                 .addExtraButton((button) => {
                     button
                         .setTooltip(t("delete"))
-                        .setIcon("feather-trash")
+                        .setIcon("trash")
                         .onClick(() => {
                             this.ignoreFolders = this.ignoreFolders.filter(e => e !== this.ignoreFolders[folder]);
                             this.display();
@@ -223,7 +223,7 @@ export class FilteredFolderModal extends BaseModal {
             }).addExtraButton(button => {
                 button
                     .setTooltip(t("add"))
-                    .setIcon("feather-plus")
+                    .setIcon("plus")
                     .onClick(() => {
                         this.ignoreFolders.push(folderIgnoreValue);
                         this.display();
@@ -258,7 +258,7 @@ export class FilteredFolderModal extends BaseModal {
                 .addExtraButton((button) => {
                     button
                         .setTooltip(t("delete"))
-                        .setIcon("feather-trash")
+                        .setIcon("trash")
                         .onClick(() => {
                             this.filterFeeds = this.filterFeeds.filter(e => e !== this.filterFeeds[feed]);
                             this.display();
@@ -278,7 +278,7 @@ export class FilteredFolderModal extends BaseModal {
             }).addExtraButton(button => {
                 button
                     .setTooltip(t("add"))
-                    .setIcon("feather-plus")
+                    .setIcon("plus")
                     .onClick(() => {
                         this.filterFeeds.push(feedValue);
                         this.display();
@@ -304,7 +304,7 @@ export class FilteredFolderModal extends BaseModal {
                 .addExtraButton((button) => {
                     button
                         .setTooltip(t("delete"))
-                        .setIcon("feather-trash")
+                        .setIcon("trash")
                         .onClick(() => {
                             this.ignoreFeeds = this.ignoreFeeds.filter(e => e !== this.ignoreFeeds[folder]);
                             this.display();
@@ -324,7 +324,7 @@ export class FilteredFolderModal extends BaseModal {
             }).addExtraButton(button => {
                 button
                     .setTooltip(t("add"))
-                    .setIcon("feather-plus")
+                    .setIcon("plus")
                     .onClick(() => {
                         this.ignoreFeeds.push(feedIgnoreValue);
                         this.display();
@@ -356,7 +356,7 @@ export class FilteredFolderModal extends BaseModal {
                 .addExtraButton((button) => {
                     button
                         .setTooltip(t("delete"))
-                        .setIcon("feather-trash")
+                        .setIcon("trash")
                         .onClick(() => {
                             this.filterTags = this.filterTags.filter(e => e !== this.filterTags[tag]);
                             this.display();
@@ -382,7 +382,7 @@ export class FilteredFolderModal extends BaseModal {
             }).addExtraButton(button => {
                 button
                     .setTooltip(t("add"))
-                    .setIcon("feather-plus")
+                    .setIcon("plus")
                     .onClick(() => {
                         if (!tagValue.match(TAG_REGEX) || tagValue.match(NUMBER_REGEX) || tagValue.contains(" ") || tagValue.contains('#')) {
                             this.setValidationError(tagComponent, t("invalid_tag"));
@@ -415,7 +415,7 @@ export class FilteredFolderModal extends BaseModal {
                 .addExtraButton((button) => {
                     button
                         .setTooltip(t("delete"))
-                        .setIcon("feather-trash")
+                        .setIcon("trash")
                         .onClick(() => {
                             this.ignoreTags = this.ignoreTags.filter(e => e !== this.ignoreTags[tag]);
                             this.display();
@@ -441,7 +441,7 @@ export class FilteredFolderModal extends BaseModal {
             }).addExtraButton(button => {
                 button
                     .setTooltip(t("add"))
-                    .setIcon("feather-plus")
+                    .setIcon("plus")
                     .onClick(() => {
                         if (!ignoreTagValue.match(TAG_REGEX) || ignoreTagValue.match(NUMBER_REGEX) || ignoreTagValue.contains(" ") || ignoreTagValue.contains('#')) {
                             this.setValidationError(ignoreTagComponent, t("invalid_tag"));

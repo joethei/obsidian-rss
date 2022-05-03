@@ -121,7 +121,7 @@ function getContent(element: Element | Document, names: string[]): string {
             if (data) {
                 if (data.nodeName === elementName) {
                     //@ts-ignore
-                    const tmp = data.getAttr(attr);
+                    const tmp = data.getAttribute(attr);
                     if (tmp.length > 0) {
                         value = tmp;
                     }
@@ -207,6 +207,7 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
     try {
         const rawData = await requestFeed(feed);
         data = new window.DOMParser().parseFromString(rawData, "text/xml");
+        console.log(data);
     } catch (e) {
         console.error(e);
         return Promise.resolve(undefined);
@@ -229,7 +230,7 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
             item.language = language;
             item.hash = <string>new Md5().appendStr(item.title).appendStr(item.folder).appendStr(item.link).end();
 
-            if (!item.image && feed.url.contains("youtube.com/feeds")) {
+            if (!item.image && feed.url.includes("youtube.com/feeds")) {
                 item.image = "https://i3.ytimg.com/vi/" + item.id.split(":")[2] + "/hqdefault.jpg";
             }
 

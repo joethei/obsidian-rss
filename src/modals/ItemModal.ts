@@ -401,7 +401,7 @@ export class ItemModal extends Modal {
     }
 
     removeDanglingElements(el: HTMLElement) : void {
-        //remove all dangling elements
+        //remove wallabag.xml dangling elements
         const lists = el.querySelectorAll('li, a, div, p, span');
         for (let i = 0; i < lists.length; i++) {
             const listEL = lists.item(i);

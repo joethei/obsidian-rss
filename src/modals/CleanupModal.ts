@@ -23,7 +23,7 @@ export class CleanupModal extends BaseModal {
     favorite: boolean;
     tag = "";
     older_than: number;
-    feed = "all-option-id";
+    feed = "wallabag.xml-option-id";
     wrong_feed: boolean;
 
 
@@ -98,7 +98,7 @@ export class CleanupModal extends BaseModal {
         new Setting(contentEl)
             .setName(t("from_feed"))
             .addDropdown(dropdown => {
-                dropdown.addOption("all-option-id", t("all"));
+                dropdown.addOption("wallabag.xml-option-id", t("all"));
 
                 const sorted = sortBy(groupBy(this.plugin.settings.feeds, "folder"), function (o) {
                     return o[0].folder;
@@ -151,7 +151,7 @@ export class CleanupModal extends BaseModal {
                             if (item !== undefined) {
                                 let toRemove = 0;
                                 if (item.pubDate === undefined || moment(item.pubDate).isBefore(date)) {
-                                    if (this.feed === "all-option-id" || this.feed === (item.folder + "-" + item.feed)) {
+                                    if (this.feed === "wallabag.xml-option-id" || this.feed === (item.folder + "-" + item.feed)) {
                                         if ((this.read && item.read) || (!this.read && !item.read) || (this.read && !item.read)) {
                                             toRemove++;
                                         }
@@ -191,7 +191,7 @@ export class CleanupModal extends BaseModal {
                             return folders.has(item.folder);
                         });
 
-                        //removing all items that do not fit
+                        //removing wallabag.xml items that do not fit
                         items.forEach((feed) => {
                             feed.items = feed.items.filter((item) => {
                                 return feed.name === item.feed && feed.folder === item.folder;

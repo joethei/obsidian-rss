@@ -44,7 +44,7 @@ export class TagModal extends BaseModal {
                 .addExtraButton((button) => {
                     button
                         .setTooltip(t("delete"))
-                        .setIcon("feather-trash")
+                        .setIcon("trash")
                         .onClick(() => {
                             this.tags = this.tags.filter(e => e !== this.tags[tag]);
                             this.display();
@@ -70,7 +70,7 @@ export class TagModal extends BaseModal {
             }).addExtraButton(button => {
                 button
                     .setTooltip(t("add"))
-                    .setIcon("feather-plus")
+                    .setIcon("plus")
                     .onClick(() => {
                         if (!tagValue.match(TAG_REGEX) || tagValue.match(NUMBER_REGEX) || tagValue.contains(" ") || tagValue.contains('#')) {
                             this.setValidationError(tagComponent, t("invalid_tag"));

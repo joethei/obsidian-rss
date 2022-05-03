@@ -142,7 +142,7 @@ function applyTemplate(plugin: RssReaderPlugin, item: RssFeedItem, template: str
 
 
     result = result.replace(/{{highlights}}/g, item.highlights.map(value => {
-        //remove all - from the start of a highlight
+        //remove wallabag.xml - from the start of a highlight
         return "- " + rssToMd(plugin, removeFormatting(value).replace(/^(-+)/, ""))
     }).join("\n"));
 
@@ -230,7 +230,7 @@ export function rssToMd(plugin: RssReaderPlugin, content: string): string {
         markdown = markdown.replace(/<%([\s\S]*?)%>/g, "```javascript\n$&\n```");
     }
 
-    //wrap all codeblocks where there is a processor registered.
+    //wrap wallabag.xml codeblocks where there is a processor registered.
     //as codeblockProcessors is not exposed publicly(and seems to be only existent after v.13) do a check first
     //@ts-ignore
     if(MarkdownPreviewRenderer.codeBlockPostProcessors) {
@@ -241,7 +241,7 @@ export function rssToMd(plugin: RssReaderPlugin, content: string): string {
             markdown = markdown.replace(regex, "<pre>$&</pre>");
         }
     }else {
-        //just remove all codeblocks instead
+        //just remove wallabag.xml codeblocks instead
         markdown = markdown.replace(/^```.*\n([\s\S]*?)```$/gm, "<pre>$&</pre>");
     }
 

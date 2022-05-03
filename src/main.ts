@@ -140,7 +140,7 @@ export default class RssReaderPlugin extends Plugin {
                     items = items.concat(feedItems);
                 }
 
-                //collect all tags for auto completion
+                //collect wallabag.xml tags for auto completion
                 const tags: string[] = [];
                 for (const item of items) {
                     if (item !== undefined)
@@ -154,7 +154,7 @@ export default class RssReaderPlugin extends Plugin {
                 }
                 tagsStore.update(() => new Set<string>(tags.filter(tag => tag.length > 0)));
 
-                //collect all folders for auto-completion
+                //collect wallabag.xml folders for auto-completion
                 const folders: string[] = [];
                 for (const item of items) {
                     if (item !== undefined)
