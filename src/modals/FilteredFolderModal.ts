@@ -20,7 +20,7 @@ export enum SortOrder {
     ALPHABET_INVERTED
 }
 
-export interface FilteredFolder{
+export interface FilteredFolder {
     name: string;
     filterTags: string[];
     ignoreTags: string[];
@@ -55,7 +55,7 @@ export class FilteredFolderModal extends BaseModal {
         super(plugin.app);
         this.plugin = plugin;
 
-        if(folder) {
+        if (folder) {
             this.name = folder.name;
             this.sortOrder = folder.sortOrder;
             this.filterTags = folder.filterTags;
@@ -70,8 +70,8 @@ export class FilteredFolderModal extends BaseModal {
         }
     }
 
-    async display() : Promise<void> {
-        const { contentEl } = this;
+    async display(): Promise<void> {
+        const {contentEl} = this;
 
         contentEl.empty();
 
@@ -122,8 +122,8 @@ export class FilteredFolderModal extends BaseModal {
         const sorting = new Setting(contentEl)
             .setName(t("sort"))
             .addDropdown((dropdown: DropdownComponent) => {
-                for(const order in SortOrder) {
-                    if(order.length > 1) {
+                for (const order in SortOrder) {
+                    if (order.length > 1) {
                         // @ts-ignore
                         dropdown.addOption(order, t("sort_" + order.toLowerCase()));
                     }
@@ -157,7 +157,7 @@ export class FilteredFolderModal extends BaseModal {
                 .addExtraButton((button) => {
                     button
                         .setTooltip(t("delete"))
-                        .setIcon("feather-trash")
+                        .setIcon("trash")
                         .onClick(() => {
                             this.filterFolders = this.filterFolders.filter(e => e !== this.filterFolders[folder]);
                             this.display();
@@ -238,22 +238,16 @@ export class FilteredFolderModal extends BaseModal {
         feedsDiv.createEl("p", {text: t("filter_feed_help")});
 
         const feeds = this.plugin.settings.feeds.filter(feed => {
-            if(this.filterFolders.length === 0)
+            if (this.filterFolders.length === 0)
                 return true;
             return this.filterFolders.contains(feed.folder);
         }).map((feed) => feed.name);
 
         for (const feed in this.filterFeeds) {
             new Setting(feedsDiv)
-                .addSearch(async (search: SearchComponent) => {
-                    new ArraySuggest(this.app, search.inputEl, new Set(feeds));
-                    search
-                        .setValue(this.filterFeeds[feed])
-                        .onChange(async (value: string) => {
-                            this.removeValidationError(search);
-                            this.filterFeeds = this.filterFeeds.filter(e => e !== this.filterFeeds[feed]);
-                            this.filterFeeds.push(value);
-                        });
+                .addText(text => {
+                    text.setDisabled(true)
+                        .setValue(this.filterFeeds[feed]);
                 })
                 .addExtraButton((button) => {
                     button
@@ -273,6 +267,11 @@ export class FilteredFolderModal extends BaseModal {
                 new ArraySuggest(this.app, search.inputEl, new Set(feeds));
                 search
                     .onChange(async (value: string) => {
+                        const feeds = this.plugin.settings.feeds.filter(feed => feed.name === feedIgnoreValue).length;
+                        if(feeds !== 1) {
+                            this.setValidationError(search, t("no_feed_with_name"));
+                            return;
+                        }
                         feedValue = value;
                     });
             }).addExtraButton(button => {
@@ -280,6 +279,9 @@ export class FilteredFolderModal extends BaseModal {
                     .setTooltip(t("add"))
                     .setIcon("plus")
                     .onClick(() => {
+                        const feeds = this.plugin.settings.feeds.filter(feed => feed.name === feedIgnoreValue).length;
+                        if(feeds !== 1) return;
+
                         this.filterFeeds.push(feedValue);
                         this.display();
                     });
@@ -289,24 +291,18 @@ export class FilteredFolderModal extends BaseModal {
         feedsDiv.createEl("p", {text: t("filter_feed_ignore_help")});
 
         //ignore feeds
-        for (const folder in this.ignoreFeeds) {
+        for (const feed in this.ignoreFeeds) {
             new Setting(feedsDiv)
-                .addSearch(async (search: SearchComponent) => {
-                    new ArraySuggest(this.app, search.inputEl, new Set(feeds));
-                    search
-                        .setValue(this.ignoreFeeds[folder])
-                        .onChange(async (value: string) => {
-                            this.removeValidationError(search);
-                            this.ignoreFeeds = this.ignoreFeeds.filter(e => e !== this.ignoreFeeds[folder]);
-                            this.ignoreFeeds.push(value);
-                        });
+                .addText(text => {
+                    text.setDisabled(true)
+                        .setValue(this.ignoreFeeds[feed]);
                 })
                 .addExtraButton((button) => {
                     button
                         .setTooltip(t("delete"))
                         .setIcon("trash")
                         .onClick(() => {
-                            this.ignoreFeeds = this.ignoreFeeds.filter(e => e !== this.ignoreFeeds[folder]);
+                            this.ignoreFeeds = this.ignoreFeeds.filter(e => e !== this.ignoreFeeds[feed]);
                             this.display();
                         });
 
@@ -319,6 +315,11 @@ export class FilteredFolderModal extends BaseModal {
                 new ArraySuggest(this.app, search.inputEl, new Set(feeds));
                 search
                     .onChange(async (value: string) => {
+                        const feeds = this.plugin.settings.feeds.filter(feed => feed.name === feedIgnoreValue).length;
+                        if (feeds !== 1) {
+                            this.setValidationError(search, t("no_feed_with_name"));
+                            return;
+                        }
                         feedIgnoreValue = value;
                     });
             }).addExtraButton(button => {
@@ -326,6 +327,9 @@ export class FilteredFolderModal extends BaseModal {
                     .setTooltip(t("add"))
                     .setIcon("plus")
                     .onClick(() => {
+                        const feeds = this.plugin.settings.feeds.filter(feed => feed.name === feedIgnoreValue).length;
+                        if (feeds !== 1) return;
+
                         this.ignoreFeeds.push(feedIgnoreValue);
                         this.display();
                     });
@@ -339,19 +343,9 @@ export class FilteredFolderModal extends BaseModal {
 
         for (const tag in this.filterTags) {
             new Setting(tagDiv)
-                .addSearch(async (search: SearchComponent) => {
-                    new ArraySuggest(this.app, search.inputEl, get(tagsStore));
-                    search
+                .addText(text => {
+                    text.setDisabled(true)
                         .setValue(this.filterTags[tag])
-                        .onChange(async (value: string) => {
-                            this.removeValidationError(search);
-                            if (!value.match(TAG_REGEX) || value.match(NUMBER_REGEX) || value.contains(" ") || value.contains('#')) {
-                                this.setValidationError(search, t("invalid_tag"));
-                                return;
-                            }
-                            this.filterTags = this.filterTags.filter(e => e !== this.filterTags[tag]);
-                            this.filterTags.push(value);
-                        });
                 })
                 .addExtraButton((button) => {
                     button
@@ -463,12 +457,12 @@ export class FilteredFolderModal extends BaseModal {
                 .setIcon("checkmark")
                 .onClick(async () => {
                     let error = false;
-                    if(!nameText.getValue().length) {
+                    if (!nameText.getValue().length) {
                         this.setValidationError(nameText, t("invalid_name"));
                         error = true;
                     }
 
-                    if(error) {
+                    if (error) {
                         new Notice(t("fix_errors"));
                         return;
                     }
@@ -489,8 +483,7 @@ export class FilteredFolderModal extends BaseModal {
     }
 
 
-
-    async onOpen() : Promise<void> {
+    async onOpen(): Promise<void> {
         await this.display();
     }
 }

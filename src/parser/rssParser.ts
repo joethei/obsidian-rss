@@ -207,7 +207,6 @@ export async function getFeedItems(feed: RssFeed): Promise<RssFeedContent> {
     try {
         const rawData = await requestFeed(feed);
         data = new window.DOMParser().parseFromString(rawData, "text/xml");
-        console.log(data);
     } catch (e) {
         console.error(e);
         return Promise.resolve(undefined);

@@ -75,11 +75,11 @@ export function displayFilterSettings(plugin: RssReaderPlugin, containerEl: HTML
             const folders = filter.filterFolders.join(",");
             message += "; " + t("from_folders") + folders;
         }
-        if (filter.filterFeeds.length > 0) {
+        if (filter.filterFeeds !== undefined && filter.filterFeeds.length > 0) {
             const feeds = filter.filterFeeds.join(",");
             message += "; " + t("from_feeds") + feeds;
         }
-        if (filter.filterTags.length > 0) {
+        if (filter.filterTags !== undefined && filter.filterTags.length > 0) {
             const tags = filter.filterTags.join(",");
             message += "; " + t("with_tags") + tags;
         }

@@ -101,7 +101,7 @@ export default {
     from_feeds: "Aus Feeds: ",
     with_tags: "Mit Tags: ",
 
-
+    no_feed_with_name: "Es existiert kein Feed mit diesem Namen",
     invalid_tag: "Dieser Tag ist nicht gültig",
 
     note_exists: "Es existiert bereits eine Notiz mit diesem Namen",
