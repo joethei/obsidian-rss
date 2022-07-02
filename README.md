@@ -34,7 +34,7 @@ After installing the plugin:
 ## Finding the RSS feed for a website
 
 - Search for the RSS logo or a link on the website
-- Use an browser addon ([Firefox](https://addons.mozilla.org/en-US/firefox/addon/awesome-rss/), [Chrome based](https://chrome.google.com/webstore/detail/get-rss-feed-url/kfghpdldaipanmkhfpdcjglncmilendn?hl=de))
+- Use an browser addon ([Firefox](https://addons.mozilla.org/en-US/firefox/addon/awesome-rss/), [Chrome based](https://chrome.google.com/webstore/detail/get-rss-feed-url/kfghpdldaipanmkhfpdcjglncmilendn))
 - Search the websites sourcecode for `rss`
 
 ## Tips
