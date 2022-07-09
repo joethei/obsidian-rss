@@ -2,6 +2,7 @@
 import en from "./locales/en";
 import de from "./locales/de";
 import zh from "./locales/zh";
+import fr from "./locales/fr";
 import test from "./locales/test";
 
 /* istanbul ignore next */
