@@ -12,7 +12,8 @@ const localeMap: { [k: string]: Partial<typeof en> } = {
     en,
     de,
     "zh-cn": zh,
-    test
+    test,
+    fr
 };
 
 const userLocale = localeMap[locale];
