@@ -44,7 +44,7 @@
     "lodash.mergewith": "^4.6.2",
     "lodash.sortby": "^4.7.0",
     "lodash.values": "^4.3.0",
-    "obsidian": "^0.12.17",
+    "obsidian": "^0.15.3",
     "obsidian-community-lib": "1.2.0",
     "stylelint-config-standard": "^24.0.0",
     "svelte": "^3.43.1",
