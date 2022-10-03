@@ -101,6 +101,7 @@ export default {
     from_feeds: "来自订阅源: ",
     with_tags: "来自标签: ",
 
+    no_feed_with_name: "没有找到该名称订阅源",
     invalid_tag: "此标签无效",
 
     note_exists: "已存在同名笔记",
@@ -194,5 +195,23 @@ export default {
     filter_feed_ignore_help: "忽略以下订阅源",
     filter_tags_ignore_help: "忽略以下标签",
 
-    loading: "正在加载"
+    loading: "正在加载"，
+    
+    //template settings
+    article_title: "标题",
+    article_link: "文章链接",
+    article_author: "文章作者",
+    article_published: "发布日期",
+    article_description: "文章摘要",
+    article_content: "文章正文",
+    article_tags: "标签以逗号分隔",
+    article_media: "视频/音频链接",
+    feed_folder: "订阅源文件夹",
+    feed_title: "订阅源名称",
+    highlights: "高亮",
+    note_created: "笔记创建时间",
+    filename: "文件名",
+
+    display_media: "包含媒体",
+    base_folder: "源文件夹"
 }
