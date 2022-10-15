@@ -195,8 +195,8 @@ export default {
     filter_feed_ignore_help: "忽略以下订阅源",
     filter_tags_ignore_help: "忽略以下标签",
 
-    loading: "正在加载"，
-    
+    loading: "正在加载",
+
     //template settings
     article_title: "标题",
     article_link: "文章链接",

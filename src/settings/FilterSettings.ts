@@ -7,7 +7,7 @@ export function displayFilterSettings(plugin: RssReaderPlugin, containerEl: HTML
 
     containerEl.empty();
 
-    containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
+    containerEl.createEl("hr", {cls: "rss-divider"});
     containerEl.createEl("h3", {text: t("filtered_folders")});
 
     new Setting(containerEl)

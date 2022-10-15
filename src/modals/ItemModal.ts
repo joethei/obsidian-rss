@@ -5,25 +5,25 @@ import {
     Menu,
     Modal,
 } from "obsidian";
-import {RssFeedItem} from "../parser/rssParser";
 import RssReaderPlugin from "../main";
 import Action from "../actions/Action";
 import t from "../l10n/locale";
-import {copy} from "obsidian-community-lib";
-import {rssToMd} from "../functions";
+import {copy, rssToMd} from "../functions";
+import {Item} from "../providers/Item";
+import {pluginApi} from "@vanakat/plugin-api";
 
 export class ItemModal extends Modal {
 
     private readonly plugin: RssReaderPlugin;
-    private readonly item: RssFeedItem;
-    private readonly items: RssFeedItem[];
+    private readonly item: Item;
+    private readonly items: Item[];
 
     private readonly save: boolean;
 
     private readButton: ButtonComponent;
     private favoriteButton: ButtonComponent;
 
-    constructor(plugin: RssReaderPlugin, item: RssFeedItem, items: RssFeedItem[], save = true) {
+    constructor(plugin: RssReaderPlugin, item: Item, items: Item[], save = true) {
         super(plugin.app);
         this.plugin = plugin;
         this.items = items;
@@ -32,7 +32,7 @@ export class ItemModal extends Modal {
 
 
         if (this.save) {
-            this.item.read = true;
+            this.item.markRead(true);
 
             const feedContents = this.plugin.settings.items;
             this.plugin.writeFeedContent(() => {
@@ -96,24 +96,22 @@ export class ItemModal extends Modal {
                 this.previous();
             });
         }
-
-
-        //@ts-ignore
-        if (this.app.plugins.plugins["obsidian-tts"] && this.plugin.settings.hotkeys.tts) {
-            this.scope.register([], this.plugin.settings.hotkeys.tts, () => {
-                //@ts-ignore
-                const tts = this.app.plugins.plugins["obsidian-tts"].ttsService;
-                if (tts.isSpeaking()) {
-                    if (tts.isPaused()) {
-                        tts.resume();
-                    } else {
-                        tts.pause();
+        if(window['PluginApi']) {
+            const tts = pluginApi("tts");
+            if (tts && this.plugin.settings.hotkeys.tts) {
+                this.scope.register([], this.plugin.settings.hotkeys.tts, () => {
+                    if (tts.isSpeaking()) {
+                        if (tts.isPaused()) {
+                            tts.resume();
+                        } else {
+                            tts.pause();
+                        }
+                        return;
                     }
-                    return;
-                }
-                const content = htmlToMarkdown(this.item.content);
-                tts.say(this.item.title, content, this.item.language);
-            });
+                    const content = htmlToMarkdown(this.item.body());
+                    tts.say(this.item.title(), content);
+                });
+            }
         }
     }
 
@@ -143,14 +141,14 @@ export class ItemModal extends Modal {
 
     async markAsFavorite(): Promise<void> {
         await Action.FAVORITE.processor(this.plugin, this.item);
-        this.favoriteButton.setIcon((this.item.favorite) ? 'star-glyph' : 'star');
-        this.favoriteButton.setTooltip((this.item.favorite) ? t("remove_from_favorites") : t("mark_as_favorite"));
+        this.favoriteButton.setIcon((this.item.starred()) ? 'star-glyph' : 'star');
+        this.favoriteButton.setTooltip((this.item.starred()) ? t("remove_from_favorites") : t("mark_as_favorite"));
     }
 
     async markAsRead(): Promise<void> {
         await Action.READ.processor(this.plugin, this.item);
-        this.readButton.setIcon((this.item.read) ? 'eye-off' : 'eye');
-        this.readButton.setTooltip((this.item.read) ? t("mark_as_unread") : t("mark_as_unread"));
+        this.readButton.setIcon((this.item.read()) ? 'eye-off' : 'eye');
+        this.readButton.setTooltip((this.item.read()) ? t("mark_as_unread") : t("mark_as_unread"));
     }
 
     async display(): Promise<void> {
@@ -177,8 +175,8 @@ export class ItemModal extends Modal {
             this.readButton.buttonEl.addClass("rss-button");
 
             this.favoriteButton = new ButtonComponent(topButtons)
-                .setIcon(this.item.favorite ? 'star-glyph' : 'star')
-                .setTooltip(this.item.favorite ? t("remove_from_favorites") : t("mark_as_favorite"))
+                .setIcon(this.item.starred() ? 'star-glyph' : 'star')
+                .setTooltip(this.item.starred() ? t("remove_from_favorites") : t("mark_as_favorite"))
                 .onClick(async () => {
                     await this.markAsFavorite();
                 });
@@ -194,22 +192,23 @@ export class ItemModal extends Modal {
                 .setIcon(action.icon)
                 .setTooltip(action.name)
                 .onClick(async () => {
-                    await action.processor(this.plugin, this.item);
+                    //await action.processor(this.plugin, this.item);
                 });
             button.buttonEl.setAttribute("tabindex", "-1");
             button.buttonEl.addClass("rss-button");
         });
-        //@ts-ignore
-        if (this.app.plugins.plugins["obsidian-tts"]) {
-            const ttsButton = new ButtonComponent(topButtons)
-                .setIcon("headphones")
-                .setTooltip(t("read_article_tts"))
-                .onClick(async () => {
-                    const content = htmlToMarkdown(this.item.content);
-                    //@ts-ignore
-                    await this.app.plugins.plugins["obsidian-tts"].ttsService.say(this.item.title, content, this.item.language);
-                });
-            ttsButton.buttonEl.addClass("rss-button");
+        if(window['PluginApi']) {
+            const tts = pluginApi("tts");
+            if (tts) {
+                const ttsButton = new ButtonComponent(topButtons)
+                    .setIcon("headphones")
+                    .setTooltip(t("read_article_tts"))
+                    .onClick(async () => {
+                        const content = htmlToMarkdown(this.item.body());
+                        await tts.say(this.item.title, content, this.item.language());
+                    });
+                ttsButton.buttonEl.addClass("rss-button");
+            }
         }
 
         const prevButton = new ButtonComponent(topButtons)
@@ -228,20 +227,18 @@ export class ItemModal extends Modal {
             });
         nextButton.buttonEl.addClass("rss-button");
 
-        const title = contentEl.createEl('h1', 'rss-title');
-        title.addClass("rss-selectable");
-        title.setText(this.item.title);
+        const title = contentEl.createEl('h1', {cls: ["rss-title", "rss-selectable"], text: this.item.title()});
 
         const subtitle = contentEl.createEl("h3", "rss-subtitle");
         subtitle.addClass("rss-selectable");
-        if (this.item.creator) {
-            subtitle.appendText(this.item.creator);
+        if (this.item.author()) {
+            subtitle.appendText(this.item.author());
         }
         if (this.item.pubDate) {
-            subtitle.appendText(" - " + window.moment(this.item.pubDate).format(this.plugin.settings.dateFormat));
+            subtitle.appendText(" - " + window.moment(this.item.pubDate()).format(this.plugin.settings.dateFormat));
         }
         const tagEl = contentEl.createSpan("tags");
-        this.item.tags.forEach((tag) => {
+        this.item.tags().forEach((tag) => {
             const tagA = tagEl.createEl("a");
             tagA.setText(tag);
             tagA.addClass("tag", "rss-tag");
@@ -250,22 +247,22 @@ export class ItemModal extends Modal {
         const content = contentEl.createDiv('rss-content');
         content.addClass("rss-scrollable-content", "rss-selectable");
 
-        if (this.item.enclosure && this.plugin.settings.displayMedia) {
-            if (this.item.enclosureType.toLowerCase().contains("audio")) {
+        if (this.item.enclosureLink() && this.plugin.settings.displayMedia) {
+            if (this.item.enclosureMime().toLowerCase().contains("audio")) {
                 const audio = content.createEl("audio", {attr: {controls: "controls"}});
-                audio.createEl("source", {attr: {src: this.item.enclosure, type: this.item.enclosureType}});
+                audio.createEl("source", {attr: {src: this.item.enclosureLink(), type: this.item.enclosureMime()}});
             }
-            if (this.item.enclosureType.toLowerCase().contains("video")) {
+            if (this.item.enclosureMime().toLowerCase().contains("video")) {
                 const video = content.createEl("video", {attr: {controls: "controls", width: "100%", height: "100%"}});
-                video.createEl("source", {attr: {src: this.item.enclosure, type: this.item.enclosureType}});
+                video.createEl("source", {attr: {src: this.item.enclosureLink(), type: this.item.enclosureMime()}});
             }
 
             //embedded yt player
-            if (this.item.enclosure && this.item.id.startsWith("yt:")) {
+            if (this.item.enclosureLink() && typeof this.item.id() === "string" && (this.item.id() as string).startsWith("yt:")) {
                 content.createEl("iframe", {
                     attr: {
                         type: "text/html",
-                        src: "https://www.youtube.com/embed/" + this.item.enclosure,
+                        src: "https://www.youtube.com/embed/" + this.item.enclosureLink(),
                         width: "100%",
                         height: "100%",
                         allowFullscreen: "true"
@@ -274,13 +271,13 @@ export class ItemModal extends Modal {
             }
         }
 
-        if (this.item.content) {
+        if (this.item.body()) {
             //prepend empty yaml to fix rendering errors
-            const markdown = "---\n---" + rssToMd(this.plugin, this.item.content);
+            const markdown = "---\n---" + rssToMd(this.plugin, this.item.body());
 
             await MarkdownRenderer.renderMarkdown(markdown, content, "", this.plugin);
 
-            this.item.highlights.forEach(highlight => {
+            this.item.highlights().forEach(highlight => {
                 if (content.innerHTML.includes(highlight)) {
                     const newNode = contentEl.createEl("mark");
                     newNode.innerHTML = highlight;
@@ -305,13 +302,13 @@ export class ItemModal extends Modal {
                 const selected = div.innerHTML;
                 div.remove();
 
-                const menu = new Menu(this.app);
+                const menu = new Menu();
 
                 let previousHighlight: HTMLElement;
-                if (this.item.highlights.includes(range.startContainer.parentElement.innerHTML)) {
+                if (this.item.highlights().includes(range.startContainer.parentElement.innerHTML)) {
                     previousHighlight = range.startContainer.parentElement;
                 }
-                if (this.item.highlights.includes(range.startContainer.parentElement.parentElement.innerHTML)) {
+                if (this.item.highlights().includes(range.startContainer.parentElement.parentElement.innerHTML)) {
                     previousHighlight = range.startContainer.parentElement.parentElement;
                 }
 
@@ -324,7 +321,7 @@ export class ItemModal extends Modal {
                                 const replacement = contentEl.createSpan();
                                 replacement.innerHTML = previousHighlight.innerHTML;
                                 previousHighlight.replaceWith(replacement);
-                                this.item.highlights.remove(previousHighlight.innerHTML);
+                                this.item.highlights().remove(previousHighlight.innerHTML);
 
                                 const feedContents = this.plugin.settings.items;
                                 await this.plugin.writeFeedContent(() => {
@@ -332,7 +329,7 @@ export class ItemModal extends Modal {
                                 });
                             });
                     });
-                }else if(!this.item.highlights.includes(selected) && selected.length > 0) {
+                }else if(!this.item.highlights().includes(selected) && selected.length > 0) {
                     menu.addItem(item => {
                         item
                             .setIcon("highlight-glyph")
@@ -342,7 +339,7 @@ export class ItemModal extends Modal {
                                 newNode.innerHTML = selected;
                                 range.deleteContents();
                                 range.insertNode(newNode);
-                                this.item.highlights.push(selected);
+                                this.item.highlights().push(selected);
 
                                 const feedContents = this.plugin.settings.items;
                                 await this.plugin.writeFeedContent(() => {

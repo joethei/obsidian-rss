@@ -217,5 +217,7 @@ export default {
     filename: "Filename",
 
     display_media: "Include Media",
-    base_folder: "Base folder"
+    base_folder: "Base folder",
+
+    provider: "Provider"
 }

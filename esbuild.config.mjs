@@ -1,6 +1,12 @@
 import esbuild from "esbuild";
+import fs from 'fs';
 import process from "process";
 import builtins from 'builtin-modules';
+import sass from "sass";
+import autoprefixer from "autoprefixer";
+import postcss from "postcss";
+import cssnano from "cssnano";
+import defaultPreset from "cssnano-preset-default";
 import sveltePlugin from "esbuild-svelte";
 import sveltePreprocess from "svelte-preprocess";
 
@@ -14,6 +20,40 @@ https://github.com/joethei/obisidian-rss
 
 const prod = (process.argv[2] === 'production');
 
+const copyMinifiedCSS = {
+    name: 'minify-css',
+    setup: (build) => {
+        build.onEnd(async () => {
+            const {css} = sass.compile('src/style/main.scss');
+            let result;
+            if (prod) {
+                const content = `${banner}\n${css}`;
+                const preset = defaultPreset({discardComments: false});
+                result = await postcss([cssnano({
+                    preset: preset,
+                    plugins: [
+                        autoprefixer,
+                    ]
+                })]).process(content);
+            } else {
+                const content = `${banner}\n${css}`;
+                result = await postcss([autoprefixer]).process(content);
+            }
+
+            fs.writeFileSync('build/styles.css', result.css, {encoding: 'utf-8'});
+        })
+    }
+}
+
+const copyManifest = {
+    name: 'copy-manifest',
+    setup: (build) => {
+        build.onEnd(() => {
+            fs.copyFileSync('manifest.json', 'build/manifest.json');
+        });
+    },
+};
+
 esbuild.build({
     banner: {
         js: banner,
@@ -23,12 +63,12 @@ esbuild.build({
     external: ['obsidian', 'electron', ...builtins],
     plugins: [sveltePlugin({
         preprocess: sveltePreprocess()
-    })],
+    }), copyManifest, copyMinifiedCSS],
     format: 'cjs',
     watch: !prod,
     target: 'es2016',
     logLevel: "info",
     sourcemap: prod ? false : 'inline',
     treeShaking: true,
-    outfile: 'main.js',
+    outfile: 'build/main.js',
 }).catch(() => process.exit(1));

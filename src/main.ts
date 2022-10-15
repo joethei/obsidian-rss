@@ -26,10 +26,13 @@ import {RSSReaderSettingsTab} from "./settings/SettingsTab";
 import {CleanupModal} from "./modals/CleanupModal";
 import {TextInputPrompt} from "./modals/TextInputPrompt";
 import {ArticleSuggestModal} from "./modals/ArticleSuggestModal";
-
+import {Providers} from "./providers/Providers";
+import {NextcloudFeedProvider} from "./providers/nextcloud/NextcloudFeedProvider";
+import {LocalFeedProvider} from "./providers/local/LocalFeedProvider";
 
 export default class RssReaderPlugin extends Plugin {
     settings: RssReaderSettings;
+    providers: Providers;
 
     async onload(): Promise<void> {
         console.log('loading plugin rss reader');
@@ -40,8 +43,11 @@ export default class RssReaderPlugin extends Plugin {
                 this.settings = value;
             })
         );
-
         await this.loadSettings();
+        this.providers = new Providers(this);
+
+        this.providers.register(new LocalFeedProvider(this));
+        this.providers.register(new NextcloudFeedProvider());
 
         this.addCommand({
             id: "rss-open",
@@ -154,7 +160,7 @@ export default class RssReaderPlugin extends Plugin {
                 }
                 tagsStore.update(() => new Set<string>(tags.filter(tag => tag.length > 0)));
 
-                //collect wallabag.xml folders for auto-completion
+                //collect all folders for auto-completion
                 const folders: string[] = [];
                 for (const item of items) {
                     if (item !== undefined)

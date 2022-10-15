@@ -114,6 +114,14 @@ input.is-invalid {
     background: var(--background-secondary);
 }
 
+.rss-modal {
+    width: 1000px;
+}
+
+img.feed-favicon {
+    height: 1em;
+}
+
 /*making sure both highlight styles look consistent*/
 .rss-modal li mark {
     background-color: var(--text-highlight-bg);
@@ -139,4 +147,16 @@ input.is-invalid {
 .rss-item-count {
     margin-left: auto;
     margin-right: 0;
+}
+
+.rss-divider {
+    border-top: 5px solid var(--background-modifier-border);
+}
+
+.modal.mod-settings button:not(.mod-cta):not(.mod-warning).rss-test-valid {
+    background-color: var(--background-modifier-success);
+}
+
+.modal.mod-settings button:not(.mod-cta):not(.mod-warning).rss-test-invalid {
+    background-color: var(--background-modifier-error);
 }

@@ -6,10 +6,11 @@
     import {createNewNote, openInBrowser, pasteToNote} from "../functions";
     import {Menu} from "obsidian";
     import Action from "../actions/Action";
+    import {Item} from "../providers/Item";
 
     export let plugin: RssReaderPlugin = null;
-    export let item: RssFeedItem = null;
-    export let items: RssFeedItem[] = null;
+    export let item: Item = null;
+    export let items: Item[] = null;
 
     async function openMenu(e: MouseEvent): Promise<void> {
         if (e.ctrlKey && e.altKey) {
@@ -26,7 +27,7 @@
             return;
         }
 
-        const menu = new Menu(plugin.app);
+        const menu = new Menu();
 
 
         Action.actions.forEach((action) => {
@@ -44,10 +45,10 @@
     }
 </script>
 
-{#if (item.favorite)}
+{#if (item.starred())}
     <IconComponent iconName="star"/>
 {/if}
-{#if (item.created)}
+{#if (item.created())}
     <IconComponent iconName="document"/>
 {/if}
 <a on:click={() => {
@@ -55,5 +56,5 @@
                     }}
    on:contextmenu={openMenu}
 >
-    {item.title}
+    {item.title()}
 </a>

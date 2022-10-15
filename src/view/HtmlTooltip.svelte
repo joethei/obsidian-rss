@@ -1,6 +1,6 @@
 <script lang="ts">
 
-    import {sanitizeHTMLToDom} from "../consts";
+    import {sanitizeHTMLToDom} from "obsidian";
 
     export let content: String = "";
 

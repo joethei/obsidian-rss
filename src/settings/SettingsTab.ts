@@ -17,6 +17,7 @@ import {displayFeedSettings} from "./FeedSettings";
 import {DEFAULT_SETTINGS} from "./settings";
 import {displayHotkeys} from "./HotkeySettings";
 import {displayFilterSettings} from "./FilterSettings";
+import {FeedProvider} from "../providers/FeedProvider";
 
 export class RSSReaderSettingsTab extends PluginSettingTab {
     plugin: RssReaderPlugin;
@@ -195,7 +196,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                     });
             });
 
-        containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
+        containerEl.createEl("hr", {cls: "rss-divider"});
         containerEl.createEl("h3", {text: "Misc"});
 
         const refresh = new Setting(containerEl)
@@ -265,20 +266,29 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
 
         containerEl.createEl("h2", {text: t("content")});
 
-        const filterContainer = containerEl.createDiv("filter-container");
-        displayFilterSettings(this.plugin, filterContainer);
+        new Setting(containerEl)
+            .setName(t("provider"))
+            .addDropdown(dropdown => {
+                for (let feedProvider of this.plugin.providers.getAll()) {
+                    dropdown.addOption(feedProvider.id(), feedProvider.name());
+                }
+                dropdown
+                    .setValue(this.plugin.settings.provider)
+                    .onChange(async (value) => {
+                        await this.plugin.writeSettings(() => ({
+                            provider: value
+                        }));
+                        this.display();
+                    })
+            });
 
-        const feedsContainer = containerEl.createDiv(
-            "feed-container"
-        );
-        displayFeedSettings(this.plugin, feedsContainer);
+        const providerEl = containerEl.createDiv();
 
-        containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
+        const provider = this.plugin.providers.getCurrent();
+        provider.displaySettings(this.plugin, providerEl);
 
-        const hotkeyContainer = containerEl.createDiv("hotkey-container");
-        displayHotkeys(this.plugin, hotkeyContainer);
 
-        containerEl.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
+        containerEl.createEl("hr", {cls: "rss-divider"});
 
         const details = containerEl.createEl("details");
         const summary = details.createEl("summary");
@@ -337,7 +347,7 @@ export class RSSReaderSettingsTab extends PluginSettingTab {
                     });
             });
 
-        advanced.createEl("hr", {attr: {style: "border-top: 5px solid var(--background-modifier-border);"}});
+        advanced.createEl("hr", {cls: "rss-divider"});
 
         new Setting(advanced)
             .setName(t("display_media"))
