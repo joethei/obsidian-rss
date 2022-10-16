@@ -2,11 +2,13 @@ import {FeedProvider} from "../FeedProvider";
 import {Folder} from "../Folder";
 import {Feed} from "../Feed";
 import RssReaderPlugin from "../../main";
-import { requestUrl, RequestUrlResponse, Setting} from "obsidian";
+import { requestUrl, RequestUrlResponse} from "obsidian";
 import {Item} from "../Item";
 import {NextCloudItem} from "./NextCloudItem";
 import {NextCloudFeed} from "./NextCloudFeed";
 import {NextCloudFolder} from "./NextCloudFolder";
+import {NextCloudFeedSettings} from "./NextCloudFeedSettings";
+import {SettingsSection} from "../../settings/SettingsSection";
 
 interface NextcloudAuthData {
     server: string;
@@ -16,12 +18,18 @@ interface NextcloudAuthData {
 }
 
 export class NextcloudFeedProvider implements FeedProvider {
-    private readonly server_key = "rss-nc-server";
-    private readonly user_key = "rss-nc-user";
-    private readonly password_key = "rss-nc-password";
+    private readonly plugin: RssReaderPlugin;
+
+    public readonly server_key = "rss-nc-server";
+    public readonly user_key = "rss-nc-user";
+    public readonly password_key = "rss-nc-password";
     private readonly path = "/index.php/apps/news/api/v1-2/";
 
     private _warnings: string[] = [];
+
+    constructor(plugin: RssReaderPlugin) {
+        this.plugin = plugin;
+    }
 
     getAuthData(): NextcloudAuthData {
         const username = localStorage.getItem(this.user_key);
@@ -144,70 +152,9 @@ export class NextcloudFeedProvider implements FeedProvider {
         return items;
     }
 
-    async displaySettings(plugin: RssReaderPlugin, container: HTMLElement) {
-
-        container.empty();
-
-        const authData = this.getAuthData();
-
-        new Setting(container)
-            .setName("Server")
-            .addText(text => {
-                text
-                    .setPlaceholder("https://your-nextcloud.server.zyx")
-                    .setValue(authData.server)
-                    .onChange(value => {
-                        localStorage.setItem(this.server_key, value);
-                    });
-            });
-
-        new Setting(container)
-            .setName("Username")
-            .addText(text => {
-                text
-                    .setPlaceholder("your-username")
-                    .setValue(authData.username)
-                    .onChange(value => {
-                        localStorage.setItem(this.user_key, value);
-                    });
-            });
-
-        new Setting(container)
-            .setName("Password")
-            .addText(text => {
-                text
-                    .setPlaceholder("your password")
-                    .setValue(authData.password)
-                    .onChange(value => {
-                        localStorage.setItem(this.password_key, value);
-                    });
-                text.inputEl.type = "password";
-            });
-
-        const isValid = await this.isValid();
-
-        new Setting(container)
-            .setName("Validate")
-            .setDesc("Ensure that the service is configured properly")
-            .addButton(button => {
-                    button
-                        .setButtonText("Test")
-                        .setIcon(isValid ? "check" : "x")
-                        .setClass(isValid ? "rss-test-valid" : "rss-test-invalid")
-                        .onClick(async () => {
-                            await this.displaySettings(plugin, container);
-                        })
-                }
-            )
-
-
-        if (!isValid) {
-            container.createEl("h4", {text: "Errors"});
-            const list = container.createEl("ul");
-            for (let warning of this.warnings()) {
-                list.createEl("li", {text: warning});
-            }
-        }
+    settings(containerEl: HTMLDivElement): SettingsSection {
+        return new NextCloudFeedSettings(this.plugin, containerEl, this);
     }
+
 
 }

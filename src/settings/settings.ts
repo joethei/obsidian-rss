@@ -77,7 +77,7 @@ export const DEFAULT_SETTINGS: RssReaderSettings = Object.freeze({
         "{{content}}",
     pasteTemplate: "## {{title}}\n" +
         "{{content}}",
-    askForFilename: true,
+    askForFilename: false,
     defaultFilename: "{{title}}",
     autoSync: false,
     hotkeys: {

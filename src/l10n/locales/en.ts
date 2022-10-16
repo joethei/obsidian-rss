@@ -216,6 +216,8 @@ export default {
     note_created: "Note creation date",
     filename: "Filename",
 
+    misc: "Misc",
+
     display_media: "Include Media",
     base_folder: "Base folder",
 

@@ -47,7 +47,7 @@ export default class RssReaderPlugin extends Plugin {
         this.providers = new Providers(this);
 
         this.providers.register(new LocalFeedProvider(this));
-        this.providers.register(new NextcloudFeedProvider());
+        this.providers.register(new NextcloudFeedProvider(this));
 
         this.addCommand({
             id: "rss-open",

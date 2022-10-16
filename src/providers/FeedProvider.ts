@@ -1,7 +1,7 @@
 import {Feed} from "./Feed";
 import {Folder} from "./Folder";
-import RssReaderPlugin from "../main";
 import {Item} from "./Item";
+import {SettingsSection} from "../settings/SettingsSection";
 
 export interface FeedProvider {
 
@@ -21,6 +21,5 @@ export interface FeedProvider {
 
     items() : Promise<Item[]>;
 
-    displaySettings(plugin: RssReaderPlugin, container: HTMLElement): void;
-
+    settings(containerEl: HTMLDivElement) : SettingsSection;
 }
