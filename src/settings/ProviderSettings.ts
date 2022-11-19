@@ -14,15 +14,14 @@ export class ProviderSettings extends SettingsSection {
         new Setting(this.contentEl)
             .setName(t("provider"))
             .addDropdown(dropdown => {
-                for (let feedProvider of this.plugin.providers.getAll()) {
+                for (const feedProvider of this.plugin.providers.getAll()) {
                     dropdown.addOption(feedProvider.id(), feedProvider.name());
                 }
                 dropdown
                     .setValue(this.plugin.settings.provider)
                     .onChange(async (value) => {
-                        await this.plugin.writeSettings(() => ({
-                            provider: value
-                        }));
+                        this.plugin.settings.provider = value;
+                        await this.plugin.saveSettings();
                         this.display();
                     })
             });

@@ -16,5 +16,6 @@ export interface Feed {
     ordering(): FeedOrder;
     link(): string;
     folderId(): number;
+    folderName(): string;
     items(): Item[];
 }

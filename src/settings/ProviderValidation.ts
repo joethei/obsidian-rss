@@ -31,7 +31,7 @@ export class ProviderValidation {
         if (!isValid) {
             this.containerEl.createEl("h4", {text: "Errors"});
             const list = this.containerEl.createEl("ul");
-            for (let warning of this.provider.warnings()) {
+            for (const warning of this.provider.warnings()) {
                 list.createEl("li", {text: warning});
             }
         }

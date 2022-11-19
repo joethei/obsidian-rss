@@ -46,6 +46,10 @@ export class NextCloudFeed implements Feed {
         return this.json.folderId;
     }
 
+    folderName(): string {
+        return this.json.folderName;
+    }
+
     items(): Item[] {
         return this._items;
     }

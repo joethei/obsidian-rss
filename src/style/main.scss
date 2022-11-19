@@ -160,3 +160,7 @@ img.feed-favicon {
 .modal.mod-settings button:not(.mod-cta):not(.mod-warning).rss-test-invalid {
     background-color: var(--background-modifier-error);
 }
+
+.feed ul{
+    margin-block-start: 0;
+}

@@ -1,14 +1,11 @@
 import {Folder} from "../Folder";
-import {NextcloudFeedProvider} from "./NextcloudFeedProvider";
 import {Feed} from "../Feed";
 
 export class NextCloudFolder implements Folder {
-    private readonly provider: NextcloudFeedProvider;
     private readonly json: any;
     private readonly _feeds: Feed[];
 
-    constructor(provider: NextcloudFeedProvider, json: any, feeds: Feed[]) {
-        this.provider = provider;
+    constructor(json: any, feeds: Feed[]) {
         this.json = json;
         this._feeds = feeds;
     }

@@ -146,7 +146,7 @@ export class NextcloudFeedProvider implements FeedProvider {
     async items(): Promise<Item[]> {
         const data = await this.requestData("items");
         const items: NextCloudItem[] = [];
-        for (let item of data.json.items) {
+        for (const item of data.json.items) {
             items.push(new NextCloudItem(this, item));
         }
         return items;
