@@ -192,7 +192,7 @@ export class ItemModal extends Modal {
                 .setIcon(action.icon)
                 .setTooltip(action.name)
                 .onClick(async () => {
-                    //await action.processor(this.plugin, this.item);
+                    await action.processor(this.plugin, this.item);
                 });
             button.buttonEl.setAttribute("tabindex", "-1");
             button.buttonEl.addClass("rss-button");
@@ -227,7 +227,7 @@ export class ItemModal extends Modal {
             });
         nextButton.buttonEl.addClass("rss-button");
 
-        const title = contentEl.createEl('h1', {cls: ["rss-title", "rss-selectable"], text: this.item.title()});
+        contentEl.createEl('h1', {cls: ["rss-title", "rss-selectable"], text: this.item.title()});
 
         const subtitle = contentEl.createEl("h3", "rss-subtitle");
         subtitle.addClass("rss-selectable");

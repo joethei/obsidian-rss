@@ -18,7 +18,7 @@ export default class ViewLoader extends View {
         this.navigationEl = this.containerEl.createDiv('nav-header');
         this.navigationButtonsEl = this.navigationEl.createDiv('nav-buttons-container');
 
-        this.contentContainer = this.containerEl.createDiv('content');
+        this.contentContainer = this.containerEl.createDiv({cls: 'content rss-scrollable-content'});
     }
 
     getDisplayText(): string {

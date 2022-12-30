@@ -4,7 +4,7 @@ import {
     normalizePath,
     Notice,
     TextComponent,
-    MarkdownPreviewRenderer, moment
+    MarkdownPreviewRenderer, moment, View, TextFileView
 } from "obsidian";
 import {TextInputPrompt} from "./modals/TextInputPrompt";
 import {FILE_NAME_REGEX} from "./consts";
@@ -13,6 +13,7 @@ import t from "./l10n/locale";
 import {Item} from "./providers/Item";
 
 export async function createNewNote(plugin: RssReaderPlugin, item: Item): Promise<void> {
+    console.log("creating new note");
     const activeFile = plugin.app.workspace.getActiveFile();
     let dir = plugin.app.fileManager.getNewFileParent(activeFile ? activeFile.path : "").path;
 
@@ -81,6 +82,7 @@ export async function pasteToNote(plugin: RssReaderPlugin, item: Item): Promise<
     }
 
     const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+    console.log(view);
     if (view) {
         const appliedTemplate = applyTemplate(plugin, item, plugin.settings.pasteTemplate);
 
@@ -94,6 +96,8 @@ export async function pasteToNote(plugin: RssReaderPlugin, item: Item): Promise<
         });
 
         new Notice(t("RSS_Reader") + t("inserted_article"));
+    }else {
+        new Notice("No view available");
     }
 }
 

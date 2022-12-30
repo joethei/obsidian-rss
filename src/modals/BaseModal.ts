@@ -11,7 +11,7 @@ export class BaseModal extends Modal {
                 "has-invalid-message",
                 "unset-align-items"
             ]);
-            input.inputEl.parentElement.parentElement.addClass(
+            input.inputEl.parentElement.addClass(
                 ".unset-align-items"
             );
             let mDiv = input.inputEl.parentElement.querySelector(
