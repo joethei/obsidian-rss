@@ -58,7 +58,7 @@
     "lodash.mergewith": "^4.6.2",
     "lodash.sortby": "^4.7.0",
     "lodash.values": "^4.3.0",
-    "nunjucks": "3.2.3",
+    "nunjucks": "3.2.4",
     "obsidian": "0.16.3",
     "svelte": "^3.43.1",
     "ts-md5": "^1.2.10",
