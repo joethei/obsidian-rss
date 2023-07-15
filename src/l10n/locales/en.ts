@@ -122,7 +122,7 @@ export default {
     settings: "Settings",
     file_creation: "File creation",
     template_new: "new file template",
-    template_new_help: "When creating a note from a article this gets processed.",
+    template_new_help: "When creating a note from an article, this gets processed.",
     template_paste: "paste article template",
     template_paste_help: "When pasting/copying an article this gets processed.",
     available_variables: "Available variables are:",
@@ -148,7 +148,7 @@ export default {
     add_new_filter: "Add new filtered folder",
     filter_exists: "you already have a filter configured with that name",
     hotkeys: "Hotkeys",
-    hotkeys_reading: "when reading a article",
+    hotkeys_reading: "when reading an article",
     press_key: "press a key",
     customize_hotkey: "customize this hotkey",
 
