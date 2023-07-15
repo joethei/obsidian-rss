@@ -114,8 +114,8 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
     protected inputEl: HTMLInputElement | HTMLTextAreaElement;
 
     private popper: PopperInstance;
-    private scope: Scope;
-    private suggestEl: HTMLElement;
+    private readonly scope: Scope;
+    private readonly suggestEl: HTMLElement;
     private suggest: Suggest<T>;
 
     constructor(app: App, inputEl: HTMLInputElement | HTMLTextAreaElement) {

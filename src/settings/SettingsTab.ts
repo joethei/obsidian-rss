@@ -3,7 +3,6 @@ import {
     PluginSettingTab,
 } from "obsidian";
 import RssReaderPlugin from "../main";
-import t from "../l10n/locale";
 import {HotkeySettings} from "./HotkeySettings";
 import {ProviderSettings} from "./ProviderSettings";
 import {FileCreationSettings} from "./FileCreationSettings";

@@ -2,7 +2,6 @@ import {AbstractTextComponent, Modal} from "obsidian";
 
 export class BaseModal extends Modal {
 
-
     //taken from github.com/valentine195/obsidian-admonition
     setValidationError(input: AbstractTextComponent<any>, message?: string) : void {
         input.inputEl.addClass("is-invalid");

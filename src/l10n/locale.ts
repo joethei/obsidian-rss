@@ -19,9 +19,8 @@ const localeMap: { [k: string]: Partial<typeof en> } = {
     fr,
     es,
     test,
-    fr,
-    pt
-    it
+    pt,
+    it,
     da
 };
 

@@ -25,8 +25,6 @@ export interface Item {
     markCreated(created: boolean): void;
     language(): string | undefined;
     highlights(): string[];
-    description(): string;
     folder(): string;
     feed(): string;
-    language(): string | undefined;
 }

@@ -13,11 +13,15 @@ export class Providers {
         return this.providers;
     }
 
-    getCurrent() : FeedProvider {
-        return this.providers.filter(provider => provider.id() === this.plugin.settings.provider).first();
+    getCurrent(): FeedProvider {
+        return this.getById(this.plugin.settings.provider);
     }
 
-    register(provider: FeedProvider) : void {
+    getById(id: string): FeedProvider {
+        return this.providers.filter(provider => provider.id() === id).first();
+    }
+
+    register(provider: FeedProvider): void {
         this.providers.push(provider);
     }
 

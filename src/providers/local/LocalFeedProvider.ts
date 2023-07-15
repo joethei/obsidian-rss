@@ -40,6 +40,16 @@ export class LocalFeedProvider implements FeedProvider {
         return result;
     }
 
+    async feedFromUrl(url: string): Promise<Feed> {
+        const feed = {
+            name: '',
+            url,
+            folder: '',
+        }
+        const content = await getFeedItems(feed);
+        return new LocalFeed(content);
+    }
+
     async filteredFolders(): Promise<Folder[]> {
         return [];
     }
@@ -50,7 +60,7 @@ export class LocalFeedProvider implements FeedProvider {
         const feeds = await this.feeds();
         const grouped = groupBy(feeds, item => item.folderName());
 
-        for(const key of Object.keys(grouped)) {
+        for (const key of Object.keys(grouped)) {
             const folderContent = grouped[key];
             result.push(new LocalFolder(key, folderContent));
         }
@@ -65,7 +75,7 @@ export class LocalFeedProvider implements FeedProvider {
         return [];
     }
 
-    settings(containerEl: HTMLDivElement) : SettingsSection {
+    settings(containerEl: HTMLDivElement): SettingsSection {
         return new LocalFeedSettings(this.plugin, containerEl);
     }
 

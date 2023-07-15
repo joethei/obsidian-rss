@@ -47,7 +47,7 @@ export default class RssReaderPlugin extends Plugin {
         this.providers = new Providers(this);
 
         this.providers.register(new LocalFeedProvider(this));
-        this.providers.register(new NextcloudFeedProvider(this));
+        //this.providers.register(new NextcloudFeedProvider(this));
 
         this.addCommand({
             id: "rss-open",
@@ -83,14 +83,16 @@ export default class RssReaderPlugin extends Plugin {
             callback: async () => {
                 const input = new TextInputPrompt(this.app, "URL", "URL", "", "", t("open"));
                 await input.openAndGetValue(async (text) => {
-                    const items = await getFeedItems({name: "", folder: "", url: text.getValue()});
-                    if (!items || items.items.length === 0) {
+                    const provider = await this.providers.getById('local') as LocalFeedProvider;
+                    const feed = await provider.feedFromUrl(text.getValue());
+                    const items = feed.items();
+                    if (!items || items.length === 0) {
                         input.setValidationError(text, t("invalid_feed"));
                         return;
                     }
 
                     input.close();
-                    new ArticleSuggestModal(this, items.items).open();
+                    new ArticleSuggestModal(this, items).open();
                 });
             }
         });

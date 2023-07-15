@@ -1,5 +1,4 @@
 import {SettingsSection} from "./SettingsSection";
-import {Setting} from "obsidian";
 import t from "../l10n/locale";
 
 export class ProviderSettings extends SettingsSection {
@@ -11,7 +10,7 @@ export class ProviderSettings extends SettingsSection {
     display(): void {
         this.contentEl.empty();
 
-        new Setting(this.contentEl)
+       /* new Setting(this.contentEl)
             .setName(t("provider"))
             .addDropdown(dropdown => {
                 for (const feedProvider of this.plugin.providers.getAll()) {
@@ -24,9 +23,7 @@ export class ProviderSettings extends SettingsSection {
                         await this.plugin.saveSettings();
                         this.display();
                     })
-            });
-
-        this.contentEl.createEl("hr", {cls: "rss-divider"});
+            });*/
 
         const providerEl = this.contentEl.createDiv();
 

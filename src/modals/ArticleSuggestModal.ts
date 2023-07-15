@@ -4,9 +4,8 @@ import {ItemModal} from "./ItemModal";
 import {Item} from "../providers/Item";
 
 export class ArticleSuggestModal extends SuggestModal<Item> {
-
-    plugin: RssReaderPlugin;
-    items: Item[];
+    protected readonly plugin: RssReaderPlugin;
+    protected readonly items: Item[];
 
     constructor(plugin: RssReaderPlugin, items: Item[]) {
         super(plugin.app);
