@@ -4,6 +4,7 @@ import de from "./locales/de";
 import zh from "./locales/zh";
 import fr from "./locales/fr";
 import es from "./locales/es";
+import da from "./locales/da";
 import test from "./locales/test";
 
 /* istanbul ignore next */
@@ -16,6 +17,8 @@ const localeMap: { [k: string]: Partial<typeof en> } = {
     fr,
     es,
     test,
+    fr,
+    da
 };
 
 const userLocale = localeMap[locale];
