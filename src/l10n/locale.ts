@@ -3,6 +3,7 @@ import en from "./locales/en";
 import de from "./locales/de";
 import zh from "./locales/zh";
 import fr from "./locales/fr";
+import pt from "./locales/pt";
 import it from "./locales/it";
 import es from "./locales/es";
 import da from "./locales/da";
@@ -19,6 +20,7 @@ const localeMap: { [k: string]: Partial<typeof en> } = {
     es,
     test,
     fr,
+    pt
     it
     da
 };
